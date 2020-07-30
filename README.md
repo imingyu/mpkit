@@ -1,0 +1,2 @@
+# mpkit
+mpkit是一个一致性、模块化的适用于所有小程序平台的JavaScript实用工具库
