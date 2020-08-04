@@ -1,0 +1,20 @@
+{
+  "name": "@mpkit/view-parser",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "imingyu <mingyuhisoft@163.com>",
+  "homepage": "https://github.com/imingyu/mpkit#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imingyu/mpkit.git"
+  },
+  "scripts": {},
+  "bugs": {
+    "url": "https://github.com/imingyu/mpkit/issues"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^3.17.4"
+  }
+}
