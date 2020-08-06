@@ -2,7 +2,7 @@
     "name": "mpkit",
     "private": true,
     "scripts": {
-        "build": "node build/build.js"
+        "build": "tsc --emitDeclarationOnly && node build/build.js"
     },
     "devDependencies": {
         "@babel/core": "^7.11.1",

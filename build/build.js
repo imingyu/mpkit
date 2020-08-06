@@ -8,7 +8,7 @@ const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
 
 const getPackageName = (str) => {
-    return str.replace(path.resolve(__dirname, '../packages'), '');
+    return (str || '').replace(path.resolve(__dirname, '../packages'), '');
 }
 
 console.log(`🌟开始编译...`);
@@ -25,7 +25,9 @@ Promise.all(entrys.map((rollupConfig, index) => {
     rollupConfig.input.plugins.push(nodeResolve());
     rollupConfig.input.plugins.push(rollupCommonjs());
     rollupConfig.input.plugins.push(rollupJSON());
-    rollupConfig.input.plugins.push(rollupTS());
+    rollupConfig.input.plugins.push(rollupTS({
+        declaration: false
+    }));
     rollupConfig.input.plugins.push(babel({
         extensions: ['.ts', '.js'],
         babelHelpers: 'bundled',

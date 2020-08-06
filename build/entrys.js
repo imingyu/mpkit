@@ -15,8 +15,8 @@ module.exports = [
     if (!package.formats) {
         package.formats = formats;
     }
-    package.formats.forEach(format => {
-        sum.push({
+    package.formats.forEach((format, index) => {
+        const config = {
             input: {
                 input: resolveFile(`/${package.packageName}/index.ts`)
             },
@@ -24,7 +24,8 @@ module.exports = [
                 format,
                 file: resolveFile(`/${package.packageName}/dist/index.${format}.js`),
             }
-        });
+        }
+        sum.push(config);
     });
     return sum;
 }, [])
