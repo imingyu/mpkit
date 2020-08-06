@@ -10,9 +10,11 @@
     "type": "git",
     "url": "git+https://github.com/imingyu/mpkit.git"
   },
-  "scripts": {
-  },
+  "scripts": {},
   "bugs": {
     "url": "https://github.com/imingyu/mpkit/issues"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.7"
   }
 }

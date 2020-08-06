@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@mpkit/*": ["packages/*"]
+        }
+    },
+    "include": ["packages/**/*.ts"],
+    "exclude": ["node_modules", "dist"]
+}

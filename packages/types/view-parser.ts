@@ -1,13 +1,33 @@
+export interface MpViewParserOptions {}
 export interface MpElement {
-    tag: string;
+    tag?: string;
+    type: MpElementType;
+    attrs?: MpElementAttr[];
+    children?: MpElementContent[] | MpElement[];
+    selfCloseing?: boolean;
 }
-export enum MpElementAttrType {
-    number = "number",
-    boolean = "boolean",
-    string = "string",
-    dynamic = "dynamic"
+export enum MpElementType {
+    node = "node",
+    text = "text",
+    comment = "comment",
 }
 export interface MpElementAttr {
     name: string;
-    value: string;
+    value?: MpElementContent;
+}
+
+export enum MpElementContentType {
+    number = "number",
+    boolean = "boolean",
+    string = "string",
+    null = "null",
+    dynamic = "dynamic",
+}
+export interface MpElementContent {
+    type: MpElementContentType;
+    value: string | number | boolean | null | MpDynamicValue;
+}
+export interface MpDynamicValue {
+    source: string;
+    ast: any;
 }

@@ -1,7 +1,19 @@
 {
-  "name": "mpkit",
-  "private": true,
-  "devDependencies": {
-    "lerna": "^3.22.1"
-  }
+    "name": "mpkit",
+    "private": true,
+    "scripts": {
+        "build": "node build/build.js"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.11.1",
+        "@babel/preset-env": "^7.11.0",
+        "@babel/preset-typescript": "^7.10.4",
+        "@rollup/plugin-babel": "^5.1.0",
+        "@rollup/plugin-json": "^4.1.0",
+        "@rollup/plugin-node-resolve": "^8.4.0",
+        "@rollup/plugin-typescript": "^5.0.2",
+        "lerna": "^3.22.1",
+        "rollup": "^2.23.0",
+        "typescript": "^3.9.7"
+    }
 }
