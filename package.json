@@ -9,9 +9,11 @@
         "@babel/preset-env": "^7.11.0",
         "@babel/preset-typescript": "^7.10.4",
         "@rollup/plugin-babel": "^5.1.0",
+        "@rollup/plugin-commonjs": "^14.0.0",
         "@rollup/plugin-json": "^4.1.0",
         "@rollup/plugin-node-resolve": "^8.4.0",
         "@rollup/plugin-typescript": "^5.0.2",
+        "babel-plugin-lodash": "^3.3.4",
         "lerna": "^3.22.1",
         "rollup": "^2.23.0",
         "typescript": "^3.9.7"

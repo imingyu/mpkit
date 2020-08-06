@@ -1,5 +1,6 @@
 const { nodeResolve } = require('@rollup/plugin-node-resolve');
 const { babel } = require('@rollup/plugin-babel');
+const rollupCommonjs = require('@rollup/plugin-commonjs');
 const rollupJSON = require('@rollup/plugin-json');
 const path = require('path');
 const rollup = require('rollup');
@@ -15,13 +16,14 @@ Promise.all(entrys.map((rollupConfig, index) => {
     if (!rollupConfig.input.external) {
         rollupConfig.input.external = []
     }
-    rollupConfig.input.external.push('lodash');
+    rollupConfig.input.external.push(/lodash/);
     rollupConfig.input.external.push('fast-xml-parser');
     rollupConfig.input.external.push(/\@mpkit\//);
     if (!rollupConfig.input.plugins) {
         rollupConfig.input.plugins = [];
     }
     rollupConfig.input.plugins.push(nodeResolve());
+    rollupConfig.input.plugins.push(rollupCommonjs());
     rollupConfig.input.plugins.push(rollupJSON());
     rollupConfig.input.plugins.push(rollupTS());
     rollupConfig.input.plugins.push(babel({
