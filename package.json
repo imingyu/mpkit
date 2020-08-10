@@ -2,7 +2,7 @@
     "name": "mpkit",
     "private": true,
     "scripts": {
-        "build": "tsc --emitDeclarationOnly && node build/build.js"
+        "build": "node build/clear.js && tsc --emitDeclarationOnly && node build/build.js"
     },
     "devDependencies": {
         "@babel/core": "^7.11.1",
@@ -14,6 +14,7 @@
         "@rollup/plugin-node-resolve": "^8.4.0",
         "@rollup/plugin-typescript": "^5.0.2",
         "babel-plugin-lodash": "^3.3.4",
+        "fse": "^4.0.1",
         "lerna": "^3.22.1",
         "rollup": "^2.23.0",
         "typescript": "^3.9.7"

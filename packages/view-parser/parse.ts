@@ -4,7 +4,7 @@ import {
     MpElementType,
     MpElementContentType,
     MpElementContent,
-} from "@mpkit/types/view-parser";
+} from "@mpkit/types";
 import { parse as parseXML } from "fast-xml-parser";
 import { each } from "lodash";
 

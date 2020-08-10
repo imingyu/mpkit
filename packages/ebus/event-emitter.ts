@@ -1,14 +1,7 @@
-import { TMap } from "./util";
-export interface EventData {
-    type: string;
-    ts: number;
-    data?: any;
-}
-export interface EventHandler {
-    (eventData: EventData, ...args: any[]);
-}
-export default class EventEmitter {
-    private events: TMap<EventHandler[]> = {} as TMap<EventHandler[]>;
+import { MkMap } from "@mpkit/types";
+import { EventHandler, EBus } from "@mpkit/types";
+export default class EventEmitter implements EBus {
+    private events: MkMap<EventHandler[]> = {};
     constructor() {
         ["on", "off", "emit"].forEach((prop) => {
             this[prop] = this[prop].bind(this);

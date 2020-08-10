@@ -4,13 +4,14 @@ import { MpApiVar } from "./api";
 interface GetViewHandler<T> {
     (): T;
 }
-
-declare var getApp: GetViewHandler<MpView>;
-declare var getCurrentPages: GetViewHandler<MpView[]>;
-declare var wx: MpApiVar;
-declare var my: MpApiVar;
-declare var swan: MpApiVar;
-declare var tt: MpApiVar;
-declare var App: MpViewFactory;
-declare var Page: MpViewFactory;
-declare var Component: MpViewFactory;
+declare global {
+    var getApp: GetViewHandler<MpView>;
+    var getCurrentPages: GetViewHandler<MpView[]>;
+    var wx: MpApiVar;
+    var my: MpApiVar;
+    var swan: MpApiVar;
+    var tt: MpApiVar;
+    var App: MpViewFactory;
+    var Page: MpViewFactory;
+    var Component: MpViewFactory;
+}

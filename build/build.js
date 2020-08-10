@@ -3,16 +3,33 @@ const { babel } = require('@rollup/plugin-babel');
 const rollupCommonjs = require('@rollup/plugin-commonjs');
 const rollupJSON = require('@rollup/plugin-json');
 const path = require('path');
+const fs = require('fs');
+const fse = require('fse');
 const rollup = require('rollup');
 const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
+const { clearDir } = require('./util');
 
 const getPackageName = (str) => {
     return (str || '').replace(path.resolve(__dirname, '../packages'), '');
 }
 
 console.log(`🌟开始编译...`);
+
 Promise.all(entrys.map((rollupConfig, index) => {
+    // 将所有的d.ts移到types目录下
+    const arr = rollupConfig.input.input.split('/');
+    arr.splice(arr.length - 1, 1);
+    const packageRoot = arr.join('/');
+    const typesOutDir = packageRoot + '/spec';
+    fs.readdirSync(packageRoot).forEach(srcFile => {
+        if (srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts')) {
+            const targetFileName = path.join(typesOutDir, srcFile);
+            const sourceFileName = path.join(packageRoot, srcFile);
+            fse.copyFileSync(sourceFileName, targetFileName);
+            fs.unlinkSync(sourceFileName)
+        }
+    })
     if (!rollupConfig.input.external) {
         rollupConfig.input.external = []
     }

@@ -1,8 +1,28 @@
-import { MkMap } from "./util";
-import { wx } from "./global";
+import { MkEnumMap } from "./util";
+export interface MpAppLaunchOptions {}
+export interface MpViewInitLife<V, T> {
+    (this: V, options: T): void;
+}
+export interface MpViewLife<V> {
+    (this: V): void;
+}
+// 小程序App实例
+export interface MpViewApp extends MpViewAppSpec, MpView {}
+// 小程序App函数接收的配置对象
+export interface MpViewAppSpec {
+    onLaunch: MpViewInitLife<MpViewApp, MpAppLaunchOptions>;
+    onShow: MpViewInitLife<MpViewApp, MpAppLaunchOptions>;
+    onHide: MpViewLife<MpViewApp>;
+    onError: MpViewLife<MpViewApp>;
+    [prop: string]: any;
+}
+export interface MpAlipayViewApp extends MpViewApp, MpAlipayViewAppSpec {}
+export interface MpAlipayViewAppSpec extends MpViewAppSpec {
+    onShareAppMessage: MpViewLife<MpAlipayViewApp>;
+}
 
 export interface MpViewFactory {
-    (spec: MpViewPageSpec | MpViewComponentSpec): void;
+    (spec: MpViewAppSpec | MpViewPageSpec | MpViewComponentSpec): void;
 }
 export enum MpViewType {
     App = "App",
@@ -32,8 +52,8 @@ export interface MpViewComponentSpec extends MpViewSpec {
     properties?: {
         [prop: string]: Function | MpViewComponetPropSpec;
     };
-    lifetimes?: MkMap<MpViewComponentLifes, Function | string>;
-    pageLifetimes?: MkMap<MpViewComponentPageLifes, Function | string>;
+    lifetimes?: MkEnumMap<MpViewComponentLifes, Function | string>;
+    pageLifetimes?: MkEnumMap<MpViewComponentPageLifes, Function | string>;
     methods: {
         [prop: string]: Function;
     };

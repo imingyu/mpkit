@@ -4,6 +4,10 @@ const formats = ['cjs', 'esm']
 module.exports = [
     'types',
     'view-parser',
+    'mixin',
+    'inject',
+    'util',
+    'ebus'
     // {
     //     packageName:'types',
     //     formats
