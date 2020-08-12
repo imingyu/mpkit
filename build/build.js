@@ -31,11 +31,10 @@ Promise.all(entrys.map((rollupConfig, index) => {
         }
     })
     if (!rollupConfig.input.external) {
-        rollupConfig.input.external = []
+        rollupConfig.input.external = [/\@mpkit\//]
     }
     rollupConfig.input.external.push(/lodash/);
     rollupConfig.input.external.push('fast-xml-parser');
-    rollupConfig.input.external.push(/\@mpkit\//);
     if (!rollupConfig.input.plugins) {
         rollupConfig.input.plugins = [];
     }
@@ -59,6 +58,15 @@ Promise.all(entrys.map((rollupConfig, index) => {
     const packageName = getPackageName(rollupConfig.output.file);
     return rollup.rollup(rollupConfig.input).then(res => {
         return res.write(rollupConfig.output);
+    }).then(() => {
+        if (rollupConfig.options && rollupConfig.options.done) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    rollupConfig.options.done();
+                    resolve();
+                })
+            })
+        }
     }).then(() => {
         console.log(`   编译成功：${packageName}`);
     })

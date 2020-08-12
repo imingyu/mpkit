@@ -1,5 +1,4 @@
-import { MpKitInject, MpKitPlugin } from "@mpkit/types";
-import { MkMap } from "@mpkit/types";
+import { MpKitInject, MpKitPlugin, MkMap } from "@mpkit/types";
 import { getApiVar } from "@mpkit/util";
 import MpKitConfig from "./config";
 class MpKit implements MpKitInject {

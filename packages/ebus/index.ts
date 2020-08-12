@@ -1,6 +1,7 @@
 import EventEmitter from "./event-emitter";
 import { MpKitPlugin } from "@mpkit/types";
 const ev = new EventEmitter();
+export { EventEmitter };
 export const on = ev.on;
 export const off = ev.off;
 export const emit = ev.emit;
