@@ -23,5 +23,9 @@
         "mpkit",
         "小程序",
         "miniprogram"
-    ]
+    ],
+    "devDependencies": {
+        "chai": "^4.2.0",
+        "mocha": "^8.1.1"
+    }
 }

@@ -35,6 +35,8 @@
     },
     "devDependencies": {
         "@types/lodash": "^4.14.158",
+        "chai": "^4.2.0",
+        "mocha": "^8.1.1",
         "typescript": "^3.9.7"
     }
 }
