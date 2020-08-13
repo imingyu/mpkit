@@ -41,6 +41,7 @@ export const MkNative = {
 export const plugin: MpKitPlugin = {
     name: "mixin",
     apply(mpkit: MpKitInject, config?: MpKitConfig) {
+        MixinStore.bindEBus(mpkit);
         mpkit.App = MkApp;
         mpkit.Page = MkPage;
         mpkit.Component = MkComponent;

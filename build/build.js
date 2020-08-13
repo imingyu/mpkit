@@ -8,8 +8,6 @@ const fse = require('fse');
 const rollup = require('rollup');
 const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
-const { clearDir } = require('./util');
-
 const getPackageName = (str) => {
     return (str || '').replace(path.resolve(__dirname, '../packages'), '');
 }
@@ -21,15 +19,6 @@ Promise.all(entrys.map((rollupConfig, index) => {
     const arr = rollupConfig.input.input.split('/');
     arr.splice(arr.length - 1, 1);
     const packageRoot = arr.join('/');
-    const typesOutDir = packageRoot + '/spec';
-    fs.readdirSync(packageRoot).forEach(srcFile => {
-        if (srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts')) {
-            const targetFileName = path.join(typesOutDir, srcFile);
-            const sourceFileName = path.join(packageRoot, srcFile);
-            fse.copyFileSync(sourceFileName, targetFileName);
-            fs.unlinkSync(sourceFileName)
-        }
-    })
     if (!rollupConfig.input.external) {
         rollupConfig.input.external = [/\@mpkit\//]
     }
@@ -59,14 +48,12 @@ Promise.all(entrys.map((rollupConfig, index) => {
     return rollup.rollup(rollupConfig.input).then(res => {
         return res.write(rollupConfig.output);
     }).then(() => {
-        if (rollupConfig.options && rollupConfig.options.done) {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    rollupConfig.options.done();
-                    resolve();
-                })
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                rollupConfig.options && rollupConfig.options.done && rollupConfig.options.done();
+                resolve();
             })
-        }
+        })
     }).then(() => {
         console.log(`   编译成功：${packageName}`);
     })
@@ -76,3 +63,6 @@ Promise.all(entrys.map((rollupConfig, index) => {
     console.error(`🔥编译出错：${err.message}`);
     console.log(err);
 });
+
+// const ebus = require('../packages/ebus');
+// ebus.on()

@@ -1,9 +1,9 @@
 {
-    "name": "@mpkit/util",
+    "name": "@mpkit/ebus",
     "version": "0.0.0",
-    "description": "mpkit工具函数库",
+    "description": "提供事件触发、监听等功能",
     "author": "imingyu <mingyuhisoft@163.com>",
-    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/util",
+    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/ebus",
     "license": "MIT",
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",
@@ -23,6 +23,9 @@
         "mpkit",
         "小程序",
         "miniprogram",
-        "util"
-    ]
+        "ebus"
+    ],
+    "dependencies": {
+        "@mpkit/util": "^0.0.0"
+    }
 }

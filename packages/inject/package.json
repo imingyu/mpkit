@@ -1,9 +1,9 @@
 {
-    "name": "@mpkit/view-parser",
+    "name": "@mpkit/inject",
     "version": "0.0.0",
-    "description": "将小程序模板编译为ast。",
+    "description": "提供小程序环境适用的多种实用函数或组件，如setData优化、Mixin、事件总线等。",
     "author": "imingyu <mingyuhisoft@163.com>",
-    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/view-parser",
+    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/inject",
     "license": "MIT",
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",
@@ -23,18 +23,25 @@
         "mpkit",
         "小程序",
         "miniprogram",
-        "view-parser",
-        "wxml-to-json",
-        "xml-to-json"
+        "weapp",
+        "wxapp",
+        "微信小程序",
+        "支付宝小程序",
+        "百度小程序",
+        "字节跳动小程序",
+        "mixin",
+        "ebus",
+        "setData",
+        "set-data",
+        "setData优化",
+        "diff",
+        "小程序优化"
     ],
     "dependencies": {
         "@mpkit/types": "^0.0.0",
         "@mpkit/util": "^0.0.0",
-        "fast-xml-parser": "^3.17.4",
-        "lodash": "^4.17.19"
-    },
-    "devDependencies": {
-        "@types/lodash": "^4.14.158",
-        "typescript": "^3.9.7"
+        "@mpkit/ebus": "^0.0.0",
+        "@mpkit/set-data": "^0.0.0",
+        "@mpkit/mixin": "^0.0.0"
     }
 }

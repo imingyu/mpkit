@@ -1,9 +1,9 @@
 {
-    "name": "@mpkit/util",
+    "name": "@mpkit/set-data",
     "version": "0.0.0",
-    "description": "mpkit工具函数库",
+    "description": "小程序setData优化。",
     "author": "imingyu <mingyuhisoft@163.com>",
-    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/util",
+    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/set-data",
     "license": "MIT",
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",
@@ -23,6 +23,14 @@
         "mpkit",
         "小程序",
         "miniprogram",
-        "util"
-    ]
+        "setData",
+        "set-data",
+        "setData优化",
+        "diff",
+        "小程序优化"
+    ],
+    "dependencies": {
+        "@mpkit/types": "^0.0.0",
+        "@mpkit/util": "^0.0.0"
+    }
 }

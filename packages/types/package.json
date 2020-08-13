@@ -1,20 +1,27 @@
 {
-  "name": "@mpkit/types",
-  "version": "0.0.0",
-  "description": "> TODO: description",
-  "author": "imingyu <mingyuhisoft@163.com>",
-  "homepage": "https://github.com/imingyu/mpkit#readme",
-  "license": "MIT",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/imingyu/mpkit.git"
-  },
-  "scripts": {},
-  "bugs": {
-    "url": "https://github.com/imingyu/mpkit/issues"
-  },
-  "devDependencies": {
-    "typescript": "^3.9.7"
-  }
+    "name": "@mpkit/types",
+    "version": "0.0.0",
+    "description": "mpkit包相关typescript类型",
+    "author": "imingyu <mingyuhisoft@163.com>",
+    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/types",
+    "license": "MIT",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.esm.js",
+    "types": "index.ts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/imingyu/mpkit.git"
+    },
+    "scripts": {},
+    "bugs": {
+        "url": "https://github.com/imingyu/mpkit/issues"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "mpkit",
+        "小程序",
+        "miniprogram"
+    ]
 }

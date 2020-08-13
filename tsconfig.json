@@ -3,9 +3,8 @@
         "baseUrl": ".",
         "paths": {
             "@mpkit/*": ["packages/*"]
-        },
-        "declaration": true
+        }
     },
     "include": ["packages/**/*.ts"],
-    "exclude": ["node_modules", "dist", "packages/**/spec/*.ts"]
+    "exclude": ["node_modules", "dist"]
 }

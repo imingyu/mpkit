@@ -1,9 +1,32 @@
 {
     "name": "mpkit",
     "private": true,
+    "description": "mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具库",
     "scripts": {
-        "build": "node build/clear.js && tsc --emitDeclarationOnly && node build/build.js"
+        "build": "node build/clear.js && node build/build.js"
     },
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "mpkit",
+        "小程序",
+        "miniprogram",
+        "weapp",
+        "wxapp",
+        "微信小程序",
+        "支付宝小程序",
+        "百度小程序",
+        "字节跳动小程序",
+        "setData",
+        "set-data",
+        "setData优化",
+        "diff",
+        "小程序优化"
+    ],
+    "workspaces": [
+        "packages/*"
+    ],
     "devDependencies": {
         "@babel/core": "^7.11.1",
         "@babel/preset-env": "^7.11.0",
