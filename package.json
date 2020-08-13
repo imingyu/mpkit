@@ -5,6 +5,7 @@
     "scripts": {
         "build": "node build/clear.js && node build/build.js"
     },
+    "author": "imingyu <mingyuhisoft@163.com>",
     "publishConfig": {
         "access": "public"
     },
