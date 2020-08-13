@@ -7,9 +7,17 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "启动程序",
+            "name": "debug build",
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/build/build.js",
+            "outFiles": ["${workspaceFolder}/**/*.js"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "debug ebus",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/packages/ebus/debug.js",
             "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]

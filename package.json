@@ -3,7 +3,8 @@
     "private": true,
     "description": "mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具库",
     "scripts": {
-        "build": "node build/clear.js && node build/build.js"
+        "build": "node build/clear.js && node build/build.js",
+        "test": "mocha packages/**/test/*.js"
     },
     "author": "imingyu <mingyuhisoft@163.com>",
     "publishConfig": {
@@ -38,8 +39,10 @@
         "@rollup/plugin-node-resolve": "^8.4.0",
         "@rollup/plugin-typescript": "^5.0.2",
         "babel-plugin-lodash": "^3.3.4",
+        "chai": "^4.2.0",
         "fse": "^4.0.1",
         "lerna": "^3.22.1",
+        "mocha": "^8.1.1",
         "rollup": "^2.23.0",
         "typescript": "^3.9.7"
     }
