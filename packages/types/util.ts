@@ -4,3 +4,5 @@ export type MkMap<T> = {
 export type MkEnumMap<E extends string, T> = {
     [prop in E]: T;
 };
+
+export type MkMaybe<T> = T | undefined;

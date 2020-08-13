@@ -2,7 +2,7 @@ import { MpViewType, MpView } from "./view";
 import { MkMap, MkEnumMap } from "./util";
 import { EBus, EventType } from "./ebus";
 
-export interface MpMethodHook {
+interface MpMethodHookLike {
     before?(
         methodName: string,
         methodArgs: any[],
@@ -29,6 +29,9 @@ export interface MpMethodHook {
         success?: boolean,
         funId?: string
     );
+}
+export interface MpMethodHook extends MpMethodHookLike {
+    [prop: string]: Function | MpMethodHookLike;
 }
 
 export interface ViewInstanceMap {

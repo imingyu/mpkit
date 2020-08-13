@@ -5,6 +5,7 @@ export default {
         Page: false,
         Component: false,
         Api: false,
+        setData: false,
     },
     plugins: [] as MpKitPlugin[],
 } as MpKitConfig;

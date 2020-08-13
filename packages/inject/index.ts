@@ -28,6 +28,9 @@ class MpKit implements MpKitInject {
         this.plugins[plugin.name] = plugin;
         plugin.apply(this, MpKitConfig);
     }
+    hasPlugin(name: string): boolean {
+        return !!this.plugins[name];
+    }
 }
 const defaultMpKit = new MpKit() as MpKitInject;
 if (MpKitConfig && MpKitConfig.plugins) {

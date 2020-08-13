@@ -1,7 +1,7 @@
-import { MpViewType } from "@mpkit/types";
-import { getMpPlatform } from "@mpkit/util";
+import { MpViewType, MpView, MpMethodHook } from "@mpkit/types";
+import { getMpPlatform, getMpInitLifeName } from "@mpkit/util";
 import { MpPlatfrom } from "@mpkit/types";
-import { mergeApi, merge } from "./mrege";
+import { mergeApi, mergeView } from "./mrege";
 import MixinStore from "./store";
 import {
     MpKitPlugin,
@@ -23,13 +23,13 @@ export const MkApi = (() => {
     }
 })();
 export const MkApp = (...specList) => {
-    return merge(MixinStore.getHook(MpViewType.App), ...specList);
+    return mergeView(MixinStore.getHook(MpViewType.App), ...specList);
 };
 export const MkPage = (...specList) => {
-    return merge(MixinStore.getHook(MpViewType.Page), ...specList);
+    return mergeView(MixinStore.getHook(MpViewType.Page), ...specList);
 };
 export const MkComponent = (...specList) => {
-    return merge(MixinStore.getHook(MpViewType.Component), ...specList);
+    return mergeView(MixinStore.getHook(MpViewType.Component), ...specList);
 };
 export const MkNative = {
     App,
@@ -45,6 +45,35 @@ export const plugin: MpKitPlugin = {
         mpkit.Page = MkPage;
         mpkit.Component = MkComponent;
         if (config && config.rewrite) {
+            const rewriteSetData = function rewriteSetData(this: MpView) {
+                if (
+                    mpkit.hasPlugin("set-data") &&
+                    mpkit.setData &&
+                    !this.$mkNativeSetData
+                ) {
+                    this.$mkNativeSetData = this.setData;
+                    this.setData = function betterSetData(
+                        this: MpView,
+                        ...args
+                    ) {
+                        return mpkit.setData.apply(mpkit, [this, ...args]);
+                    };
+                }
+            };
+            const setDataMixin = (type: MpViewType): MpMethodHook => {
+                return {
+                    [getMpInitLifeName(type)]: {
+                        before() {
+                            rewriteSetData.call(this);
+                        },
+                    },
+                    observer: {
+                        before() {
+                            rewriteSetData.call(this);
+                        },
+                    },
+                };
+            };
             const rewriteApi = () => {
                 const paltform = getMpPlatform();
                 if (paltform === MpPlatfrom.wechat) {
@@ -71,11 +100,31 @@ export const plugin: MpKitPlugin = {
                 }
                 if (tsRewrite.Page) {
                     Page = MkPage;
+                    if (tsRewrite.setData) {
+                        MixinStore.addHook(
+                            MpViewType.Page,
+                            setDataMixin(MpViewType.Page)
+                        );
+                    }
                 }
                 if (tsRewrite.Component) {
                     Component = MkComponent;
+                    if (tsRewrite.setData) {
+                        MixinStore.addHook(
+                            MpViewType.Component,
+                            setDataMixin(MpViewType.Component)
+                        );
+                    }
                 }
             } else {
+                MixinStore.addHook(
+                    MpViewType.Page,
+                    setDataMixin(MpViewType.Page)
+                );
+                MixinStore.addHook(
+                    MpViewType.Component,
+                    setDataMixin(MpViewType.Component)
+                );
                 App = MkApp;
                 Page = MkPage;
                 Component = MkComponent;

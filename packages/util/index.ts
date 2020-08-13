@@ -1,4 +1,9 @@
-import { MpPlatfrom } from "@mpkit/types";
+import {
+    MpPlatfrom,
+    MpViewInitLifes,
+    MpViewMountLifes,
+    MkMaybe,
+} from "@mpkit/types";
 import {
     MpViewType,
     MpView,
@@ -23,25 +28,6 @@ export const isNativeFunc = (func: Function) => {
     return func === Function || func.toString().indexOf("[native code]") !== -1;
 };
 
-export function isPlainObject(value) {
-    if (typeof value !== "object") {
-        return false;
-    }
-    if (Object.getPrototypeOf(value) === null) {
-        return true;
-    }
-    let proto = value;
-    while (Object.getPrototypeOf(proto) !== null) {
-        proto = Object.getPrototypeOf(proto);
-    }
-    return Object.getPrototypeOf(value) === proto;
-}
-export const isEmptyObject = (obj) => {
-    for (let prop in obj) {
-        return false;
-    }
-    return true;
-};
 export const isPromise = (obj) => obj && obj.then;
 export const getMpPlatform = (() => {
     let platform;
@@ -115,7 +101,7 @@ export const getApiVar = (() => {
     };
 })();
 
-export const getMpInitLifeName = (viewType: MpViewType) => {
+export const getMpInitLifeName = (viewType: MpViewType): MpViewInitLifes => {
     if (viewType === MpViewType.App) {
         return "onLaunch";
     }
@@ -127,7 +113,7 @@ export const getMpInitLifeName = (viewType: MpViewType) => {
         return mpPlatform !== MpPlatfrom.alipay ? "created" : "onInit";
     }
 };
-export const getMpMountLifeName = (viewType: MpViewType) => {
+export const getMpMountLifeName = (viewType: MpViewType): MpViewMountLifes => {
     if (viewType === MpViewType.App) {
         return "onShow";
     }
@@ -165,7 +151,10 @@ const defineViewType = (view: MpView, value: MpViewType) => {
     return value;
 };
 
-export const getMpViewType = (view: MpView): MpViewType => {
+export const getMpViewType = (view: MpView): MkMaybe<MpViewType> => {
+    if (getMpPlatform() === MpPlatfrom.unknown) {
+        return;
+    }
     if (!view.$mkType) {
         if ("route" in view || "__route__" in view) {
             return defineViewType(view, MpViewType.Page);
@@ -187,9 +176,15 @@ export const getMpViewType = (view: MpView): MpViewType => {
 export const getMpNativeViewId = (
     vm: MpView,
     viewType?: MpViewType
-): string => {
+): MkMaybe<string> => {
     if (!viewType) {
-        viewType = getMpViewType(vm);
+        const tsViewType = getMpViewType(vm);
+        if (tsViewType) {
+            viewType = tsViewType;
+        }
+    }
+    if (!viewType) {
+        return;
     }
     const MP_PLATFORM = getMpPlatform();
     if (MP_PLATFORM === MpPlatfrom.unknown) {
@@ -228,7 +223,7 @@ export const getMpNativeViewId = (
         }
     }
 };
-export const getMpComponentPageNativeViewId = (vm: MpView): string => {
+export const getMpComponentPageNativeViewId = (vm: MpView): MkMaybe<string> => {
     const MP_PLATFORM = getMpPlatform();
     if (MP_PLATFORM === MpPlatfrom.wechat) {
         return (vm as MpWechatView).__wxWebviewId__ + "";
@@ -272,4 +267,71 @@ export const getMpViewPathName = (
         }
         return (vm as MpSmartViewComponent).is;
     }
+};
+
+export const isMpIvew = (view: any): boolean => {
+    if (typeof view === "object" && !view && !isPlainObject(view)) {
+        if (view.$mkType) {
+            return true;
+        }
+        if (getMpViewType(view)) {
+            return true;
+        }
+    }
+    return false;
+};
+
+export const safeJSON = (obj) => {
+    if (typeof obj !== "object") {
+        return obj;
+    } else {
+        return JSON.parse(JSON.stringify(obj));
+    }
+};
+export function isPlainObject(value) {
+    if (typeof value !== "object") {
+        return false;
+    }
+    if (Object.getPrototypeOf(value) === null) {
+        return true;
+    }
+    let proto = value;
+    while (Object.getPrototypeOf(proto) !== null) {
+        proto = Object.getPrototypeOf(proto);
+    }
+    return Object.getPrototypeOf(value) === proto;
+}
+export const isEmptyObject = (obj) => {
+    for (let prop in obj) {
+        return false;
+    }
+    return true;
+};
+export const isValidObject = (obj, checkEmpty = true) =>
+    typeof obj === "object" && obj && (checkEmpty ? !isEmptyObject(obj) : true);
+
+export const merge = (source, ...targets) => {
+    if (!isValidObject(source, false)) {
+        return source;
+    }
+    targets.forEach((target) => {
+        if (isValidObject(target)) {
+            Object.keys(target).forEach((prop) => {
+                const value = target[prop];
+                const valType = typeof value;
+                if (
+                    valType === "object" &&
+                    value &&
+                    (isPlainObject(value) || Array.isArray(value))
+                ) {
+                    if (typeof source[prop] !== "object") {
+                        source[prop] = Array.isArray(value) ? [] : {};
+                    }
+                    source[prop] = merge(source[prop], value);
+                } else {
+                    source[prop] = value;
+                }
+            });
+        }
+    });
 };

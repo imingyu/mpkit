@@ -22,7 +22,7 @@ const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
     });
     return res;
 };
-export const merge = (methodHook: MpMethodHook[], ...specList) => {
+export const mergeView = (methodHook: MpMethodHook[], ...specList) => {
     const result = {};
     const methodMap = {};
     const methodsSpecList = [];
@@ -46,7 +46,7 @@ export const merge = (methodHook: MpMethodHook[], ...specList) => {
                     if (typeof result[prop] !== "object") {
                         result[prop] = Array.isArray(value) ? [] : {};
                     }
-                    result[prop] = merge(methodHook, result[prop], value);
+                    result[prop] = mergeView(methodHook, result[prop], value);
                 }
             } else if (valType === "function") {
                 if (isNativeFunc(value)) {
@@ -75,10 +75,10 @@ export const merge = (methodHook: MpMethodHook[], ...specList) => {
             }
         });
     if (methodsSpecList.length) {
-        result["methods"] = merge(methodHook, ...methodsSpecList);
+        result["methods"] = mergeView(methodHook, ...methodsSpecList);
     }
     if (pageLifesSpecList.length) {
-        result["pageLifetimes"] = merge(methodHook, ...pageLifesSpecList);
+        result["pageLifetimes"] = mergeView(methodHook, ...pageLifesSpecList);
     }
     const hookMethod = (map, target) => {
         for (let methodName in map) {

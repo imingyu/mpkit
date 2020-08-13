@@ -1,4 +1,5 @@
 import { MkEnumMap } from "./util";
+import { MkSetData } from "./set-data";
 export interface MpAppLaunchOptions {}
 export interface MpViewInitLife<V, T> {
     (this: V, options: T): void;
@@ -6,6 +7,8 @@ export interface MpViewInitLife<V, T> {
 export interface MpViewLife<V> {
     (this: V): void;
 }
+export type MpViewInitLifes = "onLaunch" | "onLoad" | "created" | "onInit";
+export type MpViewMountLifes = "onShow" | "attached" | "didMount";
 // 小程序App实例
 export interface MpViewApp extends MpViewAppSpec, MpView {}
 // 小程序App函数接收的配置对象
@@ -64,8 +67,10 @@ export interface MpView {
     $mkType: MpViewType;
     $mkKey: string;
     $mkKeyIsDefine?: boolean | string;
-    $mkIsRewriteSetData?: boolean;
     $mkNativeSetData: MpSetDataHandler;
+    $mkSetData: MkSetData;
+    $mkSetDataIsBind?: boolean;
+    $mkReadyData: any;
     data: any;
     setData: MpSetDataHandler;
 }

@@ -38,6 +38,7 @@ module.exports = [
     'view-parser',
     'mixin',
     'util',
+    'set-data',
     'ebus',
     {
         packageName: 'inject',
@@ -79,6 +80,17 @@ module.exports = [
                     ]
                 },
                 output: resolveFile(`/inject/dist/plugins/mixin.js`),
+                done: replaceInjectModules
+            },
+            {
+                input: {
+                    input: resolveFile(`/inject/plugins/set-data.ts`),
+                    external: [
+                        /\@mpkit\/util/,
+                        /\@mpkit\/types/
+                    ]
+                },
+                output: resolveFile(`/inject/dist/plugins/set-data.js`),
                 done: replaceInjectModules
             },
             {
