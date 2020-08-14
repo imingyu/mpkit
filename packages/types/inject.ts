@@ -1,4 +1,4 @@
-import { EventHandler, EBus } from "./ebus";
+import { EBus } from "./ebus";
 import {
     MpViewAppSpec,
     MpViewPageSpec,
@@ -6,6 +6,7 @@ import {
     MpView,
 } from "./view";
 import { MkSetDataOptions } from "./set-data";
+import { MkMixinStore } from "./mixin";
 export interface MpKitPlugin {
     name: string;
     apply(mpkit: MpKitInject, config?: any);
@@ -27,6 +28,7 @@ export interface MpKitInject extends EBus {
     App(...specList: MpViewAppSpec[]);
     Page(...specList: MpViewPageSpec[]);
     Component(...specList: MpViewComponentSpec[]);
+    MixinStore?: MkMixinStore;
     Api: any;
     setData(view: MpView, data: any, callback?: Function): Promise<any>;
     getParentView(view: MpView): MpView | void;

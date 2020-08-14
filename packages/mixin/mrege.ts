@@ -22,13 +22,112 @@ const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
     });
     return res;
 };
+const mergeMethod = (methodHook, methodName, methodValues) => {
+    return function (...args) {
+        try {
+            if (
+                execHook(methodHook, this, "before", methodName, args) !== false
+            ) {
+                let methodResult;
+                methodValues.forEach((item) => {
+                    const itemType = typeof item;
+                    let hasExec;
+                    if (itemType === "function") {
+                        methodResult = item.apply(this, args);
+                        hasExec = true;
+                    } else if (
+                        itemType === "string" &&
+                        this[item] &&
+                        typeof this[item] === "function"
+                    ) {
+                        methodResult = this[item].apply(this, args);
+                        hasExec = true;
+                    }
+                    hasExec &&
+                        isPromise(methodResult) &&
+                        methodResult.catch((error) => {
+                            execHook(
+                                methodHook,
+                                this,
+                                "catch",
+                                methodName,
+                                args,
+                                error,
+                                "PromiseReject"
+                            );
+                        });
+                });
+                execHook(
+                    methodHook,
+                    this,
+                    "after",
+                    methodName,
+                    args,
+                    methodResult
+                );
+            }
+        } catch (error) {
+            execHook(methodHook, this, "catch", methodName, args, error);
+            throw error;
+        }
+    };
+};
+const hookMethod = (methodHook, map, target) => {
+    for (let methodName in map) {
+        const methodValues = map[methodName];
+        if (methodValues.length) {
+            target[methodName] = mergeMethod(
+                methodHook,
+                methodName,
+                methodValues
+            );
+            target[methodName].displayName = methodName;
+        }
+    }
+};
+const mergeProperties = (methodHook, properties) => {
+    const result = {};
+    const observer = {};
+    properties.forEach((item) => {
+        for (let prop in item) {
+            if (!result[prop]) {
+                result[prop] = {};
+            }
+            if (!observer[prop]) {
+                observer[prop] = [];
+            }
+            const val = item[prop];
+            if (isNativeFunc(val)) {
+                result[prop].type = val;
+            } else if (typeof val === "object") {
+                result[prop].type = val.type || result[prop].type;
+                val.observer && observer[prop].push(val.observer);
+            }
+        }
+    });
+    for (let prop in result) {
+        if (observer[prop] && observer[prop].length) {
+            result[prop].observer = mergeMethod(
+                methodHook,
+                "observer",
+                observer[prop]
+            );
+        }
+    }
+    return result;
+};
 export const mergeView = (methodHook: MpMethodHook[], ...specList) => {
     const result = {};
     const methodMap = {};
     const methodsSpecList = [];
     const lifesSpecList = [];
     const pageLifesSpecList = [];
+    const lastSpec = specList[specList.length - 1];
+    const properties = [];
     specList.forEach((spec) => {
+        if (typeof spec === "number") {
+            return;
+        }
         for (let prop in spec) {
             if (Array.isArray(spec) && prop === "length") {
                 return;
@@ -36,32 +135,54 @@ export const mergeView = (methodHook: MpMethodHook[], ...specList) => {
             const value = spec[prop];
             const valType = typeof value;
             if (valType === "object" && value && isPlainObject(value)) {
-                if (prop === "methods") {
-                    methodsSpecList.push(value);
-                } else if (prop === "lifetimes") {
-                    lifesSpecList.push(value);
-                } else if (prop === "pageLifetimes") {
-                    pageLifesSpecList.push(value);
+                if (typeof lastSpec === "number" && !lastSpec) {
+                    if (prop === "properties") {
+                        properties.push(value);
+                    } else if (prop === "methods") {
+                        methodsSpecList.push(value);
+                    } else if (prop === "lifetimes") {
+                        lifesSpecList.push(value);
+                    } else if (prop === "pageLifetimes") {
+                        pageLifesSpecList.push(value);
+                    } else {
+                        if (typeof result[prop] !== "object") {
+                            result[prop] = Array.isArray(value) ? [] : {};
+                        }
+                        result[prop] = mergeView(
+                            methodHook,
+                            result[prop],
+                            value,
+                            1
+                        );
+                    }
                 } else {
                     if (typeof result[prop] !== "object") {
                         result[prop] = Array.isArray(value) ? [] : {};
                     }
-                    result[prop] = mergeView(methodHook, result[prop], value);
+                    result[prop] = mergeView(
+                        methodHook,
+                        result[prop],
+                        value,
+                        1
+                    );
                 }
             } else if (valType === "function") {
                 if (isNativeFunc(value)) {
                     result[prop] = value;
-                } else {
+                } else if (typeof lastSpec === "number" && !lastSpec) {
                     if (!methodMap[prop]) {
                         methodMap[prop] = [];
                     }
                     methodMap[prop].push(value);
+                } else {
+                    result[prop] = value;
                 }
             } else {
                 result[prop] = value;
             }
         }
     });
+
     lifesSpecList.length &&
         lifesSpecList.forEach((spec) => {
             for (let prop in spec) {
@@ -75,79 +196,19 @@ export const mergeView = (methodHook: MpMethodHook[], ...specList) => {
             }
         });
     if (methodsSpecList.length) {
-        result["methods"] = mergeView(methodHook, ...methodsSpecList);
+        result["methods"] = mergeView(methodHook, ...methodsSpecList, 1);
     }
     if (pageLifesSpecList.length) {
-        result["pageLifetimes"] = mergeView(methodHook, ...pageLifesSpecList);
+        result["pageLifetimes"] = mergeView(
+            methodHook,
+            ...pageLifesSpecList,
+            1
+        );
     }
-    const hookMethod = (map, target) => {
-        for (let methodName in map) {
-            const methodValues = map[methodName];
-            target[methodName] = function (...args) {
-                try {
-                    if (
-                        execHook(
-                            methodHook,
-                            this,
-                            "before",
-                            methodName,
-                            args
-                        ) !== false
-                    ) {
-                        let methodResult;
-                        methodValues.forEach((item) => {
-                            const itemType = typeof item;
-                            let hasExec;
-                            if (itemType === "function") {
-                                methodResult = item.apply(this, args);
-                                hasExec = true;
-                            } else if (
-                                itemType === "string" &&
-                                this[item] &&
-                                typeof this[item] === "function"
-                            ) {
-                                methodResult = this[item].apply(this, args);
-                                hasExec = true;
-                            }
-                            hasExec &&
-                                isPromise(methodResult) &&
-                                methodResult.catch((error) => {
-                                    execHook(
-                                        methodHook,
-                                        this,
-                                        "catch",
-                                        methodName,
-                                        args,
-                                        error,
-                                        "PromiseReject"
-                                    );
-                                });
-                        });
-                        execHook(
-                            methodHook,
-                            this,
-                            "after",
-                            methodName,
-                            args,
-                            methodResult
-                        );
-                    }
-                } catch (error) {
-                    execHook(
-                        methodHook,
-                        this,
-                        "catch",
-                        methodName,
-                        args,
-                        error
-                    );
-                    throw error;
-                }
-            };
-        }
-    };
-    hookMethod(methodMap, result);
-
+    hookMethod(methodHook, methodMap, result);
+    if (properties.length) {
+        result["properties"] = mergeProperties(methodHook, properties);
+    }
     return result;
 };
 

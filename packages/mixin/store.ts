@@ -1,6 +1,6 @@
 import {
     MpMethodHook,
-    MixinStore,
+    MkMixinStore,
     ViewInstanceMap,
     MixinStoreHookProp,
     MixinStoreHooks,
@@ -11,7 +11,41 @@ import { getMpInitLifeName, initView, getMpMountLifeName } from "@mpkit/util";
 export default (() => {
     let hooks: MixinStoreHooks = {} as MixinStoreHooks;
     let ebus: EBus = null;
-    const store: MixinStore = {
+    const commonHook = {
+        before(methodName, methodArgs) {
+            store.emitEvent(EventType.ViewMethodStart, {
+                view: this,
+                methodName,
+                methodArgs,
+            });
+            if (methodArgs[0] && methodArgs[0].currentTarget) {
+                store.emitEvent(EventType.UIEvent, {
+                    view: this,
+                    triggerMethod: methodName,
+                    event: methodArgs[0],
+                    triggerMethodArgs: methodArgs,
+                });
+            }
+        },
+        after(methodName, methodArgs, methodResult) {
+            store.emitEvent(EventType.ViewMethodEnd, {
+                view: this,
+                methodName,
+                methodArgs,
+                methodResult,
+            });
+        },
+        catch(methodName, methodArgs, error, errType) {
+            store.emitEvent(EventType.Error, {
+                view: this,
+                type: errType || "ViewMethod",
+                methodName,
+                methodArgs,
+                error,
+            });
+        },
+    };
+    const store: MkMixinStore = {
         ViewInstanceMap: {} as ViewInstanceMap,
         ViewInstanceTimeLine: [],
         bindEBus(val: EBus) {
@@ -35,39 +69,8 @@ export default (() => {
         getHook(type: MixinStoreHookProp): MpMethodHook[] {
             if (type !== "Api" && !hooks[type]) {
                 hooks[type] = [
+                    commonHook,
                     {
-                        before(methodName, methodArgs) {
-                            store.emitEvent(EventType.ViewMethodStart, {
-                                view: this,
-                                methodName,
-                                methodArgs,
-                            });
-                            if (methodArgs[0] && methodArgs[0].currentTarget) {
-                                store.emitEvent(EventType.UIEvent, {
-                                    view: this,
-                                    triggerMethod: methodName,
-                                    event: methodArgs[0],
-                                    triggerMethodArgs: methodArgs,
-                                });
-                            }
-                        },
-                        after(methodName, methodArgs, methodResult) {
-                            store.emitEvent(EventType.ViewMethodEnd, {
-                                view: this,
-                                methodName,
-                                methodArgs,
-                                methodResult,
-                            });
-                        },
-                        catch(methodName, methodArgs, error, errType) {
-                            store.emitEvent(EventType.Error, {
-                                view: this,
-                                type: errType || "ViewMethod",
-                                methodName,
-                                methodArgs,
-                                error,
-                            });
-                        },
                         [getMpInitLifeName(type)]: {
                             before(methodName, methodArgs) {
                                 initView(this, type);
@@ -99,6 +102,15 @@ export default (() => {
                         },
                     },
                 ];
+                if (type === MpViewType.Component) {
+                    hooks[type].push({
+                        observer: {
+                            before() {
+                                initView(this, type);
+                            },
+                        },
+                    });
+                }
             }
             if (type === "Api" && !hooks[type]) {
                 hooks[type] = [

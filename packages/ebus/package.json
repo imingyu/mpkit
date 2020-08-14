@@ -26,6 +26,7 @@
         "ebus"
     ],
     "dependencies": {
+        "@mpkit/types": "^0.0.0",
         "@mpkit/util": "^0.0.0"
     },
     "devDependencies": {

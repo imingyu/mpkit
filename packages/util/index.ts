@@ -1,5 +1,5 @@
 import {
-    MpPlatfrom,
+    MpPlatform,
     MpViewInitLifes,
     MpViewMountLifes,
     MkMaybe,
@@ -31,37 +31,23 @@ export const isNativeFunc = (func: Function) => {
 export const isPromise = (obj) => obj && obj.then;
 export const getMpPlatform = (() => {
     let platform;
-    return (): MpPlatfrom => {
+    return (): MpPlatform => {
         if (platform) {
-            return platform as MpPlatfrom;
+            return platform as MpPlatform;
         }
-        const check = (obj, prop?: string) => {
-            const isObj = typeof obj === "object";
-            if (isObj && obj) {
-                if (
-                    obj.self &&
-                    obj.self === obj &&
-                    typeof obj[prop] === "object" &&
-                    obj[prop]
-                ) {
-                    return true;
-                }
-                return true;
-            }
-        };
-        if (check(wx) || check(window, "wx")) {
-            return (platform = MpPlatfrom.wechat);
+        if (typeof wx === "object") {
+            return (platform = MpPlatform.wechat);
         }
-        if (check(my) || check(window, "my")) {
-            return (platform = MpPlatfrom.alipay);
+        if (typeof my === "object") {
+            return (platform = MpPlatform.alipay);
         }
-        if (check(swan) || check(window, "swan")) {
-            return (platform = MpPlatfrom.smart);
+        if (typeof swan === "object") {
+            return (platform = MpPlatform.smart);
         }
-        if (check(tt) || check(window, "tt")) {
-            return (platform = MpPlatfrom.tiktok);
+        if (typeof tt === "object") {
+            return (platform = MpPlatform.tiktok);
         }
-        return (platform = MpPlatfrom.unknown);
+        return (platform = MpPlatform.unknown);
     };
 })();
 
@@ -71,30 +57,14 @@ export const getApiVar = (() => {
         if (result) {
             return result;
         }
-        const check = (obj, prop?: string) => {
-            const isObj = typeof obj === "object";
-            if (isObj && obj) {
-                if (
-                    obj.self &&
-                    obj.self === obj &&
-                    typeof obj[prop] === "object" &&
-                    obj[prop]
-                ) {
-                    return true;
-                }
-                return true;
-            }
-        };
-        if (check(wx) || check(window, "wx")) {
+        const platform = getMpPlatform();
+        if (platform === MpPlatform.wechat) {
             return (result = wx);
-        }
-        if (check(my) || check(window, "my")) {
+        } else if (platform === MpPlatform.alipay) {
             return (result = my);
-        }
-        if (check(swan) || check(window, "swan")) {
-            return (result = swan);
-        }
-        if (check(tt) || check(window, "tt")) {
+        } else if (platform === MpPlatform.smart) {
+            return swan;
+        } else if (platform === MpPlatform.tiktok) {
             return (result = tt);
         }
         return (result = {});
@@ -110,7 +80,7 @@ export const getMpInitLifeName = (viewType: MpViewType): MpViewInitLifes => {
     }
     if (viewType === MpViewType.Component) {
         const mpPlatform = getMpPlatform();
-        return mpPlatform !== MpPlatfrom.alipay ? "created" : "onInit";
+        return mpPlatform !== MpPlatform.alipay ? "created" : "onInit";
     }
 };
 export const getMpMountLifeName = (viewType: MpViewType): MpViewMountLifes => {
@@ -122,7 +92,7 @@ export const getMpMountLifeName = (viewType: MpViewType): MpViewMountLifes => {
     }
     if (viewType === MpViewType.Component) {
         const mpPlatform = getMpPlatform();
-        return mpPlatform !== MpPlatfrom.alipay ? "attached" : "didMount";
+        return mpPlatform !== MpPlatform.alipay ? "attached" : "didMount";
     }
 };
 
@@ -134,7 +104,7 @@ export const initView = (view: MpView, viewType: MpViewType) => {
 const defineViewKey = (view: MpView) => {
     if (!view.$mkKeyIsDefine) {
         const MP_PLATFORM = getMpPlatform();
-        view.$mkKeyIsDefine = MP_PLATFORM === MpPlatfrom.smart ? uuid() : true;
+        view.$mkKeyIsDefine = MP_PLATFORM === MpPlatform.smart ? uuid() : true;
         Object.defineProperty(view, "$mkKey", {
             get() {
                 return getMpNativeViewId(this, getMpViewType(this));
@@ -152,7 +122,7 @@ const defineViewType = (view: MpView, value: MpViewType) => {
 };
 
 export const getMpViewType = (view: MpView): MkMaybe<MpViewType> => {
-    if (getMpPlatform() === MpPlatfrom.unknown) {
+    if (getMpPlatform() === MpPlatform.unknown) {
         return;
     }
     if (!view.$mkType) {
@@ -162,7 +132,7 @@ export const getMpViewType = (view: MpView): MkMaybe<MpViewType> => {
         if ("triggerEvent" in view) {
             return defineViewType(view, MpViewType.Component);
         }
-        if ("props" in view && getMpPlatform() === MpPlatfrom.alipay) {
+        if ("props" in view && getMpPlatform() === MpPlatform.alipay) {
             return defineViewType(view, MpViewType.Component);
         }
         if (typeof getApp === "function" && getApp() === view) {
@@ -187,54 +157,54 @@ export const getMpNativeViewId = (
         return;
     }
     const MP_PLATFORM = getMpPlatform();
-    if (MP_PLATFORM === MpPlatfrom.unknown) {
+    if (MP_PLATFORM === MpPlatform.unknown) {
         return "unknown";
     }
     if (viewType === MpViewType.App) {
         return "app";
     }
     if (viewType === MpViewType.Page) {
-        if (MP_PLATFORM === MpPlatfrom.wechat) {
+        if (MP_PLATFORM === MpPlatform.wechat) {
             return (vm as MpWechatView).__wxWebviewId__ + "";
         }
-        if (MP_PLATFORM === MpPlatfrom.alipay) {
+        if (MP_PLATFORM === MpPlatform.alipay) {
             return (vm as MpAlipayViewPage).$viewId;
         }
-        if (MP_PLATFORM === MpPlatfrom.tiktok) {
+        if (MP_PLATFORM === MpPlatform.tiktok) {
             return (vm as MpTiktokView).__webviewId__ + "";
         }
-        if (MP_PLATFORM === MpPlatfrom.smart) {
+        if (MP_PLATFORM === MpPlatform.smart) {
             defineViewKey(vm);
             return (vm as MpSmartViewPage).$mkKey;
         }
     }
     if (viewType === MpViewType.Component) {
-        if (MP_PLATFORM === MpPlatfrom.wechat) {
+        if (MP_PLATFORM === MpPlatform.wechat) {
             return (vm as MpWechatView).__wxExparserNodeId__;
         }
-        if (MP_PLATFORM === MpPlatfrom.alipay) {
+        if (MP_PLATFORM === MpPlatform.alipay) {
             return (vm as MpAlipayViewComponent).$id + "";
         }
-        if (MP_PLATFORM === MpPlatfrom.tiktok) {
+        if (MP_PLATFORM === MpPlatform.tiktok) {
             return (vm as MpTiktokView).__nodeId__ + "";
         }
-        if (MP_PLATFORM === MpPlatfrom.smart) {
+        if (MP_PLATFORM === MpPlatform.smart) {
             return (vm as MpSmartViewComponent).nodeId;
         }
     }
 };
 export const getMpComponentPageNativeViewId = (vm: MpView): MkMaybe<string> => {
     const MP_PLATFORM = getMpPlatform();
-    if (MP_PLATFORM === MpPlatfrom.wechat) {
+    if (MP_PLATFORM === MpPlatform.wechat) {
         return (vm as MpWechatView).__wxWebviewId__ + "";
     }
-    if (MP_PLATFORM === MpPlatfrom.alipay) {
+    if (MP_PLATFORM === MpPlatform.alipay) {
         return getMpNativeViewId((vm as MpAlipayViewComponent).$page);
     }
-    if (MP_PLATFORM === MpPlatfrom.tiktok) {
+    if (MP_PLATFORM === MpPlatform.tiktok) {
         return (vm as MpTiktokView).__webviewId__ + "";
     }
-    if (MP_PLATFORM === MpPlatfrom.smart) {
+    if (MP_PLATFORM === MpPlatform.smart) {
         return getMpNativeViewId((vm as MpSmartViewComponent).pageinstance);
     }
 };
@@ -249,19 +219,19 @@ export const getMpViewPathName = (
         return "";
     }
     const MP_PLATFORM = getMpPlatform();
-    if (MP_PLATFORM === MpPlatfrom.wechat) {
+    if (MP_PLATFORM === MpPlatform.wechat) {
         return (vm as MpWechatView).is;
     }
-    if (MP_PLATFORM === MpPlatfrom.alipay) {
+    if (MP_PLATFORM === MpPlatform.alipay) {
         if (viewType === MpViewType.Page) {
             return (vm as MpAlipayViewPage).route;
         }
         return (vm as MpAlipayViewComponent).is;
     }
-    if (MP_PLATFORM === MpPlatfrom.tiktok) {
+    if (MP_PLATFORM === MpPlatform.tiktok) {
         return (vm as MpTiktokView).is;
     }
-    if (MP_PLATFORM === MpPlatfrom.smart) {
+    if (MP_PLATFORM === MpPlatform.smart) {
         if (viewType === MpViewType.Page) {
             return (vm as MpSmartViewPage).route;
         }

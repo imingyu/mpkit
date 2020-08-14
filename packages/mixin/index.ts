@@ -1,6 +1,6 @@
 import { MpViewType, MpView, MpMethodHook } from "@mpkit/types";
 import { getMpPlatform, getMpInitLifeName } from "@mpkit/util";
-import { MpPlatfrom } from "@mpkit/types";
+import { MpPlatform } from "@mpkit/types";
 import { mergeApi, mergeView } from "./mrege";
 import MixinStore from "./store";
 import {
@@ -9,32 +9,57 @@ import {
     MpKitConfig,
     MpKitRewriteConfig,
 } from "@mpkit/types";
+export { mergeApi, mergeView };
 
 export const MkApi = (() => {
     const paltform = getMpPlatform();
-    if (paltform === MpPlatfrom.wechat) {
+    if (paltform === MpPlatform.wechat) {
         return mergeApi(wx, MixinStore.getHook("Api"));
-    } else if (paltform === MpPlatfrom.alipay) {
+    } else if (paltform === MpPlatform.alipay) {
         return mergeApi(my, MixinStore.getHook("Api"));
-    } else if (paltform === MpPlatfrom.smart) {
+    } else if (paltform === MpPlatform.smart) {
         return mergeApi(swan, MixinStore.getHook("Api"));
-    } else if (paltform === MpPlatfrom.tiktok) {
+    } else if (paltform === MpPlatform.tiktok) {
         return mergeApi(tt, MixinStore.getHook("Api"));
     }
 })();
-export const MkApp = (...specList) => {
-    return mergeView(MixinStore.getHook(MpViewType.App), ...specList);
+const mkView = (type: MpViewType) => {
+    return (...specList) => {
+        const setMkSpec = (view) => {
+            if (!view.$mkSpec) {
+                Object.defineProperty(view, "$mkSpec", {
+                    get() {
+                        return fullSpec;
+                    },
+                });
+            }
+        };
+        const setSpecMixin = {
+            [getMpInitLifeName(type)](this: MpView) {
+                setMkSpec(this);
+            },
+        };
+        const hooks = MixinStore.getHook(type);
+        if (type === MpViewType.Component) {
+            hooks.push({
+                observer: {
+                    before() {
+                        setMkSpec(this);
+                    },
+                },
+            });
+        }
+        const fullSpec = mergeView(hooks, setSpecMixin, ...specList, 0);
+        return fullSpec;
+    };
 };
-export const MkPage = (...specList) => {
-    return mergeView(MixinStore.getHook(MpViewType.Page), ...specList);
-};
-export const MkComponent = (...specList) => {
-    return mergeView(MixinStore.getHook(MpViewType.Component), ...specList);
-};
+export const MkApp = mkView(MpViewType.Component);
+export const MkPage = mkView(MpViewType.Page);
+export const MkComponent = mkView(MpViewType.Component);
 export const MkNative = {
-    App,
-    Page,
-    Component,
+    App: typeof App === "function" ? App : null,
+    Page: typeof Page === "function" ? Page : null,
+    Component: typeof Component === "function" ? Component : null,
     Api: null,
 };
 
@@ -42,6 +67,7 @@ export const plugin: MpKitPlugin = {
     name: "mixin",
     apply(mpkit: MpKitInject, config?: MpKitConfig) {
         MixinStore.bindEBus(mpkit);
+        mpkit.MixinStore = MixinStore;
         mpkit.App = MkApp;
         mpkit.Page = MkPage;
         mpkit.Component = MkComponent;
@@ -77,16 +103,16 @@ export const plugin: MpKitPlugin = {
             };
             const rewriteApi = () => {
                 const paltform = getMpPlatform();
-                if (paltform === MpPlatfrom.wechat) {
+                if (paltform === MpPlatform.wechat) {
                     MkNative.Api = wx;
                     wx = mergeApi(wx, MixinStore.getHook("Api"));
-                } else if (paltform === MpPlatfrom.alipay) {
+                } else if (paltform === MpPlatform.alipay) {
                     MkNative.Api = my;
                     my = mergeApi(my, MixinStore.getHook("Api"));
-                } else if (paltform === MpPlatfrom.smart) {
+                } else if (paltform === MpPlatform.smart) {
                     MkNative.Api = swan;
                     swan = mergeApi(swan, MixinStore.getHook("Api"));
-                } else if (paltform === MpPlatfrom.tiktok) {
+                } else if (paltform === MpPlatform.tiktok) {
                     MkNative.Api = tt;
                     tt = mergeApi(tt, MixinStore.getHook("Api"));
                 }

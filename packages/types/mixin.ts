@@ -43,11 +43,11 @@ export interface ViewInstanceMap {
 export type MixinStoreHookProp = MpViewType | "Api";
 export type MixinStoreHooks = MkEnumMap<MixinStoreHookProp, MpMethodHook[]>;
 
-export interface MixinStore {
+export interface MkMixinStore {
     ViewInstanceMap: ViewInstanceMap;
     ViewInstanceTimeLine: MpView[];
     bindEBus(val: EBus);
     emitEvent(type: EventType, data: any);
     addHook(type: MixinStoreHookProp, hook: MpMethodHook);
-    getHook(type: MixinStoreHookProp);
+    getHook(type: MixinStoreHookProp): MpMethodHook[];
 }

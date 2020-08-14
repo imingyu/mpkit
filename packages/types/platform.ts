@@ -1,4 +1,4 @@
-export enum MpPlatfrom {
+export enum MpPlatform {
     wechat = "wechat",
     alipay = "alipay",
     smart = "smart",
