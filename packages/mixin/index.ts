@@ -1,5 +1,5 @@
 import { MpViewType, MpView, MpMethodHook } from "@mpkit/types";
-import { getMpPlatform, getMpInitLifeName } from "@mpkit/util";
+import { getMpPlatform, getMpInitLifeName, getApiVar } from "@mpkit/util";
 import { MpPlatform } from "@mpkit/types";
 import { mergeApi, mergeView } from "./mrege";
 import MixinStore from "./store";
@@ -49,7 +49,13 @@ const mkView = (type: MpViewType) => {
                 },
             });
         }
-        const fullSpec = mergeView(hooks, setSpecMixin, ...specList, 0);
+        const fullSpec = mergeView(
+            type,
+            getMpPlatform(),
+            hooks,
+            setSpecMixin,
+            ...specList
+        );
         return fullSpec;
     };
 };
@@ -60,7 +66,7 @@ export const MkNative = {
     App: typeof App === "function" ? App : null,
     Page: typeof Page === "function" ? Page : null,
     Component: typeof Component === "function" ? Component : null,
-    Api: null,
+    Api: getApiVar(),
 };
 
 export const plugin: MpKitPlugin = {

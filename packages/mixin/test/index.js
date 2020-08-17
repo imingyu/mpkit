@@ -1,11 +1,12 @@
 const { mergeApi, mergeView } = require('../dist/index.cjs.js');
+const { MpViewType, MpPlatform } = require('../../types/dist/index.cjs');
 const { assert } = require('chai');
 describe('Mixin', () => {
     describe('mergeView', () => {
         it('App&Page', () => {
             const state = {
             };
-            const appSpec = mergeView([{
+            const appSpec = mergeView(MpViewType.App, MpPlatform.wechat, [{
                 before() {
                     state.count++;
                     state.before = true;
@@ -58,7 +59,7 @@ describe('Mixin', () => {
         it('Component', () => {
             const state = {
             };
-            const spec = mergeView([], {
+            const spec = mergeView(MpViewType.Component, MpPlatform.wechat, [], {
                 methods: {
                     show() {
                         state.show1 = true;

@@ -297,7 +297,10 @@ export const merge = (source, ...targets) => {
                     if (typeof source[prop] !== "object") {
                         source[prop] = Array.isArray(value) ? [] : {};
                     }
-                    source[prop] = merge(source[prop], value);
+                    if (Array.isArray(value) && !value.length) {
+                    } else {
+                        source[prop] = merge(source[prop], value);
+                    }
                 } else {
                     source[prop] = value;
                 }

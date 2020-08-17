@@ -8,6 +8,7 @@ const fse = require('fse');
 const rollup = require('rollup');
 const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
+const { replaceFileContent } = require('./util');
 const getPackageName = (str) => {
     return (str || '').replace(path.resolve(__dirname, '../packages'), '');
 }
@@ -19,6 +20,16 @@ Promise.all(entrys.map((rollupConfig, index) => {
     const arr = rollupConfig.input.input.split('/');
     arr.splice(arr.length - 1, 1);
     const packageRoot = arr.join('/');
+    const typesOutDir = packageRoot + '/types';
+    fs.readdirSync(packageRoot).forEach(srcFile => {
+        if (srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts')) {
+            const targetFileName = path.join(typesOutDir, srcFile);
+            const sourceFileName = path.join(packageRoot, srcFile);
+            fse.copyFileSync(sourceFileName, targetFileName);
+            fs.unlinkSync(sourceFileName);
+            replaceFileContent(targetFileName, /\.\.\/types/, '@mpkit/types');
+        }
+    })
     if (!rollupConfig.input.external) {
         rollupConfig.input.external = [/\@mpkit\//]
     }

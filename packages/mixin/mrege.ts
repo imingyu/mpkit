@@ -1,5 +1,11 @@
-import { isNativeFunc, isPlainObject, isPromise, uuid } from "@mpkit/util";
-import { MpMethodHook } from "@mpkit/types";
+import {
+    isNativeFunc,
+    isPlainObject,
+    isPromise,
+    uuid,
+    merge,
+} from "@mpkit/util";
+import { MpMethodHook, MpViewType, MpPlatform } from "@mpkit/types";
 
 const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
     const methodName = hookArgs[0];
@@ -22,7 +28,12 @@ const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
     });
     return res;
 };
-const mergeMethod = (methodHook, methodName, methodValues) => {
+const mergeMethod = (
+    methodHook,
+    methodName,
+    methodValues,
+    allowStr = false
+) => {
     return function (...args) {
         try {
             if (
@@ -37,6 +48,7 @@ const mergeMethod = (methodHook, methodName, methodValues) => {
                         hasExec = true;
                     } else if (
                         itemType === "string" &&
+                        allowStr &&
                         this[item] &&
                         typeof this[item] === "function"
                     ) {
@@ -72,14 +84,15 @@ const mergeMethod = (methodHook, methodName, methodValues) => {
         }
     };
 };
-const hookMethod = (methodHook, map, target) => {
+const hookMethod = (methodHook, map, target, allowStr = false) => {
     for (let methodName in map) {
         const methodValues = map[methodName];
         if (methodValues.length) {
             target[methodName] = mergeMethod(
                 methodHook,
                 methodName,
-                methodValues
+                methodValues,
+                allowStr
             );
             target[methodName].displayName = methodName;
         }
@@ -116,99 +129,122 @@ const mergeProperties = (methodHook, properties) => {
     }
     return result;
 };
-export const mergeView = (methodHook: MpMethodHook[], ...specList) => {
+
+const mergeSpecialProps = (
+    prop,
+    values,
+    methodHook,
+    paltform,
+    target,
+    removeMap = null
+) => {
+    if (values.length) {
+        const subMethodMap = {};
+        values.forEach((item) => {
+            Object.keys(item).forEach((key) => {
+                if (prop === "lifetimes" && removeMap && removeMap[key]) {
+                    // lifetimes内声明的函数优先级比直接声明的created等要高，会被覆盖
+                    // https://microapp.bytedance.com/docs/zh-CN/mini-app/develop/framework/custom-component/component-constructor
+                    // https://smartprogram.baidu.com/docs/develop/framework/custom-component_comp/
+                    // https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/component.html
+                    delete removeMap[key];
+                }
+                if (!subMethodMap[key]) {
+                    subMethodMap[key] = [];
+                }
+                subMethodMap[key].push(item[key]);
+            });
+        });
+        target[prop] = {};
+        hookMethod(
+            methodHook,
+            subMethodMap,
+            target[prop],
+            prop === "lifetimes" && paltform === MpPlatform.wechat
+        );
+    }
+};
+
+export const mergeView = (
+    viewType: MpViewType,
+    platform: MpPlatform,
+    methodHook: MpMethodHook[],
+    ...specList
+) => {
     const result = {};
+    let specialProps = {};
     const methodMap = {};
-    const methodsSpecList = [];
-    const lifesSpecList = [];
-    const pageLifesSpecList = [];
-    const lastSpec = specList[specList.length - 1];
-    const properties = [];
+    let hasSpecial;
+    if (
+        viewType === MpViewType.Component &&
+        (platform === MpPlatform.wechat ||
+            platform === MpPlatform.smart ||
+            platform === MpPlatform.tiktok)
+    ) {
+        hasSpecial = true;
+        merge(specialProps, {
+            properties: [],
+            methods: [],
+            lifetimes: [],
+            pageLifetimes: [],
+        });
+    }
     specList.forEach((spec) => {
-        if (typeof spec === "number") {
-            return;
-        }
-        for (let prop in spec) {
-            if (Array.isArray(spec) && prop === "length") {
-                return;
-            }
+        Object.keys(spec).forEach((prop) => {
             const value = spec[prop];
             const valType = typeof value;
-            if (valType === "object" && value && isPlainObject(value)) {
-                if (typeof lastSpec === "number" && !lastSpec) {
-                    if (prop === "properties") {
-                        properties.push(value);
-                    } else if (prop === "methods") {
-                        methodsSpecList.push(value);
-                    } else if (prop === "lifetimes") {
-                        lifesSpecList.push(value);
-                    } else if (prop === "pageLifetimes") {
-                        pageLifesSpecList.push(value);
-                    } else {
-                        if (typeof result[prop] !== "object") {
-                            result[prop] = Array.isArray(value) ? [] : {};
-                        }
-                        result[prop] = mergeView(
-                            methodHook,
-                            result[prop],
-                            value,
-                            1
-                        );
-                    }
-                } else {
-                    if (typeof result[prop] !== "object") {
-                        result[prop] = Array.isArray(value) ? [] : {};
-                    }
-                    result[prop] = mergeView(
-                        methodHook,
-                        result[prop],
-                        value,
-                        1
-                    );
+            if (prop in specialProps && viewType === MpViewType.Component) {
+                specialProps[prop].push(value);
+            } else if (valType === "object" && value && isPlainObject(value)) {
+                if (typeof result[prop] !== "object") {
+                    result[prop] = Array.isArray(value) ? [] : {};
                 }
+                merge(result[prop], value);
             } else if (valType === "function") {
                 if (isNativeFunc(value)) {
                     result[prop] = value;
-                } else if (typeof lastSpec === "number" && !lastSpec) {
+                } else {
                     if (!methodMap[prop]) {
                         methodMap[prop] = [];
                     }
                     methodMap[prop].push(value);
-                } else {
-                    result[prop] = value;
                 }
             } else {
                 result[prop] = value;
             }
-        }
-    });
-
-    lifesSpecList.length &&
-        lifesSpecList.forEach((spec) => {
-            for (let prop in spec) {
-                if (methodMap[prop]) {
-                    methodMap[prop].push(spec[prop]);
-                } else {
-                    methodMap[prop] = [];
-                    methodMap[prop].push(spec[prop]);
-                }
-                delete spec[prop];
-            }
         });
-    if (methodsSpecList.length) {
-        result["methods"] = mergeView(methodHook, ...methodsSpecList, 1);
-    }
-    if (pageLifesSpecList.length) {
-        result["pageLifetimes"] = mergeView(
+    });
+    if (hasSpecial) {
+        if (specialProps["properties"].length) {
+            result["properties"] = mergeProperties(
+                methodHook,
+                specialProps["properties"]
+            );
+        }
+        mergeSpecialProps(
+            "pageLifetimes",
+            specialProps["pageLifetimes"],
             methodHook,
-            ...pageLifesSpecList,
-            1
+            platform,
+            result
+        );
+        mergeSpecialProps(
+            "methods",
+            specialProps["methods"],
+            methodHook,
+            platform,
+            result
+        );
+        mergeSpecialProps(
+            "lifetimes",
+            specialProps["lifetimes"],
+            methodHook,
+            platform,
+            result,
+            methodMap
         );
     }
     hookMethod(methodHook, methodMap, result);
-    if (properties.length) {
-        result["properties"] = mergeProperties(methodHook, properties);
-    }
     return result;
 };
 
