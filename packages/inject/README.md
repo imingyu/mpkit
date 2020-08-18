@@ -1,3 +1,12 @@
+# @mpkit/inject
+
+[![Build Status](https://travis-ci.org/imingyu/mpkit.svg?branch=master)](https://travis-ci.org/imingyu/mpkit)
+![image](https://img.shields.io/npm/l/@mpkit/inject.svg)
+[![image](https://img.shields.io/npm/v/@mpkit/inject.svg)](https://www.npmjs.com/package/@mpkit/inject)
+[![image](https://img.shields.io/npm/dt/@mpkit/inject.svg)](https://www.npmjs.com/package/@mpkit/inject)
+
+提供小程序环境适用的多种实用函数或组件，如 setData 优化、Mixin、事件总线等。
+
 ## 功能
 
 -   [x] Mixins
@@ -15,9 +24,9 @@
 
 ## Api
 
--   on(eventName:string, handler:Function)
--   off(eventName:string, handler:Function)
--   App(...mixins:MpAppSpec[]):MpAppSpec
--   Page(...mixins:MpPageSpec[]):MpPageSpec
--   Component(...mixins:MpComponentSpec[]):MpComponentSpec
--   setData(view:MpApp|MpPage|MpComponent, data:any, callback:Function):Promise<DiffDataResult>
+-   `on(eventName:string, handler:Function)`
+-   `off(eventName:string, handler:Function)`
+-   `App(...mixins:MpAppSpec[]):MpAppSpec`
+-   `Page(...mixins:MpPageSpec[]):MpPageSpec`
+-   `Component(...mixins:MpComponentSpec[]):MpComponentSpec`
+-   `setData(view:MpApp|MpPage|MpComponent, data:any, callback:Function):Promise<DiffDataResult>`

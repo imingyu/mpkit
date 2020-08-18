@@ -1,5 +1,14 @@
 # @mpkit/mixin
 
+[![Build Status](https://travis-ci.org/imingyu/mpkit.svg?branch=master)](https://travis-ci.org/imingyu/mpkit)
+![image](https://img.shields.io/npm/l/@mpkit/mixin.svg)
+[![image](https://img.shields.io/npm/v/@mpkit/mixin.svg)](https://www.npmjs.com/package/@mpkit/mixin)
+[![image](https://img.shields.io/npm/dt/@mpkit/mixin.svg)](https://www.npmjs.com/package/@mpkit/mixin)
+
+为小程序提供混入功能。
+
+## 功能列表
+
 -   `MkApp(...appSpecList:MpAppSpec[]):MpAppSpec`
 -   `MkPage(...pageSpecList:MpPageSpec[]):MpPageSpec`
 -   `MkComponent(...componentSpecList:MpComponentSpec[]):MpComponentSpec`

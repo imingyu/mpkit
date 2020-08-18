@@ -1,5 +1,14 @@
 # @mpkit/set-data
 
+[![Build Status](https://travis-ci.org/imingyu/mpkit.svg?branch=master)](https://travis-ci.org/imingyu/mpkit)
+![image](https://img.shields.io/npm/l/@mpkit/set-data.svg)
+[![image](https://img.shields.io/npm/v/@mpkit/set-data.svg)](https://www.npmjs.com/package/@mpkit/set-data)
+[![image](https://img.shields.io/npm/dt/@mpkit/set-data.svg)](https://www.npmjs.com/package/@mpkit/set-data)
+
+小程序 setData 优化。
+
+## 功能列表
+
 -   将对象的 key 展开：`openMpData(data:any, view?:MpView)`
 
 ```javascript
