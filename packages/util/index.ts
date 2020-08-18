@@ -307,4 +307,5 @@ export const merge = (source, ...targets) => {
             });
         }
     });
+    return source;
 };

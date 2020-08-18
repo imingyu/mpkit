@@ -143,29 +143,6 @@ mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具�
                 </tr>
                 <tr>
                     <td>
-                        <a
-                            href="https://www.npmjs.com/package/@mpkit/difference-spec"
-                            >@mpkit/difference-spec</a
-                        >
-                    </td>
-                    <td>●</td>
-                    <td>●</td>
-                    <td><!--微信-->●</td>
-                    <td><!--支付宝-->●</td>
-                    <td><!--百度-->●</td>
-                    <td><!--字节跳动-->●</td>
-                    <td><!--h5-->●</td>
-                    <td><!--node-->●</td>
-                    <td>
-                        对多平台小程序差异性进行json格式的编码
-                        <a
-                            href="https://github.com/imingyu/mpkit/tree/master/packages/difference-spec"
-                            >查看文档</a
-                        >
-                    </td>
-                </tr>
-                <tr>
-                    <td>
                         <a href="https://www.npmjs.com/package/@mpkit/util"
                             >@mpkit/util</a
                         >

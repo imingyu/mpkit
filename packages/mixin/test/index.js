@@ -2,6 +2,27 @@ const { mergeApi, mergeView, MixinStore, MkApp } = require('../dist/index.cjs.js
 const { MpViewType, MpPlatform } = require('../../types/dist/index.cjs');
 const { assert } = require('chai');
 describe('Mixin', () => {
+    const appSpec = MkApp({
+        globalData: {
+            user: {
+                name: 'Tom'
+            }
+        },
+        onShow() {
+            console.log('onShow1')
+        }
+    }, {
+        globalData: {
+            user: {
+                name: 'Alice',
+                age: 20
+            }
+        },
+        onShow() {
+            console.log('onShow2')
+        }
+    });
+    console.log(appSpec);
     describe('mergeView', () => {
         it('App&Page', () => {
             const state = {
@@ -113,6 +134,9 @@ describe('Mixin', () => {
             },
             method4() {
                 state.method4 = true;
+            },
+            method5() {
+                state.method5 = true;
             }
         }
         const api = mergeApi(mockApi, [
@@ -123,6 +147,9 @@ describe('Mixin', () => {
                     }
                     if (name === 'method4') {
                         return false;
+                    }
+                    if (name === 'method5') {
+                        return 6;
                     }
                 },
                 complete(name, args, res, isSuccess) {
@@ -148,6 +175,9 @@ describe('Mixin', () => {
         assert.equal(api.method2Sync(), 2);
         api.method4();
         assert.equal(state.method4, undefined);
+        const res = api.method5();
+        assert.equal(state.method5, undefined);
+        assert.equal(res, 6);
     });
     it('MixinStore', () => {
         global.wx = {}
