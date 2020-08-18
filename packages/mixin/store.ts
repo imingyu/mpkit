@@ -62,7 +62,7 @@ export default (() => {
         },
         addHook(type: MixinStoreHookProp, hook: MpMethodHook) {
             if (!hooks[type]) {
-                hooks[type] = store.getHook(type);
+                store.getHook(type);
             }
             hooks[type].push(hook);
         },

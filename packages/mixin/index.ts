@@ -39,15 +39,17 @@ const mkView = (type: MpViewType) => {
                 setMkSpec(this);
             },
         };
-        const hooks = MixinStore.getHook(type);
+        let hooks = MixinStore.getHook(type);
         if (type === MpViewType.Component) {
-            hooks.push({
-                observer: {
-                    before() {
-                        setMkSpec(this);
+            hooks = hooks.concat([
+                {
+                    observer: {
+                        before() {
+                            setMkSpec(this);
+                        },
                     },
                 },
-            });
+            ]);
         }
         const fullSpec = mergeView(
             type,
@@ -59,7 +61,8 @@ const mkView = (type: MpViewType) => {
         return fullSpec;
     };
 };
-export const MkApp = mkView(MpViewType.Component);
+export { MixinStore };
+export const MkApp = mkView(MpViewType.App);
 export const MkPage = mkView(MpViewType.Page);
 export const MkComponent = mkView(MpViewType.Component);
 export const MkNative = {

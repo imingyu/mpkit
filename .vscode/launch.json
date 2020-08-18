@@ -15,9 +15,9 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "debug ebus",
+            "name": "debug mixin",
             "skipFiles": ["<node_internals>/**"],
-            "program": "${workspaceFolder}/packages/ebus/debug.js",
+            "program": "${workspaceFolder}/packages/mixin/debug.js",
             "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]

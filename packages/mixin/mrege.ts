@@ -254,7 +254,7 @@ export const mergeApi = (api: any, methodHook?: MpMethodHook[]) => {
         if (typeof api[prop] === "function") {
             const methodName = prop;
             const methodHandler = api[prop];
-            api[prop] = function (...args) {
+            result[prop] = function (...args) {
                 try {
                     const funId = uuid();
                     if (methodName.indexOf("Sync") === -1 && !args.length) {

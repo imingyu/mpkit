@@ -1,4 +1,4 @@
-const { mergeApi, mergeView } = require('../dist/index.cjs.js');
+const { mergeApi, mergeView, MixinStore, MkApp } = require('../dist/index.cjs.js');
 const { MpViewType, MpPlatform } = require('../../types/dist/index.cjs');
 const { assert } = require('chai');
 describe('Mixin', () => {
@@ -42,9 +42,16 @@ describe('Mixin', () => {
                 onHide() {
                     throw new Error('test')
                 }
+            }, {
+                methods: {
+                    onShow() {
+                        state.onShow3 = true;
+                    }
+                }
             });
             appSpec.onShow();
             assert.equal(state.onShow1, true);
+            assert.equal(state.onShow3, undefined);
             assert.equal(state.onShow2, true);
             try {
                 appSpec.onHide(3);
@@ -59,7 +66,12 @@ describe('Mixin', () => {
         it('Component', () => {
             const state = {
             };
-            const spec = mergeView(MpViewType.Component, MpPlatform.wechat, [], {
+            const spec = mergeView(MpViewType.Component, MpPlatform.wechat, [{
+                before() {
+                    state.count++;
+                    state.before = true;
+                },
+            }], {
                 methods: {
                     show() {
                         state.show1 = true;
@@ -76,9 +88,85 @@ describe('Mixin', () => {
                 }
             });
             spec.methods.show();
+            assert.equal(state.before, true);
             assert.equal(state.show1, true);
             assert.equal(state.show2, true);
             assert.equal(!!state.show3, false);
         })
+    })
+    it('mergeApi', (done) => {
+        const state = {}
+        const mockApi = {
+            name: 'Tom',
+            method1(a) {
+                state.method1 = true;
+                state.a = a;
+            },
+            method3(a) {
+                state.method3 = true;
+                setTimeout(() => {
+                    a && a.success();
+                })
+            },
+            method2Sync() {
+                return 2;
+            },
+            method4() {
+                state.method4 = true;
+            }
+        }
+        const api = mergeApi(mockApi, [
+            {
+                before(name, args) {
+                    if (name === 'method1') {
+                        assert.equal(args[0], 2);
+                    }
+                    if (name === 'method4') {
+                        return false;
+                    }
+                },
+                complete(name, args, res, isSuccess) {
+                    state.success = true;
+                    assert.equal(isSuccess, true);
+                }
+            }
+        ]);
+        api.method1(2);
+        assert.equal(state.method1, true);
+        api.method3({
+            success() {
+                assert.equal(true, true);
+                setTimeout(() => {
+                    assert.equal(state.success, true);
+                    done();
+                })
+            },
+            fail() {
+                assert.equal(false, true);
+            }
+        });
+        assert.equal(api.method2Sync(), 2);
+        api.method4();
+        assert.equal(state.method4, undefined);
+    });
+    it('MixinStore', () => {
+        global.wx = {}
+        with (global) {
+            const state = {
+            }
+            MixinStore.addHook(MpViewType.App, {
+                before() {
+                    state.gloabl = true;
+                }
+            });
+            const app = MkApp({
+                onShow() {
+                    state.onShow = true;
+                }
+            });
+            app.onShow();
+            assert.equal(state.onShow, true);
+            assert.equal(state.gloabl, true);
+        }
     })
 });
