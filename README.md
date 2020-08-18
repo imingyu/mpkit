@@ -1,6 +1,10 @@
-# mpkit
+# MpKit
 
-mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具库
+[![Build Status](https://travis-ci.org/imingyu/mpkit.svg?branch=master)](https://travis-ci.org/imingyu/mpkit)
+![image](https://img.shields.io/npm/l/@mpkit/inject.svg)
+[![image](https://img.shields.io/npm/v/@mpkit/inject.svg)](https://www.npmjs.com/package/@mpkit/inject)
+
+MpKit 是一个模块化的开发多平台小程序的 JavaScript 实用工具库
 
 ## 功能
 
@@ -11,6 +15,7 @@ mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具�
             <thead>
                 <tr>
                     <th rowspan="3">包</th>
+                    <th rowspan="3">状态</th>
                     <th colspan="2">适用语言</th>
                     <th colspan="6">适用平台</th>
                     <th rowspan="3">简介</th>
@@ -36,6 +41,7 @@ mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具�
                             >@mpkit/inject</a
                         >
                     </td>
+                    <td>已完成</td>
                     <td>●</td>
                     <td>●</td>
                     <td><!--微信-->●</td>
@@ -58,6 +64,7 @@ mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具�
                             >@mpkit/ebus</a
                         >
                     </td>
+                    <td>已完成</td>
                     <td>●</td>
                     <td>●</td>
                     <td><!--微信-->●</td>
@@ -80,6 +87,7 @@ mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具�
                             >@mpkit/mixin</a
                         >
                     </td>
+                    <td>已完成</td>
                     <td>●</td>
                     <td>●</td>
                     <td><!--微信-->●</td>
@@ -102,6 +110,7 @@ mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具�
                             >@mpkit/set-data</a
                         >
                     </td>
+                    <td>已完成</td>
                     <td>●</td>
                     <td>●</td>
                     <td><!--微信-->●</td>
@@ -125,6 +134,7 @@ mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具�
                             >@mpkit/view-parser</a
                         >
                     </td>
+                    <td></td>
                     <td>●</td>
                     <td>●</td>
                     <td><!--微信--></td>
@@ -147,6 +157,7 @@ mpkit 是一个模块化的开发多平台小程序的 JavaScript 实用工具�
                             >@mpkit/util</a
                         >
                     </td>
+                    <td>已完成</td>
                     <td>●</td>
                     <td>●</td>
                     <td><!--微信-->❍</td>
