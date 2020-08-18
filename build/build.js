@@ -1,5 +1,6 @@
 const { nodeResolve } = require('@rollup/plugin-node-resolve');
 const { babel } = require('@rollup/plugin-babel');
+const { version } = require('../package.json')
 const rollupCommonjs = require('@rollup/plugin-commonjs');
 const rollupJSON = require('@rollup/plugin-json');
 const path = require('path');
@@ -22,7 +23,7 @@ Promise.all(entrys.map((rollupConfig, index) => {
     const packageRoot = arr.join('/');
     const typesOutDir = packageRoot + '/spec';
     fs.readdirSync(packageRoot).forEach(srcFile => {
-        if (srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts')) {
+        if (srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts') && !srcFile.endsWith('name.d.ts')) {
             const targetFileName = path.join(typesOutDir, srcFile);
             const sourceFileName = path.join(packageRoot, srcFile);
             fse.copyFileSync(sourceFileName, targetFileName);
@@ -56,6 +57,13 @@ Promise.all(entrys.map((rollupConfig, index) => {
         extends: path.resolve(__dirname, '../.babelrc')
     }));
     const packageName = getPackageName(rollupConfig.output.file);
+    rollupConfig.input.sourcemap = true;
+    rollupConfig.input.banner = `/*!
+    * MpKit v${version}
+    * (c) 2020-${new Date().getFullYear()} imingyu<mingyuhisoft@163.com>
+    * Released under the MIT License.
+    * https://github.com/imingyu/mpkit
+    */`;
     return rollup.rollup(rollupConfig.input).then(res => {
         return res.write(rollupConfig.output);
     }).then(() => {

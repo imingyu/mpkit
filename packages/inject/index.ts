@@ -1,7 +1,9 @@
+import { version } from "./package.json";
 import { MpKitInject, MpKitPlugin, MkMap } from "@mpkit/types";
 import { getApiVar } from "@mpkit/util";
 import MpKitConfig from "./config";
 class MpKit implements MpKitInject {
+    version = version;
     private plugins: MkMap<MpKitPlugin> = {};
     static mopckApi(apiName: string, pluginNames: string | string[]) {
         return function (this: MpKit, ...args) {
