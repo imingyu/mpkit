@@ -1,13 +1,14 @@
 language: node_js
 node_js:
-  - "node"
+    - "node"
 cache:
-  directories:
-    - "node_modules"
+    directories:
+        - "node_modules"
 install:
-  - npm install
+    - npm install
+    - lerna link
 before_script:
-  - npm run build
+    - npm run build
 branches:
-  only:
-    - master
+    only:
+        - master
