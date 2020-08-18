@@ -16,7 +16,7 @@ entrys.forEach(rollupConfig => {
     const arr = rollupConfig.input.input.split('/');
     arr.splice(arr.length - 1, 1);
     const packageRoot = arr.join('/');
-    clear(path.join(packageRoot, 'types'));
+    clear(path.join(packageRoot, 'spec'));
     clear(path.join(packageRoot, 'dist'));
 });
 console.log(`dist与spec目录已重置。`);

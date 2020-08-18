@@ -20,7 +20,7 @@ Promise.all(entrys.map((rollupConfig, index) => {
     const arr = rollupConfig.input.input.split('/');
     arr.splice(arr.length - 1, 1);
     const packageRoot = arr.join('/');
-    const typesOutDir = packageRoot + '/types';
+    const typesOutDir = packageRoot + '/spec';
     fs.readdirSync(packageRoot).forEach(srcFile => {
         if (srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts')) {
             const targetFileName = path.join(typesOutDir, srcFile);
