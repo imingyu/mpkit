@@ -26,8 +26,8 @@ const rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?
 
 export const openMpData = (data, view?: MpView) => {
     const result = {};
-    const items = [];
     Object.keys(data).forEach((key) => {
+        const items = [];
         if ((view && key.indexOf(".") !== -1) || key.indexOf("[") !== -1) {
             key.split(".").forEach((item) => {
                 if (item) {
@@ -88,48 +88,54 @@ export const openMpData = (data, view?: MpView) => {
                 prevProp.value = data[key];
             }
         });
-    });
-    let obj = result;
-    items.forEach((propItem) => {
-        if (propItem.value) {
-            obj[propItem.name] = propItem.value;
-        }
-        if (propItem.array) {
-            obj[propItem.name] = [];
-        } else {
-            obj[propItem.name] = {};
-        }
-        obj = obj[propItem.name];
+        let obj = result;
+        items.forEach((propItem) => {
+            if (propItem.value) {
+                obj[propItem.name] = propItem.value;
+            }
+            if (!obj[propItem.name]) {
+                if (propItem.array) {
+                    obj[propItem.name] = [];
+                } else {
+                    obj[propItem.name] = {};
+                }
+            }
+            obj = obj[propItem.name];
+        });
     });
     return result;
 };
 
 export const diffMpData = (source, target, result?: any, path?: string) => {
     result = result || {};
-    const setResult = (key, val) => {
-        if (path) {
-            result[`${path}['${key}']`] = val;
-        } else {
-            result[key] = val;
-        }
-    };
     Object.keys(target).forEach((targetKey) => {
         const targetValue = target[targetKey];
+        const prop = path
+            ? Array.isArray(target)
+                ? `${path}[${targetKey}]`
+                : `${path}['${targetKey}']`
+            : targetKey;
         if (!(targetKey in source)) {
-            setResult(targetKey, targetValue);
+            result[prop] = targetValue;
         } else {
             const sourceValue = source[targetKey];
             const targetValType = typeof targetValue;
             const sourceValType = typeof sourceValue;
-            if (
-                sourceValType !== targetValType ||
-                targetValType !== "object" ||
-                (Array.isArray(targetValue) && !Array.isArray(sourceValue)) ||
-                (Array.isArray(sourceValue) && !Array.isArray(targetValue))
+            if (sourceValType !== targetValType) {
+                result[prop] = targetValue;
+            } else if (sourceValType !== "object") {
+                if (sourceValue !== targetValue) {
+                    result[prop] = targetValue;
+                }
+            } else if (!sourceValue || !targetValue) {
+                result[prop] = targetValue;
+            } else if (
+                (Array.isArray(sourceValue) && !sourceValue.length) ||
+                (Array.isArray(targetValue) && !targetValue.length)
             ) {
-                setResult(targetKey, targetValue);
+                result[prop] = targetValue;
             } else {
-                diffMpData(sourceValue, targetValue, result, targetKey);
+                diffMpData(sourceValue, targetValue, result, prop);
             }
         }
     });
