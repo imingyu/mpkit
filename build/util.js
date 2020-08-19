@@ -23,3 +23,20 @@ exports.replaceFileContent = (fileName, source, target) => {
     }
     fs.writeFileSync(fileName, content, 'utf8');
 }
+
+exports.oneByOne = promiseHandlers => {
+    return new Promise((resolve, reject) => {
+        let index = 0;
+        const exec = () => {
+            promiseHandlers[index]().then(() => {
+                index++;
+                if (index < promiseHandlers.length) {
+                    exec();
+                } else {
+                    resolve();
+                }
+            }).catch(reject);
+        }
+        exec();
+    })
+}

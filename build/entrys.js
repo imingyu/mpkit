@@ -34,12 +34,6 @@ const convertOptions = (options, format) => {
     }
 }
 module.exports = [
-    'types',
-    'view-parser',
-    'mixin',
-    'util',
-    'set-data',
-    'ebus',
     {
         packageName: 'inject',
         formats: ['esm'],
@@ -112,7 +106,13 @@ module.exports = [
                 done: replaceInjectModules
             }
         ]
-    }
+    },
+    'types',
+    'view-parser',
+    'mixin',
+    'util',
+    'set-data',
+    'ebus'
 ].reduce((sum, package) => {
     package = typeof package === 'object' ? package : {
         packageName: package
