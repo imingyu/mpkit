@@ -6,6 +6,8 @@
 
 MpKit 是一个模块化的开发多平台小程序的 JavaScript 实用工具库
 
+教程：https://imingyu.github.io/2020/mpkit/
+
 ## 功能
 
 -   ● 完全支持
