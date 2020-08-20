@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/set-data",
-    "version": "1.0.3",
+    "version": "1.0.5",
     "description": "小程序setData优化。",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/set-data",
@@ -30,8 +30,8 @@
         "小程序优化"
     ],
     "dependencies": {
-        "@mpkit/types": "^1.0.3",
-        "@mpkit/util": "^1.0.3"
+        "@mpkit/types": "^1.0.5",
+        "@mpkit/util": "^1.0.5"
     },
     "devDependencies": {
         "chai": "^4.2.0",
