@@ -64,8 +64,8 @@ console.log(res);
 /*
 {
     "data": 2,
-    "list[0]['user']['name']": "Alice",
-    "list[0]['user']['age']": 10
+    "list[0].user.name": "Alice",
+    "list[0].user.age": 10
 }
 */
 ```
