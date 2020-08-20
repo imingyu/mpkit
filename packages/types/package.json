@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/types",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "mpkit包相关typescript类型",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/types",
