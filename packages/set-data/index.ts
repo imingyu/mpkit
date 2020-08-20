@@ -7,6 +7,7 @@ import {
     isValidObject,
     getMpViewPathName,
     getMpViewType,
+    isEmptyObject,
 } from "@mpkit/util";
 
 export const defaultSetDataOptions: MkSetDataOptions = {
@@ -113,7 +114,7 @@ export const diffMpData = (source, target, result?: any, path?: string) => {
         const prop = path
             ? Array.isArray(target)
                 ? `${path}[${targetKey}]`
-                : `${path}['${targetKey}']`
+                : `${path}.${targetKey}`
             : targetKey;
         if (!(targetKey in source)) {
             result[prop] = targetValue;
@@ -132,6 +133,11 @@ export const diffMpData = (source, target, result?: any, path?: string) => {
             } else if (
                 (Array.isArray(sourceValue) && !sourceValue.length) ||
                 (Array.isArray(targetValue) && !targetValue.length)
+            ) {
+                result[prop] = targetValue;
+            } else if (
+                isEmptyObject(sourceValue) ||
+                isEmptyObject(targetValue)
             ) {
                 result[prop] = targetValue;
             } else {
@@ -173,7 +179,7 @@ export class MkSetDataPerformer {
             const result = {};
             for (let prop in data) {
                 if (this.ignoreValue(prop)) {
-                    result[prop] = data;
+                    result[prop] = data[prop];
                 }
             }
             return result;
@@ -194,17 +200,18 @@ export class MkSetDataPerformer {
                     callback && callback();
                     return resolve();
                 }
-                merge(view.$mkReadyData, ignoreResult);
                 if (!this.options.diff) {
+                    merge(view.$mkReadyData, ignoreResult);
                     return view.$mkNativeSetData(ignoreResult, () => {
                         callback && callback();
                         return resolve(ignoreResult);
                     });
                 }
                 const diffResult = diffMpData(
-                    ignoreResult,
+                    view.$mkReadyData,
                     openMpData(ignoreResult, view)
                 );
+                merge(view.$mkReadyData, ignoreResult);
                 if (!isValidObject(diffResult)) {
                     callback && callback();
                     return resolve();

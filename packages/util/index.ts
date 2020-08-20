@@ -240,7 +240,7 @@ export const getMpViewPathName = (
 };
 
 export const isMpIvew = (view: any): boolean => {
-    if (typeof view === "object" && !view && !isPlainObject(view)) {
+    if (typeof view === "object" && view && !isPlainObject(view)) {
         if (view.$mkType) {
             return true;
         }

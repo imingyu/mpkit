@@ -25,7 +25,7 @@ export interface MpAlipayViewAppSpec extends MpViewAppSpec {
 }
 
 export interface MpViewFactory {
-    (spec: MpViewAppSpec | MpViewPageSpec | MpViewComponentSpec): void;
+    (spec: MpViewAppSpec | MpViewPageSpec | MpViewComponentSpec | any): void;
 }
 export enum MpViewType {
     App = "App",

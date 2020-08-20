@@ -7,7 +7,7 @@ import {
 } from "@mpkit/util";
 import { MpMethodHook, MpViewType, MpPlatform } from "@mpkit/types";
 
-const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
+export const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
     const methodName = hookArgs[0];
     let res;
     methodHook.forEach((item) => {

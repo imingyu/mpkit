@@ -1,7 +1,13 @@
 import { MpViewType, MpView, MpMethodHook } from "@mpkit/types";
-import { getMpPlatform, getMpInitLifeName, getApiVar } from "@mpkit/util";
+import {
+    getMpPlatform,
+    getMpInitLifeName,
+    getApiVar,
+    getMpViewType,
+    isPromise,
+} from "@mpkit/util";
 import { MpPlatform } from "@mpkit/types";
-import { mergeApi, mergeView } from "./mrege";
+import { mergeApi, mergeView, execHook } from "./mrege";
 import MixinStore from "./store";
 import {
     MpKitPlugin,
@@ -82,17 +88,77 @@ export const plugin: MpKitPlugin = {
         mpkit.Component = MkComponent;
         if (config && config.rewrite) {
             const rewriteSetData = function rewriteSetData(this: MpView) {
-                if (
-                    mpkit.hasPlugin("set-data") &&
-                    mpkit.setData &&
-                    !this.$mkNativeSetData
-                ) {
+                if (!this.$mkNativeSetData) {
                     this.$mkNativeSetData = this.setData;
                     this.setData = function betterSetData(
                         this: MpView,
                         ...args
                     ) {
-                        return mpkit.setData.apply(mpkit, [this, ...args]);
+                        const type = getMpViewType(this);
+                        const hooks = MixinStore.getHook(type);
+                        try {
+                            if (
+                                execHook(
+                                    hooks,
+                                    this,
+                                    "before",
+                                    "setData",
+                                    args
+                                ) !== false
+                            ) {
+                                let res;
+                                if (
+                                    (config.rewrite === true ||
+                                        (config.rewrite[type] &&
+                                            (config.rewrite as MpKitRewriteConfig)
+                                                .setData)) &&
+                                    mpkit.hasPlugin("set-data") &&
+                                    mpkit.setData
+                                ) {
+                                    res = mpkit.setData.apply(mpkit, [
+                                        this,
+                                        ...args,
+                                    ]);
+                                } else {
+                                    res = this.$mkNativeSetData.apply(
+                                        this,
+                                        args
+                                    );
+                                }
+                                isPromise(res) &&
+                                    res.catch((error) => {
+                                        execHook(
+                                            hooks,
+                                            this,
+                                            "catch",
+                                            "setData",
+                                            args,
+                                            error,
+                                            "PromiseReject"
+                                        );
+                                    });
+                                execHook(
+                                    hooks,
+                                    this,
+                                    "after",
+                                    "setData",
+                                    args,
+                                    res
+                                );
+                                return res;
+                            }
+                            args[1] && args[1]();
+                        } catch (error) {
+                            execHook(
+                                hooks,
+                                this,
+                                "catch",
+                                "setData",
+                                args,
+                                error
+                            );
+                            throw error;
+                        }
                     };
                 }
             };
@@ -110,6 +176,11 @@ export const plugin: MpKitPlugin = {
                     },
                 };
             };
+            MixinStore.addHook(MpViewType.Page, setDataMixin(MpViewType.Page));
+            MixinStore.addHook(
+                MpViewType.Component,
+                setDataMixin(MpViewType.Component)
+            );
             const rewriteApi = () => {
                 const paltform = getMpPlatform();
                 if (paltform === MpPlatform.wechat) {
@@ -132,25 +203,19 @@ export const plugin: MpKitPlugin = {
                     rewriteApi();
                 }
                 if (tsRewrite.App) {
-                    App = MkApp;
+                    App = function (spec) {
+                        return MkNative.App(MkApp(spec));
+                    };
                 }
                 if (tsRewrite.Page) {
-                    Page = MkPage;
-                    if (tsRewrite.setData) {
-                        MixinStore.addHook(
-                            MpViewType.Page,
-                            setDataMixin(MpViewType.Page)
-                        );
-                    }
+                    Page = function (spec) {
+                        return MkNative.Page(MkPage(spec));
+                    };
                 }
                 if (tsRewrite.Component) {
-                    Component = MkComponent;
-                    if (tsRewrite.setData) {
-                        MixinStore.addHook(
-                            MpViewType.Component,
-                            setDataMixin(MpViewType.Component)
-                        );
-                    }
+                    Component = function (spec) {
+                        return MkNative.Component(MkComponent(spec));
+                    };
                 }
             } else {
                 MixinStore.addHook(
@@ -161,9 +226,15 @@ export const plugin: MpKitPlugin = {
                     MpViewType.Component,
                     setDataMixin(MpViewType.Component)
                 );
-                App = MkApp;
-                Page = MkPage;
-                Component = MkComponent;
+                App = function (spec) {
+                    return MkNative.App(MkApp(spec));
+                };
+                Page = function (spec) {
+                    return MkNative.Page(MkPage(spec));
+                };
+                Component = function (spec) {
+                    return MkNative.Component(MkComponent(spec));
+                };
                 rewriteApi();
             }
         }

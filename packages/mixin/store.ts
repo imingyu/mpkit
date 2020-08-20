@@ -46,7 +46,11 @@ export default (() => {
         },
     };
     const store: MkMixinStore = {
-        ViewInstanceMap: {} as ViewInstanceMap,
+        ViewInstanceMap: {
+            [MpViewType.App]: null,
+            [MpViewType.Page]: {},
+            [MpViewType.Component]: {},
+        } as ViewInstanceMap,
         ViewInstanceTimeLine: [],
         bindEBus(val: EBus) {
             ebus = val;
@@ -76,9 +80,7 @@ export default (() => {
                                 initView(this, type);
                                 store.ViewInstanceTimeLine.push(this);
                                 if (type === MpViewType.App) {
-                                    store.ViewInstanceMap[type][
-                                        this.$mkKey
-                                    ] = this;
+                                    store.ViewInstanceMap[type] = this;
                                 } else {
                                     store.ViewInstanceMap[type][
                                         this.$mkKey
