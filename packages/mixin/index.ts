@@ -5,6 +5,7 @@ import {
     getApiVar,
     getMpViewType,
     isPromise,
+    uuid,
 } from "@mpkit/util";
 import { MpPlatform } from "@mpkit/types";
 import { mergeApi, mergeView, execHook } from "./mrege";
@@ -94,6 +95,7 @@ export const plugin: MpKitPlugin = {
                         this: MpView,
                         ...args
                     ) {
+                        const funId = uuid();
                         const type = getMpViewType(this);
                         const hooks = MixinStore.getHook(type);
                         try {
@@ -103,7 +105,9 @@ export const plugin: MpKitPlugin = {
                                     this,
                                     "before",
                                     "setData",
-                                    args
+                                    args,
+                                    this.$mkNativeSetData,
+                                    funId
                                 ) !== false
                             ) {
                                 let res;
@@ -134,7 +138,8 @@ export const plugin: MpKitPlugin = {
                                             "setData",
                                             args,
                                             error,
-                                            "PromiseReject"
+                                            "PromiseReject",
+                                            funId
                                         );
                                     });
                                 execHook(
@@ -143,7 +148,8 @@ export const plugin: MpKitPlugin = {
                                     "after",
                                     "setData",
                                     args,
-                                    res
+                                    res,
+                                    funId
                                 );
                                 return res;
                             }
@@ -155,7 +161,9 @@ export const plugin: MpKitPlugin = {
                                 "catch",
                                 "setData",
                                 args,
-                                error
+                                error,
+                                "MethodError",
+                                funId
                             );
                             throw error;
                         }

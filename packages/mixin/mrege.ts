@@ -35,9 +35,18 @@ const mergeMethod = (
     allowStr = false
 ) => {
     return function (...args) {
+        const funId = uuid();
         try {
             if (
-                execHook(methodHook, this, "before", methodName, args) !== false
+                execHook(
+                    methodHook,
+                    this,
+                    "before",
+                    methodName,
+                    args,
+                    methodValues,
+                    funId
+                ) !== false
             ) {
                 let methodResult;
                 methodValues.forEach((item) => {
@@ -65,7 +74,8 @@ const mergeMethod = (
                                 methodName,
                                 args,
                                 error,
-                                "PromiseReject"
+                                "PromiseReject",
+                                funId
                             );
                         });
                 });
@@ -75,11 +85,21 @@ const mergeMethod = (
                     "after",
                     methodName,
                     args,
-                    methodResult
+                    methodResult,
+                    funId
                 );
             }
         } catch (error) {
-            execHook(methodHook, this, "catch", methodName, args, error);
+            execHook(
+                methodHook,
+                this,
+                "catch",
+                methodName,
+                args,
+                error,
+                "MethodError",
+                funId
+            );
             throw error;
         }
     };
