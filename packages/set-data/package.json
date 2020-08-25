@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/set-data",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "description": "小程序setData优化。",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/set-data",
