@@ -353,5 +353,57 @@ export const mergeApi = (api: any, methodHook?: MpMethodHook[]) => {
             result[prop] = api[prop];
         }
     }
+    result["promiseify"] = function (apiName: string, ...apiArgs: any[]) {
+        return promiseifyApi.apply(this, [this, apiName, ...apiArgs]);
+    };
     return result;
+};
+
+export const promiseifyApi = (
+    apiVar: any,
+    apiName: string,
+    ...apiArgs: any[]
+): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        if (typeof apiVar[apiName] === "function") {
+            if (apiName.indexOf("Sync") === -1) {
+                let apiOptions = apiArgs[0];
+                const type = typeof apiOptions;
+                if (type !== "object" || !type) {
+                    apiOptions = {};
+                }
+                const { success, fail } = apiOptions;
+                apiOptions.success = function (...args) {
+                    if (args.length < 2) {
+                        resolve(args[0]);
+                    } else {
+                        resolve(args);
+                    }
+                    return success.apply(this, args);
+                };
+                apiOptions.fail = function (...args) {
+                    const err = new Error("未知错误");
+                    if (args.length < 2 && args[0] && args[0].errMsg) {
+                        err.message = args[0].errMsg;
+                    }
+                    err["failResult"] = args;
+                    reject(err);
+                    return fail.apply(this, args);
+                };
+                const res = apiVar[apiName].call(apiVar, apiOptions);
+                if (res && typeof apiOptions.result === "function") {
+                    apiOptions.result(res);
+                }
+            } else {
+                try {
+                    const res = apiVar[apiName].call(apiVar, apiArgs);
+                    resolve(res);
+                } catch (error) {
+                    reject(error);
+                }
+            }
+        } else {
+            resolve(apiVar[apiName]);
+        }
+    });
 };

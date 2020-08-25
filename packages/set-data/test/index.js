@@ -56,7 +56,7 @@ describe('SetData', () => {
         }));
         const keys = Object.keys(d1)
         assert.equal(keys.length, 1);
-        assert.equal(keys[0], "list[0]['user']['name']");
+        assert.equal(keys[0], "list[0].user.name");
         assert.equal(d1[keys[0]], 'Jeck');
 
         const t1 = JSON.parse(JSON.stringify(source));
@@ -64,7 +64,7 @@ describe('SetData', () => {
         const d2 = diffMpData(source, t1);
         const keys2 = Object.keys(d2)
         assert.equal(keys2.length, 1);
-        assert.equal(keys2[0], "list[0]['user']['name']");
+        assert.equal(keys2[0], "list[0].user.name");
         assert.equal(d2[keys2[0]], 'Lilei');
 
         const t2 = JSON.parse(JSON.stringify(source));
@@ -82,11 +82,11 @@ describe('SetData', () => {
         assert.equal(keys3.length, 5);
         assert.equal('data' in d3, true);
         assert.equal(d3.data, 5);
-        assert.equal("list[0]['name']" in d3, true);
-        assert.equal("list[0]['user']" in d3, true);
-        assert.equal(d3['list[0][\'name\']'], "11");
-        assert.equal(d3['list[0][\'user\']'], null);
+        assert.equal("list[0].name" in d3, true);
+        assert.equal("list[0].user" in d3, true);
+        assert.equal(d3['list[0].name'], "11");
+        assert.equal(d3['list[0].user'], null);
         assert.equal(d3['list[5]'].name, "22");
-        assert.equal(JSON.stringify(d3['order[\'products\']']), "[]");
+        assert.equal(JSON.stringify(d3['order.products']), "[]");
     })
 })

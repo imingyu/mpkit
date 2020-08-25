@@ -8,7 +8,7 @@ import {
     uuid,
 } from "@mpkit/util";
 import { MpPlatform } from "@mpkit/types";
-import { mergeApi, mergeView, execHook } from "./mrege";
+import { mergeApi, mergeView, execHook, promiseifyApi } from "./mrege";
 import MixinStore from "./store";
 import {
     MpKitPlugin,
@@ -16,7 +16,7 @@ import {
     MpKitConfig,
     MpKitRewriteConfig,
 } from "@mpkit/types";
-export { mergeApi, mergeView };
+export { mergeApi, mergeView, promiseifyApi };
 
 export const MkApi = (() => {
     const paltform = getMpPlatform();

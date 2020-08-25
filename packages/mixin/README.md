@@ -69,6 +69,21 @@ const task = MkApi.request({
 task.abort();
 ```
 
+-   `MkApi.promiseify(apiName: string, ...apiArgs: any[])`
+    执行 api 方法，并以 Promise 的形式返回，本方法遵从以下规约：
+
+    -   如果`apiName`对应的对象不是函数，则直接返回`Promise.resolve(MkApi[apiName])`
+    -   如果`apiName`对应的对象是同步 api（如：getStorageSync）,则以`Promise.resolve`的方式返回 api 的同步执行结果，如果执行中发生错误，则返回`Promise.reject(err)`
+
+```javascript
+import { MkApi } from "@mpkit/mixin";
+MkApi.promiseify("request", {
+    url: "..",
+}).then((res) => {
+    console.log(res);
+});
+```
+
 -   `MixinStore`
 
     -   `addHook(type:MpViewType.App|MpViewType.Page|MpViewType.Component|'Api', hook:MpMethodHook)`

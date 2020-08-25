@@ -1,4 +1,4 @@
-const { mergeApi, mergeView, MixinStore, MkApp } = require('../dist/index.cjs.js');
+const { mergeApi, mergeView, MixinStore, MkApp, promiseifyApi } = require('../dist/index.cjs.js');
 const { MpViewType, MpPlatform } = require('../../types/dist/index.cjs');
 const { assert } = require('chai');
 describe('Mixin', () => {
@@ -179,6 +179,60 @@ describe('Mixin', () => {
         assert.equal(state.method5, undefined);
         assert.equal(res, 6);
     });
+    it('promiseifyApi', function (done) {
+        this.timeout(5 * 1000);
+        const check = (type) => {
+            state[type] = true;
+            if (state.t1 && state.t2 && state.t3) {
+                done();
+            }
+        }
+        const state = {}
+        const mockApi = {
+            name: 'Tom',
+            method1Sync(a) {
+                state.method1 = true;
+                return a;
+            },
+            method2(a) {
+                setTimeout(() => {
+                    a && a.fail({
+                        errMsg: 'test'
+                    });
+                })
+            },
+            method3(a) {
+                state.method3 = true;
+                setTimeout(() => {
+                    a && a.success();
+                })
+            }
+        }
+        promiseifyApi(mockApi, 'method1Sync', 3).then(res => {
+            assert.equal(res, 3);
+            check('t1');
+        });
+        promiseifyApi(mockApi, 'method3', {
+            success() {
+            }
+        }).then(res => {
+            assert.equal(res, undefined);
+            assert.equal(state.method3, true);
+            check('t2');
+        });
+        promiseifyApi(mockApi, 'method2', {
+            success() {
+                assert.equal(true, false);
+            },
+            fail() {
+            }
+        }).then(res => {
+            assert.equal(true, false);
+        }).catch(err => {
+            assert.equal(err.message, 'test');
+            check('t3');
+        })
+    });
     it('MixinStore', () => {
         global.wx = {}
         with (global) {
@@ -198,5 +252,5 @@ describe('Mixin', () => {
             assert.equal(state.onShow, true);
             assert.equal(state.gloabl, true);
         }
-    })
+    });
 });
