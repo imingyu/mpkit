@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/ebus",
-    "version": "1.0.6",
+    "version": "1.0.8",
     "description": "提供事件触发、监听等功能",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/ebus",
@@ -27,7 +27,7 @@
     ],
     "dependencies": {
         "@mpkit/types": "^1.0.6",
-        "@mpkit/util": "^1.0.6"
+        "@mpkit/util": "^1.0.8"
     },
     "devDependencies": {
         "chai": "^4.2.0",

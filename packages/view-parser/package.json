@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/view-parser",
-    "version": "1.0.6",
+    "version": "1.0.8",
     "description": "将小程序模板编译为ast。",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/view-parser",
@@ -29,7 +29,7 @@
     ],
     "dependencies": {
         "@mpkit/types": "^1.0.6",
-        "@mpkit/util": "^1.0.6",
+        "@mpkit/util": "^1.0.8",
         "fast-xml-parser": "^3.17.4",
         "lodash": "^4.17.19"
     },
