@@ -6,6 +6,7 @@ import {
     getMpViewType,
     isPromise,
     uuid,
+    isFunc,
 } from "@mpkit/util";
 import { MpPlatform } from "@mpkit/types";
 import { mergeApi, mergeView, execHook, promiseifyApi } from "./mrege";
@@ -58,6 +59,12 @@ const mkView = (type: MpViewType) => {
                 },
             ]);
         }
+        specList.forEach((spec) => {
+            if (spec && typeof spec === "object" && isFunc(spec.$mixinBegin)) {
+                spec.$mixinBegin(spec, specList);
+            }
+        });
+
         const fullSpec = mergeView(
             type,
             getMpPlatform(),
@@ -65,6 +72,11 @@ const mkView = (type: MpViewType) => {
             setSpecMixin,
             ...specList
         );
+        if (isFunc(fullSpec.$mixinEnd)) {
+            fullSpec.$mixinEnd(fullSpec);
+        }
+        delete fullSpec.$mixinBegin;
+        delete fullSpec.$mixinEnd;
         return fullSpec;
     };
 };

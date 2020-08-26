@@ -6,6 +6,7 @@ import {
     merge,
 } from "@mpkit/util";
 import { MpMethodHook, MpViewType, MpPlatform } from "@mpkit/types";
+import { isFunc } from "@mpkit/util";
 
 export const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
     const methodName = hookArgs[0];
@@ -59,7 +60,7 @@ const mergeMethod = (
                         itemType === "string" &&
                         allowStr &&
                         this[item] &&
-                        typeof this[item] === "function"
+                        isFunc(this[item])
                     ) {
                         methodResult = this[item].apply(this, args);
                         hasExec = true;
@@ -190,7 +191,7 @@ export const mergeView = (
     platform: MpPlatform,
     methodHook: MpMethodHook[],
     ...specList
-) => {
+): any => {
     const result = {};
     let specialProps = {};
     const methodMap = {};
@@ -271,7 +272,7 @@ export const mergeView = (
 export const mergeApi = (api: any, methodHook?: MpMethodHook[]) => {
     const result = {};
     for (let prop in api) {
-        if (typeof api[prop] === "function") {
+        if (isFunc(api[prop])) {
             const methodName = prop;
             const methodHandler = api[prop];
             result[prop] = function (...args) {
@@ -365,7 +366,7 @@ export const promiseifyApi = (
     ...apiArgs: any[]
 ): Promise<any> => {
     return new Promise((resolve, reject) => {
-        if (typeof apiVar[apiName] === "function") {
+        if (isFunc(apiVar[apiName])) {
             if (apiName.indexOf("Sync") === -1) {
                 let apiOptions = apiArgs[0];
                 const type = typeof apiOptions;
@@ -391,7 +392,7 @@ export const promiseifyApi = (
                     return fail.apply(this, args);
                 };
                 const res = apiVar[apiName].call(apiVar, apiOptions);
-                if (res && typeof apiOptions.result === "function") {
+                if (res && isFunc(apiOptions)) {
                     apiOptions.result(res);
                 }
             } else {

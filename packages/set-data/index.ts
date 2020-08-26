@@ -9,6 +9,8 @@ import {
     getMpViewType,
     isEmptyObject,
 } from "@mpkit/util";
+import { isFunc } from "@mpkit/util";
+import { MkSetDataIgnoreHandler } from "@mpkit/types";
 
 export const defaultSetDataOptions: MkSetDataOptions = {
     // 排除哪些数据？
@@ -153,8 +155,8 @@ export class MkSetDataPerformer {
     constructor(options?: MkSetDataOptions) {
         this.options = merge({}, defaultSetDataOptions, options || {});
         this.exec = this.exec.bind(this);
-        if (typeof this.options.ignore === "function") {
-            this.ignoreValue = this.options.ignore;
+        if (isFunc(this.options.ignore)) {
+            this.ignoreValue = this.options.ignore as MkSetDataIgnoreHandler;
         }
     }
     bindView(view: MpView) {
@@ -188,7 +190,7 @@ export class MkSetDataPerformer {
     }
     exec(view: MpView, data: any, callback: Function): Promise<any> {
         return new Promise((resolve, reject) => {
-            if (isMpIvew(view) && typeof view.$mkNativeSetData === "function") {
+            if (isMpIvew(view) && isFunc(view.$mkNativeSetData)) {
                 this.bindView(view);
                 if (!isValidObject(data)) {
                     callback && callback();

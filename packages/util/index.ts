@@ -28,6 +28,8 @@ export const isNativeFunc = (func: Function) => {
     return func === Function || func.toString().indexOf("[native code]") !== -1;
 };
 
+export const isFunc = (obj) => typeof obj === "function";
+
 export const isPromise = (obj) => obj && obj.then;
 export const getMpPlatform = (() => {
     let platform;

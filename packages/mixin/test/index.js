@@ -9,7 +9,6 @@ describe('Mixin', () => {
             }
         },
         onShow() {
-            console.log('onShow1')
         }
     }, {
         globalData: {
@@ -19,10 +18,8 @@ describe('Mixin', () => {
             }
         },
         onShow() {
-            console.log('onShow2')
         }
     });
-    console.log(appSpec);
     describe('mergeView', () => {
         it('App&Page', () => {
             const state = {
