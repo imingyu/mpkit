@@ -118,7 +118,7 @@ module.exports = [
         packageName: package
     }
     if (!package.formats) {
-        package.formats = formats;
+        package.formats = [...formats];
     }
     package.formats.forEach((format, index) => {
         if (package.entrys) {

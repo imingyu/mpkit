@@ -10,9 +10,16 @@ const fse = require('fse');
 const rollup = require('rollup');
 const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
-const { replaceFileContent, oneByOne } = require('./util');
+const { replaceFileContent, oneByOne, clearDir } = require('./util');
 const getPackageName = (str) => {
     return (str || '').replace(path.resolve(__dirname, '../packages'), '');
+}
+const clear = dir => {
+    if (fs.existsSync(dir)) {
+        clearDir(dir);
+    } else {
+        fs.mkdirSync(dir);
+    }
 }
 console.log(`version=${version}, ${typeof version}`);
 version = version.split('.');
@@ -21,27 +28,40 @@ version = version.join('.');
 
 console.log(`🌟开始编译...`);
 
+const packName = process.argv[2];
+
 oneByOne(entrys.map((rollupConfig, index) => {
+    const packageName = getPackageName(rollupConfig.output.file);
+    // 将所有的d.ts移到types目录下
+    const arr = rollupConfig.input.input.split('/');
+    arr.splice(arr.length - 1, 1);
+    const packageRoot = arr.join('/');
+    const typesOutDir = packageRoot + '/spec';
+    clear(typesOutDir);
+    fs.readdirSync(packageRoot).forEach(srcFile => {
+        if (srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts') && !srcFile.endsWith('name.d.ts')) {
+            const targetFileName = path.join(typesOutDir, srcFile);
+            const sourceFileName = path.join(packageRoot, srcFile);
+            fse.copyFileSync(sourceFileName, targetFileName);
+            fs.unlinkSync(sourceFileName);
+            replaceFileContent(targetFileName, /\.\.\/types/, '@mpkit/types');
+        }
+    });
+    if (packName && rollupConfig.input.input.indexOf(packName) === -1) {
+    } else {
+        clear(path.join(packageRoot, 'dist'));
+    }
     return () => {
-        // 将所有的d.ts移到types目录下
-        const arr = rollupConfig.input.input.split('/');
-        arr.splice(arr.length - 1, 1);
-        const packageRoot = arr.join('/');
-        const typesOutDir = packageRoot + '/spec';
-        fs.readdirSync(packageRoot).forEach(srcFile => {
-            if (srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts') && !srcFile.endsWith('name.d.ts')) {
-                const targetFileName = path.join(typesOutDir, srcFile);
-                const sourceFileName = path.join(packageRoot, srcFile);
-                fse.copyFileSync(sourceFileName, targetFileName);
-                fs.unlinkSync(sourceFileName);
-                replaceFileContent(targetFileName, /\.\.\/types/, '@mpkit/types');
-            }
-        })
+        if (packName && rollupConfig.input.input.indexOf(packName) === -1) {
+            console.log(`   跳过编译：${packageName}`);
+            return Promise.resolve();
+        }
+
         if (!rollupConfig.input.external) {
             rollupConfig.input.external = [/\@mpkit\//]
         }
         rollupConfig.input.external.push(/lodash/);
-        rollupConfig.input.external.push('fast-xml-parser');
+        rollupConfig.input.external.push('parse5');
         if (!rollupConfig.input.plugins) {
             rollupConfig.input.plugins = [];
         }
@@ -65,7 +85,6 @@ oneByOne(entrys.map((rollupConfig, index) => {
             ],
             extends: path.resolve(__dirname, '../.babelrc')
         }));
-        const packageName = getPackageName(rollupConfig.output.file);
         rollupConfig.output.sourcemap = true;
         rollupConfig.output.banner = `/*!
 * MpKit v${version}

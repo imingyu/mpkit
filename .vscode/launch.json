@@ -15,9 +15,9 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "debug mixin",
+            "name": "debug view-parser",
             "skipFiles": ["<node_internals>/**"],
-            "program": "${workspaceFolder}/packages/mixin/debug.js",
+            "program": "${workspaceFolder}/packages/view-parser/debug.js",
             "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]
