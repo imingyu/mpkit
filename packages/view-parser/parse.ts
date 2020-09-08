@@ -1,71 +1,30 @@
-// import {
-//     MpViewParserOptions,
-//     MpElement,
-//     MpElementType,
-//     MpElementContentType,
-//     MpElementContent,
-// } from "@mpkit/types";
-// import { parse as parseXML } from "fast-xml-parser";
-// import { each } from "lodash";
+import {
+    MpXmlParseResult,
+    IParseElementAdapter,
+    MkValidateMessage,
+} from "@mpkit/types";
+import { parseXML } from "./xml-parser";
 
-// const hasDynamicExpression = (str: string): boolean => {
-//     return str.indexOf("{{") >= 0 && str.indexOf("}}") >= 0;
-// };
-// const convertAstValueToMpElementValue = (astValue): MpElementContent => {
-//     if (hasDynamicExpression(astValue)) {
-//         return {
-//             type: MpElementContentType.dynamic,
-//             value: {
-//                 source: astValue,
-//                 ast: null,
-//             },
-//         };
-//     }
-// };
-// const convertAstToMpElements = (astObj: any): MpElement[] => {
-//     const result: MpElement[] = [];
-//     each(astObj, (value, elTag) => {
-//         if (elTag === "#text") {
-//             result.push({
-//                 tag: elTag,
-//                 type: MpElementType.text,
-//                 children: [convertAstValueToMpElementValue(value)],
-//             });
-//         } else if (!value) {
-//             result.push({
-//                 tag: elTag,
-//                 type: MpElementType.node,
-//                 selfCloseing: true,
-//             });
-//         } else if (Array.isArray(value)) {
-//             each(value, (item) => {
-//                 result.push({
-//                     tag: elTag,
-//                     type: MpElementType.node,
-//                     children: convertAstToMpElements(item),
-//                 });
-//             });
-//         } else {
-//             result.push({
-//                 tag: elTag,
-//                 type: MpElementType.node,
-//                 children: convertAstToMpElements(value),
-//             });
-//         }
-//     });
-//     return result;
-// };
-
-// export default (
-//     sourceStr: string,
-//     options?: MpViewParserOptions
-// ): MpElement[] => {
-//     return convertAstToMpElements(
-//         parseXML(sourceStr, {
-//             attributeNamePrefix: "@_",
-//             ignoreAttributes: false,
-//             trimValues: false,
-//             allowBooleanAttributes: true,
-//         })
-//     );
-// };
+export const parseMpXml = (
+    mpXml: string,
+    parseAdapter: IParseElementAdapter
+): MpXmlParseResult => {
+    const xmlParseResult = parseXML(mpXml);
+    if (xmlParseResult.error) {
+        delete xmlParseResult.elements;
+        return (xmlParseResult as unknown) as MpXmlParseResult;
+    }
+    try {
+        const elements = xmlParseResult.elements.map((item, index, arr) => {
+            return parseAdapter.parse(item, arr, xmlParseResult.xml);
+        });
+        const result = (xmlParseResult as unknown) as MpXmlParseResult;
+        result.elements = elements;
+        return result;
+    } catch (error) {
+        const result = (xmlParseResult as unknown) as MpXmlParseResult;
+        delete result.elements;
+        result.error = error as MkValidateMessage;
+        return result;
+    }
+};

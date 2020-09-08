@@ -1,4 +1,62 @@
-export interface MpViewParserOptions {}
+import { MkOmit, MkMap } from "./util";
+export interface MpXmlContent {
+    type: MpXmlContentType;
+    value: string;
+}
+export interface IParseElementAdapter {
+    attrAdapters: MkMap<IParseAttrAdapter>;
+    contentAdapter: IParseContentAdapter;
+    parse(
+        currentElement: MkXmlElement,
+        allElements: MkXmlElement[],
+        orgXml: string
+    ): MpXmlElement;
+}
+export interface IParseAttrAdapter {
+    parse(
+        currentElement: MkXmlElement,
+        allElements: MkXmlElement[],
+        orgXml: string,
+        currentAttr: MkXmlElementAttr,
+        allAttrs: MkXmlElementAttr[],
+        prevParseAttr?: MpXmlElementAttr
+    ): MpXmlElementAttr;
+}
+export interface IParseContentAdapter {
+    parse(content: string): MpXmlContent[];
+}
+
+export enum MpXmlContentType {
+    static = "static",
+    dynamic = "dynamic",
+}
+export interface MpXmlParseResult extends MkOmit<MkXmlParseResult, "elements"> {
+    elements?: MpXmlElement[];
+}
+export interface MpXmlElementAttr extends MkOmit<MkXmlElementAttr, "content"> {
+    content?: MpXmlContent[];
+}
+export interface MpXmlElement
+    extends MkOmit<MkXmlElement, "attrs" | "children" | "content"> {
+    attrs?: MpXmlElementAttr[];
+    children?: MpXmlElement[];
+    content?: MpXmlContent[];
+}
+export interface MkXmlSourceLocation {
+    startLine: number;
+    endLine: number;
+    startCol: number;
+    endCol: number;
+    startOffset: number;
+    endOffset: number;
+}
+export interface MkXmlSourceLocationInfo extends MkXmlSourceLocation {
+    startTag?: MkXmlSourceLocation;
+    endTag?: MkXmlSourceLocation;
+    attrs?: {
+        [prop: string]: MkXmlSourceLocation;
+    };
+}
 export interface MkXmlElement {
     tag?: string;
     type: MkXmlElementType;
@@ -6,42 +64,31 @@ export interface MkXmlElement {
     children?: MkXmlElement[];
     selfCloseing?: boolean;
     content?: string;
-    sourceInfo?: {
-        start: number;
-        end: number;
-        row: number;
-        col: number;
-    };
-}
-export interface MkXmlParseOptions {
-    // 删除两端的空白字符
-    trim?: boolean;
-    // 是否验证含有根元素
-    root?: boolean;
-    // 是否转换自关闭
-    selfCloseing: boolean;
-    // 标签转换选项
-    tag?: {};
-    // 对于属性的转换选项，false代表忽略属性的转换
-    attr?:
-        | boolean
-        | {
-              // 是否忽略引号
-              ignoreGuotationMarks?: boolean;
-          };
+    sourceLocationInfo: MkXmlSourceLocationInfo;
 }
 export interface MkXmlParseResult {
     elements?: MkXmlElement[];
-    error: MkXmlValidateMessage;
+    error: MkValidateMessage;
+    xml: string;
 }
 export interface MkXmlValidateResult extends MkXmlParseResult {
     correctXML?: string;
 }
-export interface MkXmlValidateMessage {
+export enum MkValidateMessagePosition {
+    tag = "tag",
+    attr = "attr",
+    content = "content",
+}
+export interface MkValidateMessage {
+    position?: MkValidateMessagePosition;
+    target?:
+        | MkXmlElement
+        | MkXmlElementAttr
+        | MpXmlContent
+        | MpXmlElement
+        | MpXmlElementAttr;
     message: string;
-    row: number;
-    col: number;
-    fragment: string;
+    fragment?: string;
 }
 export interface MkXmlTextElement extends MkXmlElement {
     type: MkXmlElementType.text;
@@ -59,4 +106,5 @@ export enum MkXmlElementType {
 export interface MkXmlElementAttr {
     name: string;
     content?: string;
+    sourceLocationInfo: MkXmlSourceLocation;
 }

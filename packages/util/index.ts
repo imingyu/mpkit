@@ -311,3 +311,31 @@ export const merge = (source, ...targets) => {
     });
     return source;
 };
+
+export const nextCharCount = (
+    char: string,
+    charIndex: number,
+    str: string
+): number => {
+    let res = 0;
+    for (let i = charIndex, len = str.length; i < len; i++) {
+        const currentChar = str[charIndex];
+        if (currentChar !== char) {
+            break;
+        }
+        res++;
+    }
+    return res;
+};
+
+export const firstAfterCharsIndex = (
+    afterIndex: number,
+    chars: string,
+    str: string
+): number => {
+    const index = str.substr(afterIndex + 1).indexOf(chars);
+    if (index === -1) {
+        return index;
+    }
+    return afterIndex + index;
+};

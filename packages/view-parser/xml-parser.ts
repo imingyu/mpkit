@@ -5,8 +5,11 @@ import {
     MkXmlElementType,
     MkXmlValidateResult,
     MkXmlParseResult,
-    MkXmlValidateMessage,
+    MkValidateMessage,
+    MkValidateMessagePosition,
+    MkXmlElementAttr,
 } from "@mpkit/types";
+import throwError from "./throw";
 const getElementType = (node): MkXmlElementType => {
     if (node.nodeName === "#text") {
         return MkXmlElementType.text;
@@ -15,12 +18,6 @@ const getElementType = (node): MkXmlElementType => {
         return MkXmlElementType.comment;
     }
     return MkXmlElementType.node;
-};
-
-const throwError = (msg, data) => {
-    const err = new Error(msg);
-    err["data"] = data;
-    throw err;
 };
 
 const getXmlFrament = (
@@ -45,8 +42,9 @@ const validateSelfCloseing = (
     xml: string,
     xmlRows: string[],
     node,
-    nextNode
-): void | MkXmlValidateMessage => {
+    nextNode,
+    element: MkXmlElement
+): void | MkValidateMessage => {
     const {
         startOffset,
         endOffset,
@@ -70,8 +68,8 @@ const validateSelfCloseing = (
 
     return {
         message: TAG_NOT_CLOSE,
-        row: startLine,
-        col: startCol,
+        position: MkValidateMessagePosition.tag,
+        target: element,
         fragment: getXmlFrament(xmlRows, startLine),
     };
 };
@@ -119,6 +117,7 @@ const eachChildren = (
         } = childNode.sourceCodeLocation;
         const xmlElement: MkXmlElement = {
             type: getElementType(childNode),
+            sourceLocationInfo: childNode.sourceCodeLocation,
         };
         if (xmlElement.type === MkXmlElementType.text) {
             if (
@@ -128,10 +127,10 @@ const eachChildren = (
                 // const orgTagHead = childNode.value.trim();
                 // let tagHead = correctTagHead(orgTagHead);
                 // parseResult.correctXML = xml.replace(orgTagHead, tagHead);
-                return throwError(TAG_HAS_SPACE, {
+                return throwError({
                     message: TAG_HAS_SPACE,
-                    row: startLine,
-                    col: startCol,
+                    position: MkValidateMessagePosition.tag,
+                    target: xmlElement,
                     fragment: getXmlFrament(xmlRows, startLine),
                 });
             }
@@ -158,6 +157,8 @@ const eachChildren = (
                     xmlElement.attrs.push({
                         name: attr.name,
                         content: attr.value,
+                        sourceLocationInfo:
+                            childNode.sourceCodeLocation.attrs[attr.name],
                     });
                 });
             }
@@ -166,10 +167,11 @@ const eachChildren = (
                     xml,
                     xmlRows,
                     childNode,
-                    children[nodeIndex + 1]
+                    children[nodeIndex + 1],
+                    xmlElement
                 );
                 if (res) {
-                    throwError(res.message, res);
+                    return throwError(res);
                 }
                 xmlElement.selfCloseing = true;
                 elements.push(xmlElement);
@@ -217,7 +219,7 @@ export const validateXML = (xml: string): MkXmlValidateResult => {
     }
     return result;
 };
-export const parse = (xml: string): MkXmlParseResult => {
+export const parseXML = (xml: string): MkXmlParseResult => {
     const validateResult = validateXML(xml);
     if (validateResult.error) {
         return validateResult;

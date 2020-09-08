@@ -1,4 +1,5 @@
-const fs = require('fs')
+const fs = require('fs');
+const fse = require('fse');
 const path = require('path')
 exports.clearDir = dirName => {
     fs.readdirSync(dirName).forEach(fileName => {
@@ -8,6 +9,28 @@ exports.clearDir = dirName => {
             fs.unlinkSync(fullName)
         } else if (stat.isDirectory()) {
             exports.clearDir(fullName);
+        }
+    })
+}
+
+exports.copyFiles = (sourceDir, targetDir, fileNameChar, deleteSourceFile, loopCallback) => {
+    fs.readdirSync(sourceDir).forEach(item => {
+        const sourceName = path.join(sourceDir, item);
+        if (sourceName === targetDir) {
+            return;
+        }
+        const targetName = path.join(targetDir, item);
+        const stat = fs.statSync(sourceName)
+        if (stat.isFile()) {
+            if ((typeof fileNameChar === 'function' && fileNameChar(sourceName)) || (typeof fileNameChar === 'string' && sourceName.indexOf(fileNameChar) !== -1)) {
+                fse.copyFileSync(sourceName, targetName);
+                if (deleteSourceFile) {
+                    fs.unlinkSync(sourceName)
+                }
+                loopCallback && loopCallback(targetName);
+            }
+        } else if (stat.isDirectory()) {
+            exports.copyFiles(fullName, targetName, fileNameChar);
         }
     })
 }
