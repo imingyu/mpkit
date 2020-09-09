@@ -13,6 +13,19 @@ exports.clearDir = dirName => {
     })
 }
 
+exports.getDirList = (dirName, deep, list) => {
+    list = list || [];
+    fs.readdirSync(dirName).forEach(fileName => {
+        const fullName = path.join(dirName, fileName);
+        const stat = fs.statSync(fullName)
+        if (stat.isDirectory()) {
+            list.push([fullName, fileName, dirName])
+            deep && exports.getDirList(fullName, deep, list);
+        }
+    });
+    return list;
+}
+
 exports.copyFiles = (sourceDir, targetDir, fileNameChar, deleteSourceFile, loopCallback) => {
     fs.readdirSync(sourceDir).forEach(item => {
         const sourceName = path.join(sourceDir, item);

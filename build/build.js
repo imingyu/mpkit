@@ -9,7 +9,7 @@ const fs = require('fs');
 const rollup = require('rollup');
 const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
-const { replaceFileContent, oneByOne, clearDir, copyFiles } = require('./util');
+const { replaceFileContent, oneByOne, clearDir, copyFiles, getDirList } = require('./util');
 const getPackageName = (str) => {
     return (str || '').replace(path.resolve(__dirname, '../packages'), '');
 }
@@ -27,27 +27,28 @@ version = version.join('.');
 
 console.log(`🌟开始编译...`);
 
-const packNames = process.argv.slice(2);
+const targetPackNames = process.argv.slice(2);
+const specIsMoved = {};
 
 oneByOne(entrys.map((rollupConfig, index) => {
     const packageName = getPackageName(rollupConfig.output.file);
-    // 将所有的d.ts移到types目录下
-    const arr = rollupConfig.input.input.split('/');
-    arr.splice(arr.length - 1, 1);
-    const packageRoot = arr.join('/');
-    const typesOutDir = packageRoot + '/spec';
-    clear(typesOutDir);
-    copyFiles(packageRoot, typesOutDir, srcFile => {
-        return srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts') && !srcFile.endsWith('name.d.ts');
-    }, true, targetFileName => {
-        replaceFileContent(targetFileName, /\.\.\/types/, '@mpkit/types');
-    })
-    if (packNames.length && packNames.every(item => rollupConfig.input.input.indexOf(item) === -1)) {
-    } else {
-        clear(path.join(packageRoot, 'dist'));
-    }
+    const currentPackName = packageName.split('/')[1];
+
     return () => {
-        if (packNames.length && packNames.every(item => rollupConfig.input.input.indexOf(item) === -1)) {
+        // 将所有的d.ts移到types目录下
+        if (!specIsMoved[currentPackName]) {
+            specIsMoved[currentPackName] = true;
+            const arr = rollupConfig.input.input.split('/');
+            arr.splice(arr.length - 1, 1);
+            const packageRoot = arr.join('/');
+            const typesOutDir = packageRoot + '/spec';
+            copyFiles(packageRoot, typesOutDir, srcFile => {
+                return srcFile.endsWith('.d.ts') && !srcFile.endsWith('global.d.ts') && !srcFile.endsWith('name.d.ts');
+            }, true, targetFileName => {
+                replaceFileContent(targetFileName, /\.\.\/types/, '@mpkit/types');
+            })
+        }
+        if (targetPackNames.length && targetPackNames.every(item => item !== currentPackName)) {
             console.log(`   跳过编译：${packageName}`);
             return Promise.resolve();
         }
