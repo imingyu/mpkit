@@ -4,8 +4,9 @@
         "paths": {
             "@mpkit/*": ["packages/*"]
         },
-        "declaration": true
+        "declaration": true,
+        "lib": ["ES2015"]
     },
-    "include": ["packages/**/*.ts"],
-    "exclude": ["node_modules", "dist"]
+    "include": ["packages/**/*.ts", "global.d.ts"],
+    "exclude": ["node_modules", "dist", "*.d.ts"]
 }

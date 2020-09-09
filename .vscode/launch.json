@@ -15,6 +15,14 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "debug move d.ts",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/build/move-d.ts.js",
+            "outFiles": ["${workspaceFolder}/**/*.js"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "debug view-parser",
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/packages/view-parser/debug.js",

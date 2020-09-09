@@ -16,7 +16,7 @@ exports.clearDir = dirName => {
 exports.copyFiles = (sourceDir, targetDir, fileNameChar, deleteSourceFile, loopCallback) => {
     fs.readdirSync(sourceDir).forEach(item => {
         const sourceName = path.join(sourceDir, item);
-        if (sourceName === targetDir) {
+        if (sourceName === targetDir || sourceName.indexOf('node_modules') !== -1) {
             return;
         }
         const targetName = path.join(targetDir, item);
@@ -30,7 +30,7 @@ exports.copyFiles = (sourceDir, targetDir, fileNameChar, deleteSourceFile, loopC
                 loopCallback && loopCallback(targetName);
             }
         } else if (stat.isDirectory()) {
-            exports.copyFiles(fullName, targetName, fileNameChar);
+            exports.copyFiles(sourceName, targetName, fileNameChar, deleteSourceFile, loopCallback);
         }
     })
 }
