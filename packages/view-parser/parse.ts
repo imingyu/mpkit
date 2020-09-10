@@ -2,6 +2,8 @@ import {
     MpXmlParseResult,
     IParseElementAdapter,
     MkValidateMessage,
+    MkXmlElement,
+    MpXmlElement,
 } from "@mpkit/types";
 import { parseXML } from "./xml-parser";
 
@@ -14,10 +16,29 @@ export const parseMpXml = (
         delete xmlParseResult.elements;
         return (xmlParseResult as unknown) as MpXmlParseResult;
     }
-    try {
-        const elements = xmlParseResult.elements.map((item, index, arr) => {
-            return parseAdapter.parse(item, arr, xmlParseResult.xml);
+    const eachParse = (
+        elements: MkXmlElement[],
+        allElements: MkXmlElement[]
+    ): MpXmlElement[] => {
+        return elements.map((item, index, arr) => {
+            let children;
+            if (item.children) {
+                children = eachParse(item.children, allElements);
+            }
+            const res = parseAdapter.parse({
+                currentElement: item,
+                currentElementIndex: index,
+                brotherElements: arr,
+                allElements,
+                orgXml: xmlParseResult.xml,
+            });
+            res.children = children;
+            return res;
         });
+    };
+    try {
+        const allElements = xmlParseResult.elements;
+        const elements = eachParse(allElements, allElements);
         const result = (xmlParseResult as unknown) as MpXmlParseResult;
         result.elements = elements;
         return result;

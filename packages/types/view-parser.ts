@@ -1,26 +1,58 @@
-import { MkOmit, MkMap } from "./util";
+import { MkOmit, MkMap, MkEnumMap } from "./util";
+import { MpPlatform } from ".";
+export interface MpSpec {
+    [prop: string]: MkEnumMap<MpPlatform, MpViewSyntaxSpec>;
+}
+export interface MpViewSyntaxSpec {
+    namespace: string;
+    for: string;
+    forItem: string;
+    forIndex: string;
+    key: string;
+    if: string;
+    elseif: string;
+    else: string;
+    forAndWhereAttrNeedBracket: boolean;
+}
+export enum MpWhereType {
+    if = "if",
+    elseif = "elseif",
+    else = "else",
+}
 export interface MpXmlContent {
     type: MpXmlContentType;
     value: string;
 }
+export interface ParseElementAdapterArg {
+    currentElement: MkXmlElement;
+    currentElementIndex: number;
+    brotherElements: MkXmlElement[];
+    allElements: MkXmlElement[];
+    orgXml: string;
+}
 export interface IParseElementAdapter {
     attrAdapters: MkMap<IParseAttrAdapter>;
     contentAdapter: IParseContentAdapter;
-    parse(
-        currentElement: MkXmlElement,
-        allElements: MkXmlElement[],
-        orgXml: string
-    ): MpXmlElement;
+    parse(data: ParseElementAdapterArg): MpXmlElement;
+}
+export interface ParseAttrAdapterArg {
+    currentElement: MkXmlElement;
+    currentElementIndex: number;
+    brotherElements: MkXmlElement[];
+    allElements: MkXmlElement[];
+    orgXml: string;
+    currentAttr: MkXmlElementAttr;
+    allAttrs: MkXmlElementAttr[];
+    prevParseAttr?: MpXmlElementAttr;
 }
 export interface IParseAttrAdapter {
-    parse(
-        currentElement: MkXmlElement,
-        allElements: MkXmlElement[],
-        orgXml: string,
-        currentAttr: MkXmlElementAttr,
-        allAttrs: MkXmlElementAttr[],
-        prevParseAttr?: MpXmlElementAttr
-    ): MpXmlElementAttr;
+    parse(data: ParseAttrAdapterArg): MpXmlElementAttr;
+}
+export interface IMpParseAttrAdapter
+    extends IMpParseAdapter,
+        IParseAttrAdapter {}
+export interface IMpParseAdapter {
+    mpPlatform: MpPlatform;
 }
 export interface IParseContentAdapter {
     parse(content: string): MpXmlContent[];

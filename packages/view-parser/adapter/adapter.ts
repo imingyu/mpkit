@@ -2,19 +2,19 @@ import {
     MkMap,
     MpXmlElement,
     MpXmlElementAttr,
-    MkXmlElement,
     MkXmlElementType,
     IParseAttrAdapter,
     IParseContentAdapter,
     IParseElementAdapter,
     MpXmlContent,
     MkValidateMessagePosition,
-    MkXmlElementAttr,
-    MpXmlContentType,
+    MpPlatform,
+    IMpParseAdapter,
+    IMpParseAttrAdapter,
+    ParseElementAdapterArg,
+    MkValidateMessage,
 } from "@mpkit/types";
-import { nextCharCount, firstAfterCharsIndex } from "@mpkit/util";
-import throwError from "../throw";
-import { BRACKET_THAN_TWO, BRACKET_NOT_CLOSE } from "../message";
+import { validateContent } from "../util";
 
 export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
     attrAdapters: MkMap<IParseAttrAdapter>;
@@ -26,43 +26,69 @@ export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
         this.attrAdapters = attrAdapters;
         this.contentAdapter = contentAdapter;
     }
-    parse(
-        currentElement: MkXmlElement,
-        allElements: MkXmlElement[],
-        orgXml: string
-    ): MpXmlElement {
+    parse(data: ParseElementAdapterArg): MpXmlElement {
+        const {
+            currentElement,
+            currentElementIndex,
+            brotherElements,
+            allElements,
+            orgXml,
+        } = data;
         if (currentElement.type === MkXmlElementType.node) {
             let attrs;
             if (currentElement.attrs) {
                 const commonAttr = this.attrAdapters["*"];
+                const unclaimedAttr = this.attrAdapters.unclaimed;
                 attrs = currentElement.attrs.map((item, index, arr) => {
                     let resultAttr: MpXmlElementAttr;
                     const currentAttr = this.attrAdapters[item.name];
                     if (currentAttr) {
-                        resultAttr = currentAttr.parse(
+                        resultAttr = currentAttr.parse({
                             currentElement,
+                            currentElementIndex,
+                            brotherElements,
                             allElements,
                             orgXml,
-                            item,
-                            arr
-                        );
+                            currentAttr: item,
+                            allAttrs: arr,
+                        });
+                    } else if (unclaimedAttr) {
+                        resultAttr = unclaimedAttr.parse({
+                            currentElement,
+                            currentElementIndex,
+                            brotherElements,
+                            allElements,
+                            orgXml,
+                            currentAttr: item,
+                            allAttrs: arr,
+                            prevParseAttr: resultAttr,
+                        });
                     }
                     if (commonAttr) {
-                        resultAttr = commonAttr.parse(
+                        resultAttr = commonAttr.parse({
                             currentElement,
+                            currentElementIndex,
+                            brotherElements,
                             allElements,
                             orgXml,
-                            item,
-                            arr,
-                            resultAttr
-                        );
+                            currentAttr: item,
+                            allAttrs: arr,
+                            prevParseAttr: resultAttr,
+                        });
                     }
                     if (!resultAttr) {
                         resultAttr = (item as unknown) as MpXmlElementAttr;
                         if (item.content && item.content.trim()) {
-                            resultAttr.content = this.contentAdapter.parse(
-                                item.content
-                            );
+                            try {
+                                resultAttr.content = this.contentAdapter.parse(
+                                    item.content
+                                );
+                            } catch (error) {
+                                const err = error as MkValidateMessage;
+                                err.position = MkValidateMessagePosition.attr;
+                                err.target = resultAttr;
+                                throw err;
+                            }
                         }
                     }
 
@@ -80,88 +106,50 @@ export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
             currentElement.content &&
             currentElement.content.trim()
         ) {
-            const content = this.contentAdapter.parse(currentElement.content);
             const result = (currentElement as unknown) as MpXmlElement;
-            result.content = content;
+            try {
+                const content = this.contentAdapter.parse(
+                    currentElement.content
+                );
+                result.content = content;
+            } catch (error) {
+                const err = error as MkValidateMessage;
+                err.position = MkValidateMessagePosition.content;
+                err.target = result;
+                throw err;
+            }
             return result;
         }
         return (currentElement as unknown) as MpXmlElement;
     }
 }
 
+export class MpParseElementAdapter
+    extends ParseElementAdapterImpl
+    implements IMpParseAdapter {
+    mpPlatform: MpPlatform;
+    constructor(
+        mpPlatform: MpPlatform,
+        attrAdapters: MkMap<IMpParseAttrAdapter>,
+        contentAdapter: IParseContentAdapter
+    ) {
+        super(attrAdapters, contentAdapter);
+        this.mpPlatform = mpPlatform;
+    }
+}
+
 export abstract class ParseContentAdapterImpl implements IParseContentAdapter {
     parse(content: string): MpXmlContent[] {
-        return ParseContentAdapterImpl.validate(content);
+        return validateContent(content);
     }
-    static validate(
-        content: string,
-        target?:
-            | MkXmlElement
-            | MkXmlElementAttr
-            | MpXmlContent
-            | MpXmlElement
-            | MpXmlElementAttr
-    ): MpXmlContent[] {
-        const result: MpXmlContent[] = [];
-        let text = "";
-        for (let i = 0, len = content.length; i < len; i++) {
-            const char = content[i];
-            if (char === "{") {
-                const nextCount = nextCharCount(char, i, content);
-                if (nextCount > 1) {
-                    // 存在"{{{"语法错误
-                    return throwError({
-                        message: BRACKET_THAN_TWO,
-                        target,
-                        position: MkValidateMessagePosition.content,
-                    });
-                } else if (nextCount < 1) {
-                    // 不构成表达式，直接或略
-                    text += content.substr(i, nextCount + 1);
-                    i += nextCount;
-                } else {
-                    // 寻找与之对应的"}}"
-                    const bracketRightIndex = firstAfterCharsIndex(
-                        i + 1,
-                        "}}",
-                        content
-                    );
-                    if (bracketRightIndex === -1) {
-                        // 未找到"}}"
-                        return throwError({
-                            message: BRACKET_NOT_CLOSE,
-                            target,
-                            position: MkValidateMessagePosition.content,
-                        });
-                    }
-                    const bracketContent = content.substring(
-                        i + 2,
-                        bracketRightIndex
-                    );
-                    if (text) {
-                        result.push({
-                            type: MpXmlContentType.static,
-                            value: text,
-                        });
-                        text = "";
-                    }
-                    result.push({
-                        type: MpXmlContentType.dynamic,
-                        value: bracketContent,
-                    });
-                    i = bracketRightIndex + 2;
-                }
-            } else {
-                text += char;
-            }
-        }
-        if (text) {
-            result.push({
-                type: MpXmlContentType.static,
-                value: text,
-            });
-            text = "";
-        }
-        return result;
+}
+
+export class MpParseContentAdapter
+    extends ParseContentAdapterImpl
+    implements IMpParseAdapter {
+    mpPlatform: MpPlatform;
+    constructor(mpPlatform: MpPlatform) {
+        super();
+        this.mpPlatform = mpPlatform;
     }
 }
