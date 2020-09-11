@@ -4,17 +4,28 @@ import {
     MkValidateMessage,
     MkXmlElement,
     MpXmlElement,
+    MpPlatform,
 } from "@mpkit/types";
 import { parseXML } from "./xml-parser";
+import MpAdapter from "./adapter/index";
 
 export const parseMpXml = (
     mpXml: string,
-    parseAdapter: IParseElementAdapter
+    adapter: MpPlatform | IParseElementAdapter
 ): MpXmlParseResult => {
     const xmlParseResult = parseXML(mpXml);
     if (xmlParseResult.error) {
         delete xmlParseResult.elements;
         return (xmlParseResult as unknown) as MpXmlParseResult;
+    }
+    let parseAdapter: IParseElementAdapter;
+    if (typeof adapter === "object" && adapter.parse) {
+        parseAdapter = adapter;
+    } else if (typeof adapter === "string" && MpPlatform[adapter]) {
+        parseAdapter = MpAdapter[adapter];
+    } else {
+        throw new Error("adapter参数有误，无法解析");
+        return;
     }
     const eachParse = (
         elements: MkXmlElement[],

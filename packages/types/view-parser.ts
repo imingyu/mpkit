@@ -23,6 +23,13 @@ export interface MpXmlContent {
     type: MpXmlContentType;
     value: string;
 }
+export interface MpForAttrContent extends MpXmlContent {
+    type: MpXmlContentType;
+    value: string;
+    featureItem: string;
+    featureIndex: string;
+    featureKey: string;
+}
 export interface ParseElementAdapterArg {
     currentElement: MkXmlElement;
     currentElementIndex: number;

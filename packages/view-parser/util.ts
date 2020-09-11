@@ -1,6 +1,5 @@
 import {
     MkXmlElement,
-    ParseAttrAdapterArg,
     MkValidateMessagePosition,
     MpXmlContent,
     MkXmlElementAttr,
@@ -8,15 +7,8 @@ import {
     MpXmlElementAttr,
     MpXmlContentType,
 } from "@mpkit/types";
-import { ParseWehreAttrAdapter } from "./adapter/attrs/where";
-import { ParseForAttrAdapter } from "./adapter/attrs/for";
 import throwError from "./throw";
-import {
-    ATTR_WHERE_NOT_IF,
-    BRACKET_THAN_TWO,
-    BRACKET_NOT_CLOSE,
-    ATTR_CONTENT_HAS_MORE_VAR,
-} from "./message";
+import { BRACKET_THAN_TWO, BRACKET_NOT_CLOSE } from "./message";
 import { nextCharCount } from "@mpkit/util";
 import { firstAfterCharsIndex } from "@mpkit/util";
 export const hasAttr = (element: MkXmlElement, attrName: string): boolean => {
@@ -105,70 +97,4 @@ export const validateContent = (
         });
     }
     return result;
-};
-
-export const validateForAndWhereAttr = (
-    attrAdapter: ParseWehreAttrAdapter | ParseForAttrAdapter,
-    data: ParseAttrAdapterArg
-): MpXmlContent[] => {
-    const { currentAttr, currentElementIndex, brotherElements } = data;
-    const attrName = currentAttr.name;
-    if (attrAdapter instanceof ParseWehreAttrAdapter) {
-        if (attrName === attrAdapter.elseifValue) {
-            const brotherElement = brotherElements[currentElementIndex - 1];
-            if (
-                !brotherElement ||
-                !hasAttr(brotherElement, attrAdapter.ifValue)
-            ) {
-                return throwError({
-                    message: ATTR_WHERE_NOT_IF,
-                    position: MkValidateMessagePosition.attr,
-                    target: currentAttr,
-                });
-            }
-        }
-        if (attrName === attrAdapter.elseValue) {
-            const brotherElement = brotherElements[currentElementIndex - 1];
-            if (
-                !brotherElement ||
-                (!hasAttr(brotherElement, attrAdapter.ifValue) &&
-                    !hasAttr(brotherElement, attrAdapter.elseifValue))
-            ) {
-                return throwError({
-                    message: ATTR_WHERE_NOT_IF,
-                    position: MkValidateMessagePosition.attr,
-                    target: currentAttr,
-                });
-            }
-        }
-    }
-    if (attrAdapter instanceof ParseForAttrAdapter) {
-    }
-    if (attrAdapter.mpViewSyntax.forAndWhereAttrNeedBracket) {
-        const contents = validateContent(
-            currentAttr.content,
-            MkValidateMessagePosition.attr,
-            currentAttr
-        );
-        const filterEmpty = contents.filter((item) => {
-            if (item.type === MpXmlContentType.dynamic) {
-                return true;
-            }
-            return item.value && item.value.trim();
-        });
-        if (filterEmpty.length > 1) {
-            return throwError({
-                message: ATTR_CONTENT_HAS_MORE_VAR,
-                position: MkValidateMessagePosition.attr,
-                target: currentAttr,
-            });
-        }
-        return contents;
-    }
-    return [
-        {
-            type: MpXmlContentType.static,
-            value: currentAttr.content,
-        },
-    ];
 };
