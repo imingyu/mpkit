@@ -3,11 +3,9 @@ import { TAG_NOT_CLOSE, TAG_HAS_SPACE } from "./message";
 import {
     MkXmlElement,
     MkXmlElementType,
-    MkXmlValidateResult,
     MkXmlParseResult,
     MkValidateMessage,
     MkValidateMessagePosition,
-    MkXmlElementAttr,
 } from "@mpkit/types";
 import throwError from "./throw";
 const getElementType = (node): MkXmlElementType => {
@@ -104,7 +102,7 @@ const eachChildren = (
     xmlRows: string[],
     children: any[],
     elements: MkXmlElement[],
-    parseResult: MkXmlValidateResult
+    parseResult: MkXmlParseResult
 ) => {
     children.forEach((childNode, nodeIndex) => {
         const {
@@ -198,11 +196,12 @@ const eachChildren = (
         }
     });
 };
-export const validateXML = (xml: string): MkXmlValidateResult => {
+export const parseXML = (xml: string): MkXmlParseResult => {
     xml = xml.trim();
     const result = {
         elements: [],
-    } as MkXmlValidateResult;
+        xml,
+    } as MkXmlParseResult;
     const fragmentJSON = parseFragment(xml, {
         sourceCodeLocationInfo: true,
     });
@@ -218,11 +217,4 @@ export const validateXML = (xml: string): MkXmlValidateResult => {
         result.error = error.data;
     }
     return result;
-};
-export const parseXML = (xml: string): MkXmlParseResult => {
-    const validateResult = validateXML(xml);
-    if (validateResult.error) {
-        return validateResult;
-    }
-    return validateResult;
 };

@@ -14,7 +14,7 @@ import {
     ParseElementAdapterArg,
     MkValidateMessage,
 } from "@mpkit/types";
-import { validateContent } from "../util";
+import { parseContent } from "../util";
 
 export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
     attrAdapters: MkMap<IParseAttrAdapter>;
@@ -140,7 +140,7 @@ export class MpParseElementAdapter
 
 export abstract class ParseContentAdapterImpl implements IParseContentAdapter {
     parse(content: string): MpXmlContent[] {
-        return validateContent(content);
+        return parseContent(content);
     }
 }
 

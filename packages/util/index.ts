@@ -318,8 +318,11 @@ export const nextCharCount = (
     str: string
 ): number => {
     let res = 0;
-    for (let i = charIndex, len = str.length; i < len; i++) {
-        const currentChar = str[charIndex];
+    if (charIndex + 1 >= str.length) {
+        return res;
+    }
+    for (let i = charIndex + 1, len = str.length; i < len; i++) {
+        const currentChar = str[i];
         if (currentChar !== char) {
             break;
         }

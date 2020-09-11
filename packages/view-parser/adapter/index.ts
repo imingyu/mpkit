@@ -1,8 +1,9 @@
 // 处理节点
 import { MpParseElementAdapter } from "./adapter";
 import { MpParseContentAdapter } from "./adapter";
-import { MpPlatform, MkOmit } from "@mpkit/types";
+import { MpPlatform } from "@mpkit/types";
 import MpParseWhereAttrAdapter from "./attr-where";
+import MpBaseParseAttrAdapter from "./attr-base";
 import MpParseForAttrAdapter from "./attr-for";
 
 const initElementAdapter = (mpPlatform: MpPlatform) => {

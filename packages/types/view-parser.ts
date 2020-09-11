@@ -110,9 +110,6 @@ export interface MkXmlParseResult {
     error: MkValidateMessage;
     xml: string;
 }
-export interface MkXmlValidateResult extends MkXmlParseResult {
-    correctXML?: string;
-}
 export enum MkValidateMessagePosition {
     tag = "tag",
     attr = "attr",

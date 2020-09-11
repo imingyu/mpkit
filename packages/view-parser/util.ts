@@ -20,7 +20,7 @@ export const hasAttr = (element: MkXmlElement, attrName: string): boolean => {
 export const attrIsEmpty = (attrContent: string): boolean =>
     !attrContent || !attrContent.trim();
 
-export const validateContent = (
+export const parseContent = (
     content: string,
     position?: MkValidateMessagePosition,
     target?:
@@ -50,7 +50,7 @@ export const validateContent = (
             } else {
                 // 寻找与之对应的"}}"
                 const bracketRightIndex = firstAfterCharsIndex(
-                    i + 1,
+                    i + 2,
                     "}}",
                     content
                 );
@@ -64,7 +64,7 @@ export const validateContent = (
                 }
                 const bracketContent = content.substring(
                     i + 2,
-                    bracketRightIndex
+                    bracketRightIndex + 1
                 );
                 if (text) {
                     result.push({

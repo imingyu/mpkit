@@ -4,14 +4,9 @@ import {
     MpXmlElementAttr,
     ParseAttrAdapterArg,
     MkValidateMessagePosition,
-    MpXmlContentType,
 } from "@mpkit/types";
-import {
-    ATTR_CONTENT_HAS_MORE_VAR,
-    ATTR_FOR_INDEX_NOT_FOR,
-    ATTR_FOR_ITEM_NOT_FOR,
-} from "@mpkit/view-parser/message";
-import { hasAttr, validateContent } from "@mpkit/view-parser/util";
+import { ATTR_FOR_INDEX_NOT_FOR, ATTR_FOR_ITEM_NOT_FOR } from "../message";
+import { hasAttr } from "../util";
 import throwError from "../throw";
 import MpBaseParseAttrAdapter from "./attr-base";
 // 处理循环语句
@@ -22,6 +17,7 @@ export default class MpParseForAttrAdapter
     forItemValue: string;
     forIndexValue: string;
     forKeyValue: string;
+    allowMoreContentVar: boolean = false;
     constructor(mpPlatform: MpPlatform) {
         super(mpPlatform);
         this.mpPlatform = mpPlatform;
@@ -54,26 +50,8 @@ export default class MpParseForAttrAdapter
                 });
             }
         }
-        const contents = validateContent(
-            currentAttr.content,
-            MkValidateMessagePosition.attr,
-            currentAttr
-        );
-        const filterEmpty = contents.filter((item) => {
-            if (item.type === MpXmlContentType.dynamic) {
-                return true;
-            }
-            return item.value && item.value.trim();
-        });
-        if (filterEmpty.length > 1) {
-            return throwError({
-                message: ATTR_CONTENT_HAS_MORE_VAR,
-                position: MkValidateMessagePosition.attr,
-                target: currentAttr,
-            });
-        }
         const attr = (data.currentAttr as unknown) as MpXmlElementAttr;
-        attr.content = contents;
+        attr.content = this.parseContent(data);
         return attr;
     }
 }

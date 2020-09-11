@@ -43,7 +43,9 @@ export const parseMpXml = (
                 allElements,
                 orgXml: xmlParseResult.xml,
             });
-            res.children = children;
+            if (children && children.length) {
+                res.children = children;
+            }
             return res;
         });
     };

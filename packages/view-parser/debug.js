@@ -1,5 +1,6 @@
-const { parseXML } = require('./dist/index.cjs.js');
-const json = parseXML(`<span>123</span><import />
+const { MpPlatform } = require('@mpkit/types');
+const { parseMpXml } = require('./dist/index.cjs.js');
+const json = parseMpXml(`<span>123</span><import />
 <!-- abc -->
 <block wx:if="{{pageType==1}}" name="true"></block>
 {{a}}
@@ -11,5 +12,5 @@ const json = parseXML(`<span>123</span><import />
   </view>
 </block>
 <button>123</button>
-`);
+`, MpPlatform.wechat);
 console.log(JSON.stringify(json));
