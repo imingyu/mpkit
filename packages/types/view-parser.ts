@@ -75,11 +75,16 @@ export interface MpXmlParseResult extends MkOmit<MkXmlParseResult, "elements"> {
 export interface MpXmlElementAttr extends MkOmit<MkXmlElementAttr, "content"> {
     content?: MpXmlContent[];
 }
+export interface MpXmlElementToJSON {
+    (): MkOmit<MpXmlElement, "parent" | "toJSON">;
+}
 export interface MpXmlElement
     extends MkOmit<MkXmlElement, "attrs" | "children" | "content"> {
     attrs?: MpXmlElementAttr[];
     children?: MpXmlElement[];
     content?: MpXmlContent[];
+    parent?: MpXmlElement;
+    toJSON: MpXmlElementToJSON;
 }
 export interface MkXmlSourceLocation {
     startLine: number;

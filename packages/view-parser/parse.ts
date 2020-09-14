@@ -5,6 +5,7 @@ import {
     MkXmlElement,
     MpXmlElement,
     MpPlatform,
+    MkOmit,
 } from "@mpkit/types";
 import { parseXML } from "./xml-parser";
 import MpAdapter from "./adapter/index";
@@ -29,13 +30,10 @@ export const parseMpXml = (
     }
     const eachParse = (
         elements: MkXmlElement[],
-        allElements: MkXmlElement[]
+        allElements: MkXmlElement[],
+        parentElement?: MpXmlElement
     ): MpXmlElement[] => {
         return elements.map((item, index, arr) => {
-            let children;
-            if (item.children) {
-                children = eachParse(item.children, allElements);
-            }
             const res = parseAdapter.parse({
                 currentElement: item,
                 currentElementIndex: index,
@@ -43,9 +41,26 @@ export const parseMpXml = (
                 allElements,
                 orgXml: xmlParseResult.xml,
             });
+            if (parentElement) {
+                res.parent = parentElement;
+            }
+            let children;
+            if (item.children) {
+                children = eachParse(item.children, allElements, res);
+            }
+
             if (children && children.length) {
                 res.children = children;
             }
+            res.toJSON = function () {
+                const json = {};
+                for (let prop in this) {
+                    if (prop !== "parent") {
+                        json[prop] = this[prop];
+                    }
+                }
+                return json as MkOmit<MpXmlElement, "parent" | "toJSON">;
+            };
             return res;
         });
     };
