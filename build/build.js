@@ -5,20 +5,12 @@ const rollupCommonjs = require('@rollup/plugin-commonjs');
 const rollupReplace = require('@rollup/plugin-replace');
 const rollupJSON = require('@rollup/plugin-json');
 const path = require('path');
-const fs = require('fs');
 const rollup = require('rollup');
 const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
-const { replaceFileContent, oneByOne, clearDir, copyFiles, getDirList } = require('./util');
+const { replaceFileContent, oneByOne, copyFiles } = require('./util');
 const getPackageName = (str) => {
     return (str || '').replace(path.resolve(__dirname, '../packages'), '');
-}
-const clear = dir => {
-    if (fs.existsSync(dir)) {
-        clearDir(dir);
-    } else {
-        fs.mkdirSync(dir);
-    }
 }
 console.log(`version=${version}, ${typeof version}`);
 version = version.split('.');
@@ -52,12 +44,11 @@ oneByOne(entrys.map((rollupConfig, index) => {
             console.log(`   跳过编译：${packageName}`);
             return Promise.resolve();
         }
-
         if (!rollupConfig.input.external) {
             rollupConfig.input.external = [/\@mpkit\//]
+            rollupConfig.input.external.push(/lodash/);
+            rollupConfig.input.external.push('parse5');
         }
-        rollupConfig.input.external.push(/lodash/);
-        rollupConfig.input.external.push('parse5');
         if (!rollupConfig.input.plugins) {
             rollupConfig.input.plugins = [];
         }

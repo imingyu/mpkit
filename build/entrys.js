@@ -107,12 +107,29 @@ module.exports = [
             }
         ]
     },
-    'types',
+    {
+        packageName: 'view-parser',
+        formats: ['umd'],
+        entrys: [
+            {
+                input: {
+                    input: resolveFile(`/view-parser/index.ts`),
+                    external: [
+                    ]
+                },
+                output: {
+                    file: resolveFile(`/view-parser/dist/index.js`),
+                    name: 'MpKitViewParser'
+                }
+            }
+        ]
+    },
     'view-parser',
     'mixin',
-    'util',
     'set-data',
-    'ebus'
+    'ebus',
+    'types',
+    'util',
 ].reduce((sum, package) => {
     package = typeof package === 'object' ? package : {
         packageName: package
