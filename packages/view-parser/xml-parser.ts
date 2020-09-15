@@ -8,6 +8,7 @@ import {
     MkValidateMessagePosition,
 } from "@mpkit/types";
 import throwError from "./throw";
+import { merge } from "@mpkit/util";
 const getElementType = (node): MkXmlElementType => {
     if (node.nodeName === "#text") {
         return MkXmlElementType.text;
@@ -171,6 +172,15 @@ const eachChildren = (
                 if (res) {
                     return throwError(res);
                 }
+                if (
+                    xmlElement.tag === "import" ||
+                    xmlElement.tag === "include"
+                ) {
+                    merge(
+                        xmlElement.sourceLocationInfo,
+                        xmlElement.sourceLocationInfo.startTag
+                    );
+                }
                 xmlElement.selfCloseing = true;
                 elements.push(xmlElement);
                 return eachChildren(
@@ -201,6 +211,7 @@ export const parseXML = (xml: string): MkXmlParseResult => {
     const result = {
         elements: [],
         xml,
+        correctXML: "",
     } as MkXmlParseResult;
     const fragmentJSON = parseFragment(xml, {
         sourceCodeLocationInfo: true,
@@ -215,6 +226,9 @@ export const parseXML = (xml: string): MkXmlParseResult => {
         );
     } catch (error) {
         result.error = error.data;
+    }
+    if (result.correctXML) {
+        const res = parseXML(result.correctXML);
     }
     return result;
 };

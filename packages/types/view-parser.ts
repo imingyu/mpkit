@@ -114,6 +114,7 @@ export interface MkXmlParseResult {
     elements?: MkXmlElement[];
     error: MkValidateMessage;
     xml: string;
+    correctXML?: string;
 }
 export enum MkValidateMessagePosition {
     tag = "tag",

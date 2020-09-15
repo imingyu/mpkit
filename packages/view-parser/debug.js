@@ -1,6 +1,6 @@
 const { MpPlatform } = require('@mpkit/types');
 const { parseMpXml } = require('./dist/index.cjs.js');
-const json = parseMpXml(`<span>123</span><import />
+const json = parseMpXml(`<span>123</span><import name="tom"></import>
 <!-- abc -->
 <block wx:if="{{pageType==1}}" name="true"></block>
 {{a}}
