@@ -136,12 +136,21 @@ const eachChildren = (
             if (childNode.attrs && childNode.attrs.length) {
                 xmlElement.attrs = [];
                 childNode.attrs.forEach((attr) => {
-                    xmlElement.attrs.push({
+                    const attrData = {
                         name: attr.name,
                         content: attr.value,
                         sourceLocationInfo:
                             childNode.sourceCodeLocation.attrs[attr.name],
-                    });
+                    };
+                    const attrXml = xml.substring(
+                        childNode.sourceCodeLocation.attrs[attr.name]
+                            .startOffset,
+                        childNode.sourceCodeLocation.attrs[attr.name].endOffset
+                    );
+                    if (attrXml === attr.name) {
+                        delete attrData.content;
+                    }
+                    xmlElement.attrs.push(attrData);
                 });
             }
             if (startTag && !endTag) {

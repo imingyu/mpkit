@@ -51,7 +51,10 @@ export default class MpParseForAttrAdapter
             }
         }
         const attr = (data.currentAttr as unknown) as MpXmlElementAttr;
-        attr.content = this.parseContent(data);
+        const content = this.parseContent(data);
+        if (Array.isArray(content)) {
+            attr.content = content;
+        }
         return attr;
     }
 }
