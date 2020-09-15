@@ -9,6 +9,7 @@ import {
 } from "@mpkit/types";
 import throwError from "./throw";
 import { merge } from "@mpkit/util";
+import { getXmlFrament } from "./util";
 const getElementType = (node): MkXmlElementType => {
     if (node.nodeName === "#text") {
         return MkXmlElementType.text;
@@ -17,24 +18,6 @@ const getElementType = (node): MkXmlElementType => {
         return MkXmlElementType.comment;
     }
     return MkXmlElementType.node;
-};
-
-const getXmlFrament = (
-    xmlRows: string[],
-    startLine: number,
-    framentOffset = 2
-): string => {
-    return (
-        ">>> " +
-        xmlRows
-            .slice(
-                startLine,
-                startLine + framentOffset > xmlRows.length - 1
-                    ? xmlRows.length - 1
-                    : startLine + framentOffset
-            )
-            .join("\n")
-    );
 };
 
 const validateSelfCloseing = (
@@ -211,7 +194,7 @@ export const parseXML = (xml: string): MkXmlParseResult => {
     const result = {
         elements: [],
         xml,
-        correctXML: "",
+        xmlRows: xml.split("\n"),
     } as MkXmlParseResult;
     const fragmentJSON = parseFragment(xml, {
         sourceCodeLocationInfo: true,
@@ -219,16 +202,13 @@ export const parseXML = (xml: string): MkXmlParseResult => {
     try {
         eachChildren(
             xml,
-            xml.split("\n"),
+            result.xmlRows,
             fragmentJSON.childNodes,
             result.elements,
             result
         );
     } catch (error) {
-        result.error = error.data;
-    }
-    if (result.correctXML) {
-        const res = parseXML(result.correctXML);
+        result.error = error;
     }
     return result;
 };

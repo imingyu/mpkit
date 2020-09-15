@@ -98,3 +98,22 @@ export const parseContent = (
     }
     return result;
 };
+
+export const getXmlFrament = (
+    xmlRows: string[],
+    startLine: number,
+    framentOffset = 2
+): string => {
+    startLine = startLine - 1;
+    return (
+        ">>> " +
+        xmlRows
+            .slice(
+                startLine,
+                startLine + framentOffset > xmlRows.length
+                    ? xmlRows.length
+                    : startLine + framentOffset
+            )
+            .join("\n")
+    );
+};
