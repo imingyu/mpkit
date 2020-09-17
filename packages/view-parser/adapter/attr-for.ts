@@ -132,7 +132,8 @@ export default class MpParseForAttrAdapter
 
         if (
             this.mpPlatform === MpPlatform.wechat ||
-            this.mpPlatform === MpPlatform.alipay
+            this.mpPlatform === MpPlatform.alipay ||
+            this.mpPlatform === MpPlatform.tiktok
         ) {
             const forKeyAttr = data.allAttrs.find(
                 (item) => item.name === this.forKeyValue
