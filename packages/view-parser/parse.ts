@@ -5,7 +5,7 @@ import {
     MkXmlElement,
     MpXmlElement,
     MpPlatform,
-    MkOmit,
+    MpXmlParseResultJSON,
 } from "@mpkit/types";
 import { parseXML } from "./xml-parser";
 import MpAdapter from "./adapter/index";
@@ -52,15 +52,6 @@ export const parseMpXml = (
             if (children && children.length) {
                 res.children = children;
             }
-            res.toJSON = function () {
-                const json = {};
-                for (let prop in this) {
-                    if (prop !== "parent") {
-                        json[prop] = this[prop];
-                    }
-                }
-                return json as MkOmit<MpXmlElement, "parent" | "toJSON">;
-            };
             return res;
         });
     };
@@ -76,4 +67,40 @@ export const parseMpXml = (
         result.error = error as MkValidateMessage;
         return result;
     }
+};
+
+const copyValye = (options, prop, source, target) => {
+    if (options[prop]) {
+        target[prop] = source[prop];
+    }
+};
+
+export const mpXmlParseResultToJSON = (
+    result: MpXmlParseResult,
+    options?: {
+        xml?: boolean;
+        sourceLocationInfo?: boolean;
+        xmlRows?: boolean;
+    }
+): MpXmlParseResultJSON => {
+    const json = {} as MpXmlParseResultJSON;
+    options = options || {};
+    copyValye(options, "xml", result, json);
+    copyValye(options, "xmlRows", result, json);
+    if (options.sourceLocationInfo) {
+        json.elements = result.elements;
+    } else {
+        json.elements = result.elements.map((item) => {
+            delete item.parent;
+            delete item.sourceLocationInfo;
+            if (item.attrs) {
+                item.attrs = item.attrs.map((attr) => {
+                    delete attr.sourceLocationInfo;
+                    return attr;
+                });
+            }
+            return item;
+        });
+    }
+    return json;
 };

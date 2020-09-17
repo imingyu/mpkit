@@ -73,19 +73,36 @@ export enum MpXmlContentType {
 export interface MpXmlParseResult extends MkOmit<MkXmlParseResult, "elements"> {
     elements?: MpXmlElement[];
 }
-export interface MpXmlElementAttr extends MkOmit<MkXmlElementAttr, "content"> {
-    content?: MpXmlContent[];
+export interface MpXmlParseResultJSON
+    extends MkOmit<MkXmlParseResult, "elements" | "xml" | "xmlRows"> {
+    xml?: string;
+    xmlRows?: string;
+    elements?: MpXmlElementJSON[];
 }
-export interface MpXmlElementToJSON {
-    (): MkOmit<MpXmlElement, "parent" | "toJSON">;
+export interface MpXmlElementJSON
+    extends MkOmit<
+        MkXmlElement,
+        "attrs" | "children" | "content" | "sourceLocationInfo"
+    > {
+    attrs?: MpXmlElementAttrJSON[];
+    children?: MpXmlElementJSON[];
+    content?: MpXmlContent[];
+    sourceLocationInfo?: MkXmlSourceLocationInfo;
+}
+export interface MpXmlElementAttrJSON
+    extends MkOmit<MkXmlElementAttr, "content" | "sourceLocationInfo"> {
+    content?: MpXmlContent[];
+    sourceLocationInfo?: MkXmlSourceLocationInfo;
+}
+export interface MpXmlElementAttr extends MpXmlElementAttrJSON {
+    sourceLocationInfo: MkXmlSourceLocationInfo;
 }
 export interface MpXmlElement
-    extends MkOmit<MkXmlElement, "attrs" | "children" | "content"> {
+    extends MkOmit<MpXmlElementJSON, "attrs" | "children"> {
+    parent?: MpXmlElement;
     attrs?: MpXmlElementAttr[];
     children?: MpXmlElement[];
-    content?: MpXmlContent[];
-    parent?: MpXmlElement;
-    toJSON: MpXmlElementToJSON;
+    sourceLocationInfo: MkXmlSourceLocationInfo;
 }
 export interface MkXmlSourceLocation {
     startLine: number;
