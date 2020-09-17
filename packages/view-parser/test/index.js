@@ -51,16 +51,24 @@ describe('ViewParser', () => {
             assert.equal(res1.elements[0].attrs[0].content[0].value, 'a');
         });
         it('parse elif', () => {
-            const res1 = parseMpXml(`<view wx:if="{{a}}"></view><view wx:elif="{{b}}"></view><view wx:else></view>`, MpPlatform.wechat);
+            const res1 = parseMpXml(`<view wx:if="{{a}}" name="hi {{name}}"></view><view wx:elif="{{b}}"></view><view wx:else></view>`, MpPlatform.wechat);
             assert.equal(res1.elements.length, 3);
             assert.equal(res1.elements[0].attrs[0].name, 'wx:if');
             assert.equal(res1.elements[0].attrs[0].content[0].type, 'dynamic');
             assert.equal(res1.elements[0].attrs[0].content[0].value, 'a');
+            assert.equal(res1.elements[0].attrs[1].name, 'name');
+            assert.equal(res1.elements[0].attrs[1].content[0].type, 'static');
+            assert.equal(res1.elements[0].attrs[1].content[0].value, 'hi ');
+            assert.equal(res1.elements[0].attrs[1].content[1].type, 'dynamic');
+            assert.equal(res1.elements[0].attrs[1].content[1].value, 'name');
             assert.equal(res1.elements[1].attrs[0].name, 'wx:elif');
             assert.equal(res1.elements[1].attrs[0].content[0].type, 'dynamic');
             assert.equal(res1.elements[1].attrs[0].content[0].value, 'b');
             assert.equal(res1.elements[2].attrs[0].name, 'wx:else');
             assert.equal(!res1.elements[2].attrs[0].content, true);
         });
+    });
+
+    describe('for attr', () => {
     });
 });

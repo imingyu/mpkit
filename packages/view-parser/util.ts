@@ -6,6 +6,9 @@ import {
     MpXmlElement,
     MpXmlElementAttr,
     MpXmlContentType,
+    MpForAttrContent,
+    MpPlatform,
+    ParseAttrAdapterArg,
 } from "@mpkit/types";
 import throwError from "./throw";
 import { BRACKET_THAN_TWO, BRACKET_NOT_CLOSE } from "./message";

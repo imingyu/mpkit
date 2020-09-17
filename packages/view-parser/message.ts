@@ -4,7 +4,13 @@ export const BRACKET_THAN_TWO = "括号表达式语法错误：含有多个“{�
 export const BRACKET_NOT_CLOSE = "括号表达式语法错误：未闭合，缺少“}}”";
 export const ATTR_WHERE_NOT_IF = "条件表达式语法错误：缺少“if”语句";
 export const ATTR_CONTENT_HAS_MORE_VAR = "属性值中的存在多个括号表达式";
+export const ATTR_KEY_CONTENT_HAS_BRAKET = "key属性值中的存在括号表达式";
 export const ATTR_FOR_ITEM_NOT_FOR =
     "for-item属性仅应与for属性一同存在，此时缺少for属性";
 export const ATTR_FOR_INDEX_NOT_FOR =
     "for-index属性仅应与for属性一同存在，此时缺少for属性";
+export const ATTR_FOR_NOT_LISTVAR = "for属性值无可遍历变量或语法错误";
+export const ATTR_FOR_VAR_EQUAL =
+    "for语法中的list/item/index中存在重复的变量名";
+export const ATTR_FOR_EACH_VAR_WRONG =
+    "for属性值语法错误，存在“in”却无可遍历变量";

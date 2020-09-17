@@ -32,27 +32,36 @@ export default class MpBaseParseAttrAdapter {
     parseContent(data: ParseAttrAdapterArg): MpXmlContent[] {
         const { currentAttr } = data;
         if ("content" in currentAttr) {
-            const contents = parseContent(
-                currentAttr.content,
-                MkValidateMessagePosition.attr,
-                currentAttr
-            );
-            if (!this.allowMoreContentVar) {
-                const filterEmpty = contents.filter((item) => {
-                    if (item.type === MpXmlContentType.dynamic) {
-                        return true;
-                    }
-                    return item.value && item.value.trim();
-                });
-                if (filterEmpty.length > 1) {
-                    return throwError({
-                        message: ATTR_CONTENT_HAS_MORE_VAR,
-                        position: MkValidateMessagePosition.attr,
-                        target: currentAttr,
+            if (this.mpViewSyntax.forAndWhereAttrNeedBracket) {
+                const contents = parseContent(
+                    currentAttr.content,
+                    MkValidateMessagePosition.attr,
+                    currentAttr
+                );
+                if (!this.allowMoreContentVar) {
+                    const filterEmpty = contents.filter((item) => {
+                        if (item.type === MpXmlContentType.dynamic) {
+                            return true;
+                        }
+                        return item.value && item.value.trim();
                     });
+                    if (filterEmpty.length > 1) {
+                        return throwError({
+                            message: ATTR_CONTENT_HAS_MORE_VAR,
+                            position: MkValidateMessagePosition.attr,
+                            target: currentAttr,
+                        });
+                    }
+                    return filterEmpty;
                 }
+                return contents;
             }
-            return contents;
+            return [
+                {
+                    type: MpXmlContentType.dynamic,
+                    value: currentAttr.content,
+                },
+            ];
         }
     }
 }

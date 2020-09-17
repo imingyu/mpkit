@@ -16,5 +16,5 @@ const { parseMpXml } = require('./dist/index.cjs.js');
 // console.log(JSON.stringify(json));
 // const xml = `<view>123<text>456</text>`;
 // const res = parseMpXml(xml, MpPlatform.wechat);
-const res1 = parseMpXml(`<view wx:if="{{a}}"></view><view wx:elif="{{b}}"></view><view wx:else></view>`, MpPlatform.wechat);
+const res1 = parseMpXml(`<view s-for="item,index in list"></view>`, MpPlatform.smart);
 console.log(res1);
