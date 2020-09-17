@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/util",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "description": "mpkit工具函数库",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/util",
@@ -30,6 +30,6 @@
         "mocha": "^8.1.1"
     },
     "dependencies": {
-        "@mpkit/types": "^1.0.6"
+        "@mpkit/types": "^1.0.9"
     }
 }
