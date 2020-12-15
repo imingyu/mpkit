@@ -1,10 +1,10 @@
 import {
     IMpParseAttrAdapter,
     MpPlatform,
-    MpXmlElementAttr,
-    ParseAttrAdapterArg,
+    MkParseAttrAdapterArg,
     MpViewSyntaxSpec,
     MkValidateMessagePosition,
+    MkXmlNode,
 } from "@mpkit/types";
 import { hasAttr } from "../util";
 import throwError from "../throw";
@@ -29,7 +29,7 @@ export default class MpParseWehreAttrAdapter
         this.elseifValue = spec.namespace + spec.elseif;
         this.elseValue = spec.namespace + spec.else;
     }
-    parse(data: ParseAttrAdapterArg): MpXmlElementAttr {
+    parse(data: MkParseAttrAdapterArg): MkXmlNode {
         const { currentAttr, currentElementIndex, brotherElements } = data;
         const attrName = currentAttr.name;
         if (attrName === this.elseifValue) {
@@ -56,7 +56,7 @@ export default class MpParseWehreAttrAdapter
                 });
             }
         }
-        const attr = (data.currentAttr as unknown) as MpXmlElementAttr;
+        const attr = (data.currentAttr as unknown) as MkXmlNode;
         const content = this.parseContent(data);
         if (Array.isArray(content)) {
             attr.content = content;

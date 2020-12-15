@@ -155,6 +155,26 @@ MpKit 是一个模块化的开发多平台小程序的 JavaScript 实用工具�
                 </tr>
                 <tr>
                     <td>
+                        <a
+                            href="https://www.npmjs.com/package/@mpkit/mpxml-translator"
+                            >@mpkit/mpxml-translator</a
+                        >
+                    </td>
+                    <td></td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td><!--微信--></td>
+                    <td><!--支付宝--></td>
+                    <td><!--百度--></td>
+                    <td><!--字节跳动--></td>
+                    <td><!--h5--></td>
+                    <td><!--node-->●</td>
+                    <td>
+                        将一种小程序xml转译为另一种小程序的xml，如将wxml转为axml;
+                    </td>
+                </tr>
+                <tr>
+                    <td>
                         <a href="https://www.npmjs.com/package/@mpkit/util"
                             >@mpkit/util</a
                         >

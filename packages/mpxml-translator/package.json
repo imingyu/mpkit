@@ -1,0 +1,42 @@
+{
+    "name": "@mpkit/mpxml-translator",
+    "version": "1.0.10",
+    "description": "将一种小程序xml转译为另一种小程序的xml，如将wxml转为axml",
+    "author": "imingyu <mingyuhisoft@163.com>",
+    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/mpxml-translator",
+    "license": "MIT",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.esm.js",
+    "types": "spec/index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/imingyu/mpkit.git"
+    },
+    "scripts": {},
+    "bugs": {
+        "url": "https://github.com/imingyu/mpkit/issues"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "mpkit",
+        "小程序",
+        "miniprogram",
+        "mpxml-translator",
+        "wxml-to-axml",
+        "wxml-to-swan",
+        "wxml-to-json",
+        "xml-to-json"
+    ],
+    "dependencies": {
+        "@mpkit/types": "^1.0.10",
+        "@mpkit/util": "^1.0.10",
+        "@mpkit/view-parser": "^1.0.10"
+    },
+    "devDependencies": {
+        "chai": "^4.2.0",
+        "mocha": "^8.1.1",
+        "typescript": "^3.9.7"
+    }
+}

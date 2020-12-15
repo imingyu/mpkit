@@ -1,13 +1,12 @@
 import {
     IMpParseAttrAdapter,
     MpPlatform,
-    MpXmlElementAttr,
-    ParseAttrAdapterArg,
+    MkParseAttrAdapterArg,
     MkValidateMessagePosition,
     MpXmlContentType,
-    MpXmlContent,
+    MkXmlContent,
     MpForAttrContent,
-    MkXmlElementAttr,
+    MkXmlNode,
 } from "@mpkit/types";
 import {
     ATTR_FOR_INDEX_NOT_FOR,
@@ -20,6 +19,7 @@ import {
 import { hasAttr } from "../util";
 import throwError from "../throw";
 import MpBaseParseAttrAdapter from "./attr-base";
+import { FxNode } from "forgiving-xml-parser";
 // 处理循环语句
 export default class MpParseForAttrAdapter
     extends MpBaseParseAttrAdapter
@@ -38,26 +38,22 @@ export default class MpParseForAttrAdapter
         this.forIndexValue = spec.namespace + spec.forIndex;
         this.forKeyValue = spec.namespace + spec.key;
     }
-    mergeForContent(
-        content: MpForAttrContent,
-        key: string,
-        attr?: MkXmlElementAttr
-    ) {
+    mergeForContent(content: MpForAttrContent, key: string, attr?: FxNode) {
         if (attr && attr.content && attr.content.trim()) {
             content[key] = attr.content.trim();
         }
     }
-    getAttrValue(attr?: MkXmlElementAttr, defaultValue: string = ""): string {
+    getAttrValue(attr?: FxNode, defaultValue: string = ""): string {
         return attr && attr.content && attr.content.trim()
             ? attr.content.trim()
             : defaultValue;
     }
     mergeEachVar(
         eachVar: string,
-        data: ParseAttrAdapterArg,
+        data: MkParseAttrAdapterArg,
         forAttrContent: MpForAttrContent,
-        forItemAttr: MkXmlElementAttr,
-        forIndexAttr: MkXmlElementAttr,
+        forItemAttr: FxNode,
+        forIndexAttr: FxNode,
         hasIn: boolean
     ) {
         let itemVal;
@@ -103,9 +99,66 @@ export default class MpParseForAttrAdapter
     splitString(str: string, char: string): string[] {
         return str.split(char).map((item) => item.trim());
     }
+    mergeGeneralForAttrContent(
+        nativeContent: string,
+        data: MkParseAttrAdapterArg,
+        forAttrContent: MpForAttrContent,
+        forItemAttr: FxNode,
+        forIndexAttr: FxNode
+    ) {
+        const forKeyAttr = data.allAttrs.find(
+            (item) => item.name === this.forKeyValue
+        );
+        forAttrContent.featureList = nativeContent;
+        this.mergeForContent(forAttrContent, "featureItem", forItemAttr);
+        this.mergeForContent(forAttrContent, "featureKey", forKeyAttr);
+        this.mergeForContent(forAttrContent, "featureIndex", forIndexAttr);
+    }
+    mergeSmartForAttrContent(
+        nativeContent: string,
+        data: MkParseAttrAdapterArg,
+        forAttrContent: MpForAttrContent,
+        forItemAttr: FxNode,
+        forIndexAttr: FxNode
+    ) {
+        // 百度小程序语法：s-for="item,index in list trackBy index"
+        const [valMain, valKey] = this.splitString(nativeContent, "trackBy");
+        if (valKey) {
+            forAttrContent.featureKey = valKey;
+        }
+        if (valMain.indexOf(" in ") !== -1) {
+            const [eachVar, listVar] = this.splitString(valMain, " in ");
+            if (!listVar) {
+                return throwError({
+                    message: ATTR_FOR_NOT_LISTVAR,
+                    position: MkValidateMessagePosition.attr,
+                    target: data.currentAttr,
+                });
+            }
+            forAttrContent.featureList = listVar;
+            this.mergeEachVar(
+                eachVar,
+                data,
+                forAttrContent,
+                forItemAttr,
+                forIndexAttr,
+                true
+            );
+        } else {
+            this.mergeEachVar(
+                valMain,
+                data,
+                forAttrContent,
+                forItemAttr,
+                forIndexAttr,
+                false
+            );
+            forAttrContent.featureList = valMain;
+        }
+    }
     parseForAttrContent(
-        data: ParseAttrAdapterArg,
-        forAttrContent: MpXmlContent
+        data: MkParseAttrAdapterArg,
+        forAttrContent: MkXmlContent
     ): MpForAttrContent {
         const result = forAttrContent as MpForAttrContent;
         if (typeof forAttrContent.value !== "string") {
@@ -135,52 +188,25 @@ export default class MpParseForAttrAdapter
             this.mpPlatform === MpPlatform.alipay ||
             this.mpPlatform === MpPlatform.tiktok
         ) {
-            const forKeyAttr = data.allAttrs.find(
-                (item) => item.name === this.forKeyValue
+            this.mergeGeneralForAttrContent(
+                attrVal,
+                data,
+                result,
+                forItemAttr,
+                forIndexAttr
             );
-            result.featureList = attrVal;
-            this.mergeForContent(result, "featureItem", forItemAttr);
-            this.mergeForContent(result, "featureKey", forKeyAttr);
-            this.mergeForContent(result, "featureIndex", forIndexAttr);
         } else if (this.mpPlatform === MpPlatform.smart) {
-            // 百度小程序语法：s-for="item,index in list trackBy index"
-            const [valMain, valKey] = this.splitString(attrVal, "trackBy");
-            if (valKey) {
-                result.featureKey = valKey;
-            }
-            if (valMain.indexOf(" in ") !== -1) {
-                const [eachVar, listVar] = this.splitString(valMain, " in ");
-                if (!listVar) {
-                    return throwError({
-                        message: ATTR_FOR_NOT_LISTVAR,
-                        position: MkValidateMessagePosition.attr,
-                        target: data.currentAttr,
-                    });
-                }
-                result.featureList = listVar;
-                this.mergeEachVar(
-                    eachVar,
-                    data,
-                    result,
-                    forItemAttr,
-                    forIndexAttr,
-                    true
-                );
-            } else {
-                this.mergeEachVar(
-                    valMain,
-                    data,
-                    result,
-                    forItemAttr,
-                    forIndexAttr,
-                    false
-                );
-                result.featureList = valMain;
-            }
+            this.mergeSmartForAttrContent(
+                attrVal,
+                data,
+                result,
+                forItemAttr,
+                forIndexAttr
+            );
         }
         return result;
     }
-    validateForVarName(forContent: MpForAttrContent, attr: MpXmlElementAttr) {
+    validateForVarName(forContent: MpForAttrContent, attr: MkXmlNode) {
         ["featureItem", "featureIndex", "featureList"].forEach(
             (item, index, arr) => {
                 const val = forContent[item];
@@ -199,7 +225,7 @@ export default class MpParseForAttrAdapter
             }
         );
     }
-    parse(data: ParseAttrAdapterArg): MpXmlElementAttr {
+    parse(data: MkParseAttrAdapterArg): MkXmlNode {
         const { currentAttr, currentElement } = data;
         const attrName = currentAttr.name;
         if (attrName === this.forItemValue) {
@@ -222,7 +248,7 @@ export default class MpParseForAttrAdapter
                 });
             }
         }
-        const attr = (data.currentAttr as unknown) as MpXmlElementAttr;
+        const attr = (data.currentAttr as unknown) as MkXmlNode;
         const contents = this.parseContent(data);
         if (Array.isArray(contents)) {
             if (attrName === this.forValue) {

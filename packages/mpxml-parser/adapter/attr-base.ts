@@ -1,11 +1,11 @@
 import {
     MpPlatform,
-    ParseAttrAdapterArg,
+    MkParseAttrAdapterArg,
     MpViewSyntaxSpec,
     MkValidateMessagePosition,
     MpXmlContentType,
-    MpXmlContent,
-    MpXmlElementAttr,
+    MkXmlContent,
+    MkXmlNode,
 } from "@mpkit/types";
 import MpSpec from "../spec";
 import { parseContent } from "../util";
@@ -21,15 +21,15 @@ export default class MpBaseParseAttrAdapter {
         const spec = MpSpec.ViewSyntax[this.mpPlatform];
         this.mpViewSyntax = spec;
     }
-    parse(data: ParseAttrAdapterArg): MpXmlElementAttr {
-        const attr = (data.currentAttr as unknown) as MpXmlElementAttr;
+    parse(data: MkParseAttrAdapterArg): MkXmlNode {
+        const attr = (data.currentAttr as unknown) as MkXmlNode;
         const content = this.parseContent(data);
         if (Array.isArray(content)) {
             attr.content = content;
         }
         return attr;
     }
-    parseContent(data: ParseAttrAdapterArg): MpXmlContent[] {
+    parseContent(data: MkParseAttrAdapterArg): MkXmlContent[] {
         const { currentAttr } = data;
         if ("content" in currentAttr) {
             if (this.mpViewSyntax.forAndWhereAttrNeedBracket) {

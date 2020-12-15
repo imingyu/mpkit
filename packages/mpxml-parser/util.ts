@@ -1,20 +1,15 @@
 import {
-    MkXmlElement,
     MkValidateMessagePosition,
-    MpXmlContent,
-    MkXmlElementAttr,
-    MpXmlElement,
-    MpXmlElementAttr,
+    MkXmlContent,
     MpXmlContentType,
-    MpForAttrContent,
-    MpPlatform,
-    ParseAttrAdapterArg,
+    MkXmlNode,
 } from "@mpkit/types";
 import throwError from "./throw";
 import { BRACKET_THAN_TWO, BRACKET_NOT_CLOSE } from "./message";
 import { nextCharCount } from "@mpkit/util";
 import { firstAfterCharsIndex } from "@mpkit/util";
-export const hasAttr = (element: MkXmlElement, attrName: string): boolean => {
+import { FxNode } from "forgiving-xml-parser";
+export const hasAttr = (element: FxNode, attrName: string): boolean => {
     return (
         element.attrs && element.attrs.some((attr) => attr.name === attrName)
     );
@@ -26,14 +21,9 @@ export const attrIsEmpty = (attrContent: string): boolean =>
 export const parseContent = (
     content: string,
     position?: MkValidateMessagePosition,
-    target?:
-        | MkXmlElement
-        | MkXmlElementAttr
-        | MpXmlContent
-        | MpXmlElement
-        | MpXmlElementAttr
-): MpXmlContent[] => {
-    const result: MpXmlContent[] = [];
+    target?: FxNode
+): MkXmlContent[] => {
+    const result: MkXmlContent[] = [];
     let text = "";
     for (let i = 0, len = content.length; i < len; i++) {
         const char = content[i];

@@ -1,20 +1,17 @@
 import {
     MkMap,
-    MpXmlElement,
-    MpXmlElementAttr,
-    MkXmlElementType,
     IParseAttrAdapter,
     IParseContentAdapter,
     IParseElementAdapter,
-    MpXmlContent,
-    MkValidateMessagePosition,
+    MkXmlContent,
     MpPlatform,
     IMpParseAdapter,
     IMpParseAttrAdapter,
-    ParseElementAdapterArg,
-    MkValidateMessage,
+    MkXmlNode,
+    MkParseElementAdapterArg,
 } from "@mpkit/types";
 import { parseContent } from "../util";
+import { FxNodeType } from "forgiving-xml-parser";
 
 export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
     attrAdapters: MkMap<IParseAttrAdapter>;
@@ -26,21 +23,21 @@ export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
         this.attrAdapters = attrAdapters;
         this.contentAdapter = contentAdapter;
     }
-    parse(data: ParseElementAdapterArg): MpXmlElement {
+    parse(data: MkParseElementAdapterArg): MkXmlNode {
         const {
             currentElement,
             currentElementIndex,
             brotherElements,
             allElements,
-            orgXml,
+            xml,
         } = data;
-        if (currentElement.type === MkXmlElementType.node) {
+        if (currentElement.type === FxNodeType.element) {
             let attrs;
             if (currentElement.attrs) {
                 const commonAttr = this.attrAdapters["*"];
                 const unclaimedAttr = this.attrAdapters.unclaimed;
                 attrs = currentElement.attrs.map((item, index, arr) => {
-                    let resultAttr: MpXmlElementAttr;
+                    let resultAttr: MkXmlNode;
                     const currentAttr = this.attrAdapters[item.name];
                     if (currentAttr) {
                         resultAttr = currentAttr.parse({
@@ -48,7 +45,7 @@ export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
                             currentElementIndex,
                             brotherElements,
                             allElements,
-                            orgXml,
+                            xml,
                             currentAttr: item,
                             allAttrs: arr,
                         });
@@ -58,7 +55,7 @@ export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
                             currentElementIndex,
                             brotherElements,
                             allElements,
-                            orgXml,
+                            xml,
                             currentAttr: item,
                             allAttrs: arr,
                             prevParseAttr: resultAttr,
@@ -70,24 +67,24 @@ export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
                             currentElementIndex,
                             brotherElements,
                             allElements,
-                            orgXml,
+                            xml,
                             currentAttr: item,
                             allAttrs: arr,
                             prevParseAttr: resultAttr,
                         });
                     }
                     if (!resultAttr) {
-                        resultAttr = (item as unknown) as MpXmlElementAttr;
+                        resultAttr = (item as unknown) as MkXmlNode;
                         if (item.content && item.content.trim()) {
                             try {
                                 resultAttr.content = this.contentAdapter.parse(
                                     item.content
                                 );
                             } catch (error) {
-                                const err = error as MkValidateMessage;
-                                err.position = MkValidateMessagePosition.attr;
-                                err.target = resultAttr;
-                                throw err;
+                                // const err = error as MkValidateMessage;
+                                // err.position = MkValidateMessagePosition.attr;
+                                // err.target = resultAttr;
+                                // throw err;
                             }
                         }
                     }
@@ -95,32 +92,32 @@ export abstract class ParseElementAdapterImpl implements IParseElementAdapter {
                     return resultAttr;
                 });
             }
-            const result = (currentElement as unknown) as MpXmlElement;
+            const result = (currentElement as unknown) as MkXmlNode;
             if (attrs) {
                 result.attrs = attrs;
             }
             return result;
         }
         if (
-            currentElement.type === MkXmlElementType.text &&
+            currentElement.type === FxNodeType.text &&
             currentElement.content &&
             currentElement.content.trim()
         ) {
-            const result = (currentElement as unknown) as MpXmlElement;
+            const result = (currentElement as unknown) as MkXmlNode;
             try {
                 const content = this.contentAdapter.parse(
                     currentElement.content
                 );
                 result.content = content;
             } catch (error) {
-                const err = error as MkValidateMessage;
-                err.position = MkValidateMessagePosition.content;
-                err.target = result;
-                throw err;
+                // const err = error as MkValidateMessage;
+                // err.position = MkValidateMessagePosition.content;
+                // err.target = result;
+                // throw err;
             }
             return result;
         }
-        return (currentElement as unknown) as MpXmlElement;
+        return (currentElement as unknown) as MkXmlNode;
     }
 }
 
@@ -139,7 +136,7 @@ export class MpParseElementAdapter
 }
 
 export abstract class ParseContentAdapterImpl implements IParseContentAdapter {
-    parse(content: string): MpXmlContent[] {
+    parse(content: string): MkXmlContent[] {
         return parseContent(content);
     }
 }

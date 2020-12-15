@@ -30,11 +30,9 @@
     "dependencies": {
         "@mpkit/types": "^1.0.10",
         "@mpkit/util": "^1.0.10",
-        "lodash": "^4.17.19",
-        "parse5": "^6.0.1"
+        "forgiving-xml-parser": "^1.0.2"
     },
     "devDependencies": {
-        "@types/lodash": "^4.14.158",
         "chai": "^4.2.0",
         "mocha": "^8.1.1",
         "typescript": "^3.9.7"

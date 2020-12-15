@@ -1,7 +1,17 @@
+export const TAG_HEAD_NOT_EQUAL_FOOTER = "标签头部名称与尾部名称不一致";
+export const TAG_HEAD_NOT_CLOSE = "标签头部未闭合";
+export const TAG_HEAD_HAS_WRONG =
+    "标签头部存在异常，可能存在非法字符如“<“，”>”等";
+export const TAG_FOOTER_NOT_CLOSE = "标签尾部未闭合";
+export const TAG_FOOTER_HAS_WRONG =
+    "标签尾部语法错误，可能存在非法字符如“<“，”>”等";
 export const TAG_NOT_CLOSE = "标签未闭合";
-export const TAG_HAS_SPACE = "标签开始/结束处存在空白字符";
+export const TAG_HAS_ILLEGAL_CHAR =
+    "标签头部/尾部存在非法字符（如空格或换行等）";
 export const BRACKET_THAN_TWO = "括号表达式语法错误：含有多个“{”";
 export const BRACKET_NOT_CLOSE = "括号表达式语法错误：未闭合，缺少“}}”";
+export const ATTR_NOT_NAME = "属性没有名称";
+export const ATTR_NAME_WRONG = "属性名称错误";
 export const ATTR_WHERE_NOT_IF = "条件表达式语法错误：缺少“if”语句";
 export const ATTR_CONTENT_HAS_MORE_VAR = "属性值中的存在多个括号表达式";
 export const ATTR_KEY_CONTENT_HAS_BRAKET = "key属性值中的存在括号表达式";

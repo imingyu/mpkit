@@ -108,23 +108,23 @@ module.exports = [
         ]
     },
     {
-        packageName: 'view-parser',
+        packageName: 'mpxml-parser',
         formats: ['umd'],
         entrys: [
             {
                 input: {
-                    input: resolveFile(`/view-parser/index.ts`),
+                    input: resolveFile(`/mpxml-parser/index.ts`),
                     external: [
                     ]
                 },
                 output: {
-                    file: resolveFile(`/view-parser/dist/index.js`),
-                    name: 'MpKitViewParser'
+                    file: resolveFile(`/mpxml-parser/dist/index.js`),
+                    name: 'MpKitMpXmlParser'
                 }
             }
         ]
     },
-    'view-parser',
+    'mpxml-parser',
     'mixin',
     'set-data',
     'ebus',
