@@ -1,12 +1,10 @@
 import {
-    IMpParseAttrAdapter,
     MpPlatform,
-    MkParseAttrAdapterArg,
-    MkValidateMessagePosition,
     MpXmlContentType,
     MkXmlContent,
     MpForAttrContent,
     MkXmlNode,
+    IMkMpXmlAttrParseAdapter,
 } from "@mpkit/types";
 import {
     ATTR_FOR_INDEX_NOT_FOR,
@@ -21,9 +19,9 @@ import throwError from "../throw";
 import MpBaseParseAttrAdapter from "./attr-base";
 import { FxNode } from "forgiving-xml-parser";
 // 处理循环语句
-export default class MpParseForAttrAdapter
+export default class MkForAttrParseAdapter
     extends MpBaseParseAttrAdapter
-    implements IMpParseAttrAdapter {
+    implements IMkMpXmlAttrParseAdapter {
     forValue: string;
     forItemValue: string;
     forIndexValue: string;

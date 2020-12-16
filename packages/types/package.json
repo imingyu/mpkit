@@ -8,6 +8,10 @@
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",
     "types": "index.ts",
+    "files": [
+        "dist",
+        "spec"
+    ],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/imingyu/mpkit.git"
@@ -29,6 +33,6 @@
         "mocha": "^8.1.1"
     },
     "dependencies": {
-        "forgiving-xml-parser": "^1.0.2"
+        "forgiving-xml-parser": "^1.0.6"
     }
 }

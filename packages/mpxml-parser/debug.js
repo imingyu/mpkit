@@ -1,5 +1,5 @@
 const { MpPlatform } = require('@mpkit/types');
-const { parseMpXml, mpXmlParseResultToJSON } = require('./dist/index.cjs.js');
+const { parseMpXml } = require('./dist/index.cjs.js');
 // const json = parseMpXml(`<span>123</span><import name="tom"></import>
 // <!-- abc -->
 // <block wx:if="{{pageType==1}}" name="true"></block>
@@ -37,8 +37,4 @@ const res1 = parseMpXml(`<block wx:elif="{{pageType==2}}">
   <button open-type="getUserInfo"  bindgetuserinfo='getUserInfoBtn' hover-class="none" />
 </view>
 </block>`, MpPlatform.wechat);
-const res2 = mpXmlParseResultToJSON(res1, {
-    xml: false,
-    sourceLocationInfo: false
-});
 console.log(res1);

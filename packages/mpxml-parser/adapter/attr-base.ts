@@ -1,67 +1,32 @@
 import {
     MpPlatform,
-    MkParseAttrAdapterArg,
     MpViewSyntaxSpec,
-    MkValidateMessagePosition,
-    MpXmlContentType,
-    MkXmlContent,
     MkXmlNode,
+    MkXmlParseMessagePosition,
+    IMkMpXmlAttrParseAdapter,
+    MkXmlContentParseResult,
 } from "@mpkit/types";
 import MpSpec from "../spec";
 import { parseContent } from "../util";
-import throwError from "../throw";
-import { ATTR_CONTENT_HAS_MORE_VAR } from "../message";
+import { FxNode } from "forgiving-xml-parser";
 
-export default class MpBaseParseAttrAdapter {
+export class MkBaseAttrParseAdapter implements IMkMpXmlAttrParseAdapter {
     mpPlatform: MpPlatform;
     mpViewSyntax: MpViewSyntaxSpec;
-    allowMoreContentVar: boolean = true;
+    onlyDynamicContent: boolean; // 属性内容仅允许存在动态内容，不算动态内容前后的空白字符
+    allowMoreDynamicContent: boolean = true; // 是否允许属性content存在多个动态变量({{var}})
     constructor(mpPlatform: MpPlatform) {
         this.mpPlatform = mpPlatform;
         const spec = MpSpec.ViewSyntax[this.mpPlatform];
         this.mpViewSyntax = spec;
     }
-    parse(data: MkParseAttrAdapterArg): MkXmlNode {
-        const attr = (data.currentAttr as unknown) as MkXmlNode;
-        const content = this.parseContent(data);
-        if (Array.isArray(content)) {
-            attr.content = content;
+    parse(attr: FxNode): MkXmlNode {
+        if ("content" in attr && attr.content.length) {
+            (attr as MkXmlNode).mpContents = this.parseContent(attr).contents;
         }
         return attr;
     }
-    parseContent(data: MkParseAttrAdapterArg): MkXmlContent[] {
-        const { currentAttr } = data;
-        if ("content" in currentAttr) {
-            if (this.mpViewSyntax.forAndWhereAttrNeedBracket) {
-                const contents = parseContent(
-                    currentAttr.content,
-                    MkValidateMessagePosition.attr,
-                    currentAttr
-                );
-                if (!this.allowMoreContentVar) {
-                    const filterEmpty = contents.filter((item) => {
-                        if (item.type === MpXmlContentType.dynamic) {
-                            return true;
-                        }
-                        return item.value && item.value.trim();
-                    });
-                    if (filterEmpty.length > 1) {
-                        return throwError({
-                            message: ATTR_CONTENT_HAS_MORE_VAR,
-                            position: MkValidateMessagePosition.attr,
-                            target: currentAttr,
-                        });
-                    }
-                    return filterEmpty;
-                }
-                return contents;
-            }
-            return [
-                {
-                    type: MpXmlContentType.dynamic,
-                    value: currentAttr.content,
-                },
-            ];
-        }
+    parseContent(attr: FxNode): MkXmlContentParseResult {
+        return parseContent(attr.content, MkXmlParseMessagePosition.attr, attr);
     }
 }

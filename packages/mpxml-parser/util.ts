@@ -1,14 +1,22 @@
 import {
-    MkValidateMessagePosition,
     MkXmlContent,
+    MkXmlContentParseResult,
+    MkXmlParseMessagePosition,
     MpXmlContentType,
-    MkXmlNode,
 } from "@mpkit/types";
 import throwError from "./throw";
 import { BRACKET_THAN_TWO, BRACKET_NOT_CLOSE } from "./message";
 import { nextCharCount } from "@mpkit/util";
-import { firstAfterCharsIndex } from "@mpkit/util";
-import { FxNode } from "forgiving-xml-parser";
+import {
+    currentIsLineBreak,
+    FxCursorPosition,
+    FxEventType,
+    FxNode,
+    FxTryStep,
+    moveCursor,
+    toCursor,
+    findStrCursor,
+} from "forgiving-xml-parser";
 export const hasAttr = (element: FxNode, attrName: string): boolean => {
     return (
         element.attrs && element.attrs.some((attr) => attr.name === attrName)
@@ -20,76 +28,188 @@ export const attrIsEmpty = (attrContent: string): boolean =>
 
 export const parseContent = (
     content: string,
-    position?: MkValidateMessagePosition,
+    position?: MkXmlParseMessagePosition,
     target?: FxNode
-): MkXmlContent[] => {
+): MkXmlContentParseResult => {
     const result: MkXmlContent[] = [];
+    const leftStaticContents: MkXmlContent[] = [];
+    const rightStaticContents: MkXmlContent[] = [];
+    const betweenStaticContents: MkXmlContent[] = [];
+    const dynamicContents: MkXmlContent[] = [];
+    let leftStaticContentsIsEmpty = true;
+    let rightStaticContentsHasChar = false;
+    let firstDynamic: MkXmlContent;
+    let lastStatic: MkXmlContent;
     let text = "";
-    for (let i = 0, len = content.length; i < len; i++) {
+    let cursor: FxCursorPosition = {
+        offset: 0,
+        column: 1,
+        lineNumber: 1,
+    };
+    if (target) {
+        const contentStart = target.steps.find(
+            (item) => item.step === FxEventType.nodeContentStart
+        );
+        cursor = {
+            ...contentStart.cursor,
+        };
+    }
+    let contentStartStep: FxTryStep;
+    const getCursor = (cr?: FxCursorPosition) => {
+        if (!target) {
+            return cr || cursor;
+        }
+        if (!contentStartStep) {
+            contentStartStep = target.steps.find(
+                (item) => item.step === FxEventType.nodeContentStart
+            );
+        }
+        cr = cr || cursor;
+        return moveCursor(
+            toCursor(contentStartStep.cursor),
+            cr.lineNumber - 1,
+            cr.column,
+            cr.offset
+        );
+    };
+
+    const addStaticContent = () => {
+        const item = {
+            type: MpXmlContentType.static,
+            value: text,
+            locationInfo: {
+                startColumn: startCursor.column,
+                startOffset: startCursor.offset,
+                startLineNumber: startCursor.lineNumber,
+                endColumn: endCursor.column,
+                endLineNumber: endCursor.lineNumber,
+                endOffset: endCursor.offset,
+            },
+        };
+        if (!firstDynamic) {
+            leftStaticContents.push(item);
+            leftStaticContentsIsEmpty =
+                leftStaticContentsIsEmpty && !item.value.trim();
+        } else {
+            lastStatic = item;
+            rightStaticContents.push(item);
+            rightStaticContentsHasChar = !!item.value.trim();
+        }
+        result.push(item);
+        text = "";
+        startCursor = endCursor = undefined;
+    };
+
+    const addDynamicContent = (
+        value: string,
+        beginCursor: FxCursorPosition,
+        endCursor: FxCursorPosition
+    ) => {
+        const dynamicContent = {
+            type: MpXmlContentType.dynamic,
+            value: value,
+            locationInfo: {
+                startColumn: beginCursor.column,
+                startOffset: beginCursor.offset,
+                startLineNumber: beginCursor.lineNumber,
+                endColumn: endCursor.column,
+                endLineNumber: endCursor.lineNumber,
+                endOffset: endCursor.offset,
+            },
+        };
+        if (!firstDynamic) {
+            firstDynamic = dynamicContent;
+        } else if (lastStatic) {
+            betweenStaticContents.push(rightStaticContents.pop());
+            rightStaticContentsHasChar = false;
+        }
+        result.push(dynamicContent);
+    };
+
+    let startCursor: FxCursorPosition;
+    let endCursor: FxCursorPosition;
+    const setStartCursor = (cursor: FxCursorPosition) => {
+        if (!startCursor) {
+            startCursor = {
+                ...cursor,
+            };
+        }
+    };
+
+    for (
+        const len = content.length;
+        cursor.offset < len;
+        moveCursor(cursor, 0, 1, 1)
+    ) {
+        setStartCursor(cursor);
+
+        let i = cursor.offset;
         const char = content[i];
         if (char === "{") {
             const nextCount = nextCharCount(char, i, content);
             if (nextCount > 1) {
                 // 存在"{{{"语法错误
                 return throwError({
-                    message: BRACKET_THAN_TWO,
+                    ...BRACKET_THAN_TWO,
                     target,
                     position,
+                    ...getCursor(),
                 });
             } else if (nextCount < 1) {
                 // 不构成表达式，直接或略
-                text += content.substr(i, nextCount + 1);
-                i += nextCount;
+                text += char;
             } else {
                 // 寻找与之对应的"}}"
-                const bracketRightIndex = firstAfterCharsIndex(
-                    i + 2,
-                    "}}",
-                    content
-                );
-                if (bracketRightIndex === -1) {
+                moveCursor(cursor, 0, 2, 2);
+                const bracketRightCursor = findStrCursor(content, cursor, "}}");
+                if (!bracketRightCursor[0]) {
                     // 未找到"}}"
                     return throwError({
-                        message: BRACKET_NOT_CLOSE,
+                        ...BRACKET_NOT_CLOSE,
                         target,
                         position,
+                        ...getCursor(startCursor),
                     });
                 }
                 const bracketContent = content.substring(
-                    i + 2,
-                    bracketRightIndex + 1
+                    cursor.offset,
+                    bracketRightCursor[2].offset
                 );
                 if (text) {
-                    result.push({
-                        type: MpXmlContentType.static,
-                        value: text,
-                    });
-                    text = "";
+                    addStaticContent();
                 }
-                result.push({
-                    type: MpXmlContentType.dynamic,
-                    value: bracketContent,
-                });
-                i = bracketRightIndex + 2;
+                addDynamicContent(
+                    bracketContent,
+                    cursor,
+                    bracketRightCursor[2]
+                );
+                Object.assign(cursor, bracketRightCursor[2]);
             }
-        } else {
-            text += char;
+            continue;
         }
+        text += char;
+        const brType = currentIsLineBreak(content, cursor.offset);
+        if (brType != -1) {
+            moveCursor(cursor, 1, -cursor.column + 1, !brType ? 0 : 1);
+        } else {
+            moveCursor(cursor, 0, 1, 1);
+        }
+        endCursor = {
+            ...cursor,
+        };
     }
     if (text) {
-        result.push({
-            type: MpXmlContentType.static,
-            value: text,
-        });
-        text = "";
+        addStaticContent();
     }
-    if (!result.length) {
-        result.push({
-            type: MpXmlContentType.static,
-            value: "",
-        });
-    }
-    return result;
+    return {
+        contents: result,
+        leftStaticContents,
+        leftStaticContentsIsEmpty,
+        rightStaticContents,
+        rightStaticContentsIsEmpty: !rightStaticContentsHasChar,
+        betweenStaticContents,
+        dynamicContents,
+    };
 };
 
 export const getXmlFrament = (

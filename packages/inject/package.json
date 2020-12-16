@@ -8,6 +8,10 @@
     "main": "dist/index.js",
     "module": "dist/index.js",
     "types": "spec/index.d.ts",
+    "files": [
+        "dist",
+        "spec"
+    ],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/imingyu/mpkit.git"

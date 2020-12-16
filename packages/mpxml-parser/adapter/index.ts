@@ -1,17 +1,17 @@
 // 处理节点
-import { MpParseElementAdapter } from "./adapter";
-import { MpParseContentAdapter } from "./adapter";
-import { MpPlatform } from "@mpkit/types";
+import { contentAdapter } from "./content";
+import { IMkMpXmlParseAdapter, MpPlatform } from "@mpkit/types";
 import MpParseWhereAttrAdapter from "./attr-where";
 import MpParseForAttrAdapter from "./attr-for";
+import { MkBaseAttrParseAdapter } from "./attr-base";
 
-const initElementAdapter = (mpPlatform: MpPlatform) => {
-    const contentAdapter = new MpParseContentAdapter(mpPlatform);
+const initMpXmlParseAdapter = (
+    mpPlatform: MpPlatform
+): IMkMpXmlParseAdapter => {
     const whereAttrAdapter = new MpParseWhereAttrAdapter(mpPlatform);
     const forAttrAdapter = new MpParseForAttrAdapter(mpPlatform);
-    return new MpParseElementAdapter(
-        mpPlatform,
-        {
+    return {
+        attrAdapters: {
             [whereAttrAdapter.ifValue]: whereAttrAdapter,
             [whereAttrAdapter.elseifValue]: whereAttrAdapter,
             [whereAttrAdapter.elseValue]: whereAttrAdapter,
@@ -19,20 +19,21 @@ const initElementAdapter = (mpPlatform: MpPlatform) => {
             [forAttrAdapter.forItemValue]: forAttrAdapter,
             [forAttrAdapter.forIndexValue]: forAttrAdapter,
             [forAttrAdapter.forKeyValue]: forAttrAdapter,
+            __unclaimed: new MkBaseAttrParseAdapter(mpPlatform),
         },
-        contentAdapter
-    );
+        contentAdapter,
+    };
 };
 
 export default {
-    [MpPlatform.wechat]: initElementAdapter(MpPlatform.wechat),
-    [MpPlatform.alipay]: initElementAdapter(MpPlatform.alipay),
-    [MpPlatform.smart]: initElementAdapter(MpPlatform.smart),
-    [MpPlatform.tiktok]: initElementAdapter(MpPlatform.tiktok),
+    [MpPlatform.wechat]: initMpXmlParseAdapter(MpPlatform.wechat),
+    [MpPlatform.alipay]: initMpXmlParseAdapter(MpPlatform.alipay),
+    [MpPlatform.smart]: initMpXmlParseAdapter(MpPlatform.smart),
+    [MpPlatform.tiktok]: initMpXmlParseAdapter(MpPlatform.tiktok),
 } as {
     [prop in
         | MpPlatform.wechat
         | MpPlatform.alipay
         | MpPlatform.smart
-        | MpPlatform.tiktok]: MpParseElementAdapter;
+        | MpPlatform.tiktok]: IMkMpXmlParseAdapter;
 };

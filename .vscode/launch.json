@@ -17,7 +17,7 @@
             "request": "launch",
             "name": "debug view-parser",
             "skipFiles": ["<node_internals>/**"],
-            "program": "${workspaceFolder}/packages/view-parser/debug.js",
+            "program": "${workspaceFolder}/packages/mpxml-parser/debug.js",
             "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]
