@@ -7,7 +7,7 @@ import {
 } from "@mpkit/types";
 import { hasAttr } from "../util";
 import throwError from "../throw";
-import { ATTR_WHERE_NOT_IF } from "../message";
+import { ATTR_ELSE_HAS_CONTENT, ATTR_WHERE_NOT_IF } from "../message";
 import { MkBaseAttrParseAdapter } from "./attr-base";
 import { FxCursorPosition, FxNodeJSON } from "forgiving-xml-parser";
 import { CursorInitValue } from "../var";

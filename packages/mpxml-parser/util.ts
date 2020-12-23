@@ -49,27 +49,26 @@ export const parseContent = (
         column: 1,
         lineNumber: 1,
     };
-    if (target) {
-        const contentStart = target.steps.find(
-            (item) => item.step === FxEventType.nodeContentStart
-        );
-        cursor = {
-            ...contentStart.cursor,
+    let contentStartCursor: FxCursorPosition = {
+        offset: 0,
+        column: 1,
+        lineNumber: 1,
+    };
+
+    if (target && target.locationInfo.content) {
+        contentStartCursor = {
+            offset: target.locationInfo.content.startOffset,
+            column: target.locationInfo.content.startColumn,
+            lineNumber: target.locationInfo.content.startLineNumber,
         };
     }
-    let contentStartStep: FxTryStep;
     const getCursor = (cr?: FxCursorPosition) => {
         if (!target) {
             return cr || cursor;
         }
-        if (!contentStartStep) {
-            contentStartStep = target.steps.find(
-                (item) => item.step === FxEventType.nodeContentStart
-            );
-        }
         cr = cr || cursor;
         return moveCursor(
-            toCursor(contentStartStep.cursor),
+            toCursor(contentStartCursor),
             cr.lineNumber - 1,
             cr.column,
             cr.offset

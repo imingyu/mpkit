@@ -40,15 +40,19 @@ export const ATTR_ELSE_HAS_CONTENT = {
     code: 107,
     message: "else表达式语法错误：不应存在内容",
 };
+export const ATTR_FOR_ITEM_NOT_FOR = {
+    code: 108,
+    message: "for-item属性仅应与for属性一同存在，此时缺少for属性",
+};
+export const ATTR_FOR_INDEX_NOT_FOR = {
+    code: 109,
+    message: "for-index属性仅应与for属性一同存在，此时缺少for属性",
+};
 
 export const ATTR_NOT_NAME = "属性没有名称";
 export const ATTR_NAME_WRONG = "属性名称错误";
 
 export const ATTR_KEY_CONTENT_HAS_BRAKET = "key属性值中的存在括号表达式";
-export const ATTR_FOR_ITEM_NOT_FOR =
-    "for-item属性仅应与for属性一同存在，此时缺少for属性";
-export const ATTR_FOR_INDEX_NOT_FOR =
-    "for-index属性仅应与for属性一同存在，此时缺少for属性";
 export const ATTR_FOR_NOT_LISTVAR = "for属性值无可遍历变量或语法错误";
 export const ATTR_FOR_VAR_EQUAL =
     "for语法中的list/item/index中存在重复的变量名";
