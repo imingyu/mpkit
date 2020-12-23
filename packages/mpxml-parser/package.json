@@ -1,9 +1,9 @@
 {
-    "name": "@mpkit/view-parser",
+    "name": "@mpkit/mpxml-parser",
     "version": "1.0.10",
     "description": "将小程序模板编译为ast。",
     "author": "imingyu <mingyuhisoft@163.com>",
-    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/view-parser",
+    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/mpxml-parser",
     "license": "MIT",
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",

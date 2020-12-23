@@ -5,6 +5,7 @@
     "scripts": {
         "build": "node build/clear.js && tsc --emitDeclarationOnly && node build/build.js",
         "clear": "node build/clear.js",
+        "dev": "tsc --emitDeclarationOnly",
         "test": "mocha packages/**/test/*.js"
     },
     "author": "imingyu <mingyuhisoft@163.com>",

@@ -40,6 +40,13 @@ oneByOne(entrys.map((rollupConfig, index) => {
                 replaceFileContent(targetFileName, /\.\.\/types/, '@mpkit/types');
             })
         }
+        return Promise.resolve();
+    }
+}).concat(entrys.map((rollupConfig, index) => {
+    const packageName = getPackageName(rollupConfig.output.file);
+    const currentPackName = packageName.split('/')[1];
+
+    return () => {
         if (targetPackNames.length && targetPackNames.every(item => item !== currentPackName)) {
             console.log(`   跳过编译：${packageName}`);
             return Promise.resolve();
@@ -92,7 +99,7 @@ oneByOne(entrys.map((rollupConfig, index) => {
             console.log(`   编译成功：${packageName}`);
         })
     }
-})).then(() => {
+}))).then(() => {
     console.log(`🌈编译结束.`);
 }).catch(err => {
     console.error(`🔥编译出错：${err.message}`);
