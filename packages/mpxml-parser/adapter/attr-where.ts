@@ -1,20 +1,21 @@
 import {
-    IMpParseAttrAdapter,
     MpPlatform,
-    MkParseAttrAdapterArg,
     MpViewSyntaxSpec,
-    MkValidateMessagePosition,
     MkXmlNode,
+    IMkMpXmlAttrParseAdapter,
+    MkXmlParseMessagePosition,
 } from "@mpkit/types";
 import { hasAttr } from "../util";
 import throwError from "../throw";
 import { ATTR_WHERE_NOT_IF } from "../message";
-import MpBaseParseAttrAdapter from "./attr-base";
+import { MkBaseAttrParseAdapter } from "./attr-base";
+import { FxCursorPosition, FxNodeJSON } from "forgiving-xml-parser";
+import { CursorInitValue } from "../var";
 
 // 处理条件语句
 export default class MpParseWehreAttrAdapter
-    extends MpBaseParseAttrAdapter
-    implements IMpParseAttrAdapter {
+    extends MkBaseAttrParseAdapter
+    implements IMkMpXmlAttrParseAdapter {
     mpPlatform: MpPlatform;
     mpViewSyntax: MpViewSyntaxSpec;
     ifValue: string;
@@ -24,43 +25,61 @@ export default class MpParseWehreAttrAdapter
     constructor(mpPlatform: MpPlatform) {
         super(mpPlatform);
         const spec = this.mpViewSyntax;
-        this.mpViewSyntax = spec;
         this.ifValue = spec.namespace + spec.if;
         this.elseifValue = spec.namespace + spec.elseif;
         this.elseValue = spec.namespace + spec.else;
     }
-    parse(data: MkParseAttrAdapterArg): MkXmlNode {
-        const { currentAttr, currentElementIndex, brotherElements } = data;
-        const attrName = currentAttr.name;
-        if (attrName === this.elseifValue) {
-            const brotherElement = brotherElements[currentElementIndex - 1];
-            if (!brotherElement || !hasAttr(brotherElement, this.ifValue)) {
-                return throwError({
-                    message: ATTR_WHERE_NOT_IF,
-                    position: MkValidateMessagePosition.attr,
-                    target: currentAttr,
+    parse(
+        attr: FxNodeJSON,
+        parent?: FxNodeJSON,
+        grandpa?: FxNodeJSON
+    ): MkXmlNode {
+        const attrName = attr.name;
+        const parentSiblings =
+            grandpa && grandpa.children ? grandpa.children : null;
+        const parentIndex = parentSiblings
+            ? parentSiblings.findIndex((item) => item === parent)
+            : -1;
+        const parentPrevSibling =
+            parentIndex > 0 ? parentSiblings[parentIndex - 1] : null;
+        if (attrName === this.elseifValue || attrName === this.elseValue) {
+            const hasPrevWhere =
+                parentPrevSibling &&
+                (attrName === this.elseifValue
+                    ? hasAttr(parentPrevSibling, this.ifValue)
+                    : hasAttr(parentPrevSibling, this.ifValue) ||
+                      hasAttr(parentPrevSibling, this.elseifValue));
+            if (!parentPrevSibling || !hasPrevWhere) {
+                const cursor: FxCursorPosition = attr.locationInfo
+                    ? {
+                          offset: attr.locationInfo.startOffset,
+                          column: attr.locationInfo.startColumn,
+                          lineNumber: attr.locationInfo.startLineNumber,
+                      }
+                    : CursorInitValue;
+                throwError({
+                    ...ATTR_WHERE_NOT_IF,
+                    ...cursor,
+                    position: MkXmlParseMessagePosition.attr,
+                    target: attr,
                 });
             }
         }
-        if (attrName === this.elseValue) {
-            const brotherElement = brotherElements[currentElementIndex - 1];
-            if (
-                !brotherElement ||
-                (!hasAttr(brotherElement, this.ifValue) &&
-                    !hasAttr(brotherElement, this.elseifValue))
-            ) {
-                return throwError({
-                    message: ATTR_WHERE_NOT_IF,
-                    position: MkValidateMessagePosition.attr,
-                    target: currentAttr,
-                });
-            }
+        if (attrName === this.elseValue && "content" in attr) {
+            const cursor: FxCursorPosition = attr.locationInfo
+                ? {
+                      offset: attr.locationInfo.startOffset,
+                      column: attr.locationInfo.startColumn,
+                      lineNumber: attr.locationInfo.startLineNumber,
+                  }
+                : CursorInitValue;
+            throwError({
+                ...ATTR_ELSE_HAS_CONTENT,
+                ...cursor,
+                position: MkXmlParseMessagePosition.attr,
+                target: attr,
+            });
         }
-        const attr = (data.currentAttr as unknown) as MkXmlNode;
-        const content = this.parseContent(data);
-        if (Array.isArray(content)) {
-            attr.content = content;
-        }
-        return attr;
+        return super.parse.apply(this, arguments);
     }
 }

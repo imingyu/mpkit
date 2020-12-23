@@ -16,8 +16,9 @@ import {
     moveCursor,
     toCursor,
     findStrCursor,
+    FxNodeJSON,
 } from "forgiving-xml-parser";
-export const hasAttr = (element: FxNode, attrName: string): boolean => {
+export const hasAttr = (element: FxNodeJSON, attrName: string): boolean => {
     return (
         element.attrs && element.attrs.some((attr) => attr.name === attrName)
     );
@@ -29,7 +30,9 @@ export const attrIsEmpty = (attrContent: string): boolean =>
 export const parseContent = (
     content: string,
     position?: MkXmlParseMessagePosition,
-    target?: FxNode
+    target?: FxNode | FxNodeJSON,
+    parent?: FxNode | FxNodeJSON,
+    grandpa?: FxNode | FxNodeJSON
 ): MkXmlContentParseResult => {
     const result: MkXmlContent[] = [];
     const leftStaticContents: MkXmlContent[] = [];

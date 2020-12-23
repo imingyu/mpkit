@@ -25,7 +25,7 @@ const initMpXmlParseAdapter = (
     };
 };
 
-export default {
+export const MpPlatformAdapters = {
     [MpPlatform.wechat]: initMpXmlParseAdapter(MpPlatform.wechat),
     [MpPlatform.alipay]: initMpXmlParseAdapter(MpPlatform.alipay),
     [MpPlatform.smart]: initMpXmlParseAdapter(MpPlatform.smart),

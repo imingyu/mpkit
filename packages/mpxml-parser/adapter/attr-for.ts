@@ -16,17 +16,16 @@ import {
 } from "../message";
 import { hasAttr } from "../util";
 import throwError from "../throw";
-import MpBaseParseAttrAdapter from "./attr-base";
+import { MkBaseAttrParseAdapter } from "./attr-base";
 import { FxNode } from "forgiving-xml-parser";
 // 处理循环语句
 export default class MkForAttrParseAdapter
-    extends MpBaseParseAttrAdapter
+    extends MkBaseAttrParseAdapter
     implements IMkMpXmlAttrParseAdapter {
     forValue: string;
     forItemValue: string;
     forIndexValue: string;
     forKeyValue: string;
-    allowMoreContentVar: boolean = false;
     constructor(mpPlatform: MpPlatform) {
         super(mpPlatform);
         this.mpPlatform = mpPlatform;

@@ -4,6 +4,8 @@ import {
     FxParseResult,
     FxWrong,
     FxLocation,
+    FxNodeJSON,
+    FxEventHandler,
 } from "forgiving-xml-parser";
 import { MpPlatform } from "./platform";
 export interface MpSpec {
@@ -25,10 +27,13 @@ export enum MpWhereType {
     elseif = "elseif",
     else = "else",
 }
+export interface MkMpXmlParseOptions {
+    onEvent?: FxEventHandler;
+}
 export interface MkXmlContent {
     type: MpXmlContentType;
     value: string;
-    locationInfo: FxLocation;
+    locationInfo?: FxLocation;
 }
 export interface MkXmlContentParseResult {
     contents: MkXmlContent[];
@@ -48,10 +53,21 @@ export interface MpForAttrContent extends MkXmlContent {
     featureKey?: string;
 }
 export interface IMkMpXmlAttrParseAdapter {
-    parse(attr: FxNode): MkXmlNode;
+    parse(attr: FxNodeJSON): MkXmlNode;
+    parse(
+        attr: FxNodeJSON,
+        parent: FxNodeJSON,
+        grandpa?: FxNodeJSON
+    ): MkXmlNode;
 }
 export interface IMkMpXmlContentParseAdapter {
-    parse(content: string, node?: FxNode): MkXmlContent[];
+    parse(content: string, node?: FxNodeJSON): MkXmlContent[];
+    parse(
+        content: string,
+        node: FxNodeJSON,
+        parent: FxNodeJSON,
+        grandpa?: FxNodeJSON
+    ): MkXmlContent[];
 }
 export interface IMkMpXmlParseAdapter {
     attrAdapters: MkMap<IMkMpXmlAttrParseAdapter>;
@@ -62,11 +78,13 @@ export enum MpXmlContentType {
     dynamic = "dynamic",
 }
 export interface MkXmlNode
-    extends MkOmit<FxNode, "attrs" | "children" | "parent"> {
+    extends MkOmit<FxNodeJSON, "attrs" | "children" | "parent"> {
     attrs?: MkXmlNode[];
     children?: MkXmlNode[];
     mpContents?: MpForAttrContent[] | MkXmlContent[];
     parent?: MkXmlNode;
+    previousSibling?: MkXmlNode;
+    nextSibling?: MkXmlNode;
 }
 
 export enum MkXmlParseMessagePosition {
@@ -75,9 +93,20 @@ export enum MkXmlParseMessagePosition {
 }
 export interface MkXmlParseMessage extends FxWrong {
     position: MkXmlParseMessagePosition;
-    target?: FxNode;
+    target?: FxNode | FxNodeJSON;
 }
 
 export interface MkXmlParseResult extends MkOmit<FxParseResult, "nodes"> {
     nodes?: MkXmlNode[];
+}
+
+export interface MkXmlParseResultBase {
+    error?: FxWrong;
+    nodes?: MkXmlNode[];
+}
+
+export interface MkMpXmlParseAdapterFormater {
+    parseAdapter?: IMkMpXmlParseAdapter;
+    hasAttrAdapter: boolean;
+    hasContentAdapter: boolean;
 }
