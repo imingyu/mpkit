@@ -6,6 +6,7 @@ import {
     FxLocation,
     FxNodeJSON,
     FxEventHandler,
+    FxNodeAdapter,
 } from "forgiving-xml-parser";
 import { MpPlatform } from "./platform";
 export interface MpSpec {
@@ -26,6 +27,12 @@ export enum MpWhereType {
     if = "if",
     elseif = "elseif",
     else = "else",
+}
+export enum MpEachType {
+    key = "key",
+    for = "for",
+    forItem = "forItem",
+    forIndex = "forIndex",
 }
 export interface MkMpXmlParseOptions {
     onEvent?: FxEventHandler;
@@ -77,8 +84,15 @@ export enum MpXmlContentType {
     static = "static",
     dynamic = "dynamic",
 }
+export interface MkXmlNodeJSON
+    extends MkOmit<FxNodeJSON, "attrs" | "children"> {
+    attrs?: MkXmlNodeJSON[];
+    children?: MkXmlNodeJSON[];
+    mpContents?: MpForAttrContent[] | MkXmlContent[];
+    special?: MpWhereType | MpEachType;
+}
 export interface MkXmlNode
-    extends MkOmit<FxNodeJSON, "attrs" | "children" | "parent"> {
+    extends MkOmit<MkXmlNodeJSON, "attrs" | "children" | "parent"> {
     attrs?: MkXmlNode[];
     children?: MkXmlNode[];
     mpContents?: MpForAttrContent[] | MkXmlContent[];
@@ -92,7 +106,7 @@ export enum MkXmlParseMessagePosition {
     attr = "attr",
 }
 export interface MkXmlParseMessage extends FxWrong {
-    position: MkXmlParseMessagePosition;
+    // position: MkXmlParseMessagePosition;
     target?: FxNode | FxNodeJSON;
 }
 
@@ -109,4 +123,22 @@ export interface MkMpXmlParseAdapterFormater {
     parseAdapter?: IMkMpXmlParseAdapter;
     hasAttrAdapter: boolean;
     hasContentAdapter: boolean;
+}
+export interface MkNodeSerializer {
+    (
+        nodes: FxNodeJSON[],
+        handler: MkNodeSerializeHandler,
+        parentNode?: FxNodeJSON
+    ): string;
+}
+export interface MkNodeSerializeHandler {
+    (
+        currentNode: MkXmlNodeJSON,
+        brotherNodes: MkXmlNodeJSON[],
+        rootNodes: MkXmlNodeJSON[],
+        rootSerializer: MkNodeSerializer,
+        parentNode: FxNodeJSON,
+        adapter: FxNodeAdapter,
+        serializeResult: string
+    ): string;
 }

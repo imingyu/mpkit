@@ -1,4 +1,3 @@
-export * from "./xml-parser";
 export * from "./parse";
 export * from "./message";
 export * from "./adapter/index";

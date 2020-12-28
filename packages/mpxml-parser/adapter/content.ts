@@ -2,10 +2,9 @@ import {
     IMkMpXmlContentParseAdapter,
     MkXmlContent,
     MkXmlNode,
-    MkXmlParseMessagePosition,
 } from "@mpkit/types";
-import { FxNode, FxNodeJSON } from "forgiving-xml-parser";
-import { parseContent } from "../util";
+import { FxNodeJSON } from "forgiving-xml-parser";
+import { parseMpXmlContent } from "../content";
 
 export const contentAdapter: IMkMpXmlContentParseAdapter = {
     parse(
@@ -17,14 +16,6 @@ export const contentAdapter: IMkMpXmlContentParseAdapter = {
         if (node && (node as MkXmlNode).mpContents) {
             return (node as MkXmlNode).mpContents;
         }
-        return parseContent(
-            content,
-            node
-                ? ((node.type as unknown) as MkXmlParseMessagePosition)
-                : undefined,
-            node,
-            parent,
-            grandpa
-        ).contents;
+        return parseMpXmlContent(content, node);
     },
 };

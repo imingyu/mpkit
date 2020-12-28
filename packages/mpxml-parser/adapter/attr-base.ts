@@ -2,13 +2,11 @@ import {
     MpPlatform,
     MpViewSyntaxSpec,
     MkXmlNode,
-    MkXmlParseMessagePosition,
     IMkMpXmlAttrParseAdapter,
-    MkXmlContentParseResult,
 } from "@mpkit/types";
 import MpSpec from "../spec";
-import { parseContent } from "../util";
 import { FxNodeJSON } from "forgiving-xml-parser";
+import { parseMpXmlContent } from "../content";
 
 export class MkBaseAttrParseAdapter implements IMkMpXmlAttrParseAdapter {
     mpPlatform: MpPlatform;
@@ -24,21 +22,11 @@ export class MkBaseAttrParseAdapter implements IMkMpXmlAttrParseAdapter {
         grandpa?: FxNodeJSON
     ): MkXmlNode {
         if ("content" in attr && attr.content) {
-            (attr as MkXmlNode).mpContents = this.parseContent(attr).contents;
+            (attr as MkXmlNode).mpContents = parseMpXmlContent(
+                attr.content,
+                attr
+            );
         }
         return attr;
-    }
-    parseContent(
-        attr: FxNodeJSON,
-        parent?: FxNodeJSON,
-        grandpa?: FxNodeJSON
-    ): MkXmlContentParseResult {
-        return parseContent(
-            attr.content,
-            MkXmlParseMessagePosition.attr,
-            attr,
-            parent,
-            grandpa
-        );
     }
 }

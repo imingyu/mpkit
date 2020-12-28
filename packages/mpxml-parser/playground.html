@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>@mpkit/mpxml-parser</title>
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            h3 {
+                margin-top: 0;
+                border-left: 10px solid #ea7004;
+                padding-left: 15px;
+                box-sizing: border-box;
+            }
+            h3 small {
+                color: #999;
+                font-size: 60%;
+            }
+            .container {
+                margin: 20px 0;
+                display: flex;
+            }
+            .container > .text-container:last-child {
+                margin-right: 0;
+            }
+            .text-container {
+                flex: 1;
+                flex-shrink: 1;
+            }
+            .text-container.action-container {
+                flex: none;
+                width: 200px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 0 20px;
+                box-sizing: border-box;
+                flex-shrink: 0;
+            }
+            .text-editor {
+                border: 1px solid #ededed;
+                padding: 20px 0;
+                min-height: 400px;
+            }
+            .btn-action {
+                width: 160px;
+                height: 50px;
+                line-height: 50px;
+                background: none;
+                border: none;
+                border-radius: 8px;
+                background-image: linear-gradient(180deg, #5a52fd, #665ff3);
+                color: #fff;
+                font-size: 14px;
+                float: right;
+                margin-top: 15px;
+                align-self: center;
+            }
+            .btn-action:focus,
+            .btn-action:active {
+                outline: none;
+            }
+            .btn-action2 {
+                background-image: linear-gradient(180deg, #ea7004, #ea7004);
+            }
+            .chk-location {
+                margin-bottom: 20px;
+            }
+            .container-options h3 {
+                width: 100%;
+            }
+            .container-options {
+                position: relative;
+                flex-wrap: wrap;
+                padding-bottom: 20px;
+                border-bottom: 1px solid #ededed;
+            }
+            .container-options:after {
+                content: "";
+                position: absolute;
+                left: 50%;
+                bottom: -1px;
+                height: 1px;
+                background-color: #fff;
+                width: 30px;
+            }
+            .container-options > .option-item:nth-child(2n) {
+                padding-left: 30px;
+            }
+            .option-item {
+                width: 50%;
+                flex-shrink: 0;
+                box-sizing: border-box;
+            }
+            .option-item small {
+                color: #666;
+            }
+            .option-item > label {
+                display: block;
+                margin-left: 20px;
+            }
+            #cursor {
+                display: none;
+            }
+            .legend {
+                display: block;
+                width: 100%;
+            }
+            .con-legend {
+                margin-top: 100px;
+                display: block;
+                border-top: 1px solid #ededed;
+                padding-top: 20px;
+            }
+            #longAlert,
+            #failAlert {
+                display: none;
+                text-align: center;
+                padding: 15px;
+                font-size: 14px;
+                border-bottom: 1px solid transparent;
+            }
+            a {
+                margin: 0 5px;
+                font-weight: bold;
+            }
+            #longAlert {
+                color: #8a6d3b;
+                background-color: #fcf8e3;
+                border-bottom-color: #faebcc;
+            }
+            #failAlert {
+                color: #a94442;
+                background-color: #f2dede;
+                border-bottom-color: #ebccd1;
+            }
+        </style>
+        <script>
+            var IN_CN = new Date().toLocaleString();
+            IN_CN = !!(
+                IN_CN.indexOf("上午") !== -1 || IN_CN.indexOf("下午") !== -1
+            );
+            var longTimer = setTimeout(function () {
+                document.getElementById("longAlert").style.display = "block";
+            }, 5 * 1000);
+            function resLoadFail(el) {
+                document.getElementById("longAlert").style.display = "none";
+                document.getElementById("failAlert").style.display = "block";
+            }
+            document.write(
+                '<link rel="stylesheet" data-name="vs/editor/editor.main" href="' +
+                    (IN_CN
+                        ? "https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.21.2"
+                        : "./monaco-editor") +
+                    '/min/vs/editor/editor.main.css" onerror="resLoadFail(this)" />'
+            );
+        </script>
+        <!-- <link
+            rel="stylesheet"
+            data-name="vs/editor/editor.main"
+            href="./monaco-editor/min/vs/editor/editor.main.css"
+            onerror="resLoadFail(this)"
+        /> -->
+    </head>
+    <body>
+        <div id="longAlert">
+            在您的网络情况下，加载本站JS/CSS资源（Editor组件资源过大）速度缓慢，您可<a
+                href="javascript:void"
+                onclick="document.getElementById('longAlert').style.display = 'none'"
+                >继续等待</a
+            >或<a
+                href="https://github.com/imingyu/forgiving-xml-parser/tree/gh-pages"
+                target="_blank"
+                >前往Github下载代码在本地运行该页面</a
+            >
+        </div>
+        <div id="failAlert">
+            JS/CSS资源加载失败！您可<a href="javascript:location.reload()"
+                >重新加载页面</a
+            >或<a
+                href="https://github.com/imingyu/forgiving-xml-parser/tree/gh-pages"
+                target="_blank"
+                >前往Github下载代码在本地运行该页面</a
+            >
+        </div>
+        <!-- <div class="container container-options">
+            <h3>可选配置</h3>
+            <label class="option-item">
+                <input type="checkbox" />
+                <b>allowStartTagLeftBoundarySpace</b>
+                <small>是否允许开始标签的左边界符附近存在空白字符</small>
+            </label>
+            <label class="option-item">
+                <input type="checkbox" />
+                <b>ignoreTagNameCaseEqual</b>
+                <small>忽略标签名称大小写对比</small>
+            </label>
+            <label class="option-item">
+                <input type="checkbox" />
+                <b>allowNodeNotClose</b>
+                <small>是否允许标签不关闭</small>
+            </label>
+            <label class="option-item">
+                <input type="checkbox" />
+                <b>allowNodeNameEmpty</b>
+                <small>是否允许节点名称为空</small>
+            </label>
+            <label class="option-item">
+                <input type="checkbox" />
+                <b>allowAttrContentHasBr</b>
+                <small
+                    >是否允许属性值中存在换行，仅在属性表达式中包含边界符（“"”,“'”）时生效</small
+                >
+            </label>
+            <label class="option-item">
+                <input type="checkbox" />
+                <b>allowNearAttrEqualSpace</b>
+                <small>是否允许属性等号附近存在空白字符</small>
+            </label>
+            <div class="option-item">
+                <b>encounterAttrMoreEqual</b>
+                <small>当遇到属性中含有多个“=”时怎么处置？</small>
+                <label>
+                    <input
+                        type="radio"
+                        name="encounterAttrMoreEqual"
+                        value="throwError"
+                    />
+                    <b>throwError</b>
+                    <small>报错</small>
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        name="encounterAttrMoreEqual"
+                        value="merge"
+                    />
+                    <b>merge</b>
+                    <small>合并</small>
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        name="encounterAttrMoreEqual"
+                        value="newAttr"
+                    />
+                    <b>newAttr</b>
+                    <small>新创建一个属性对象</small>
+                </label>
+            </div>
+        </div> -->
+        <div class="container">
+            <div class="text-container">
+                <h3>
+                    XML
+                    <span id="cursor"
+                        ><small
+                            >（光标位置 行：<span id="cusLine"></span> 列：<span
+                                id="cusCol"
+                            ></span
+                            >）</small
+                        ></span
+                    >
+                </h3>
+                <div class="editor-box">
+                    <div class="text-editor" id="txtXml"></div>
+                </div>
+            </div>
+            <div class="text-container action-container">
+                <label class="chk-location">
+                    <input type="checkbox" id="chkLocation" />
+                    显示节点位置信息
+                </label>
+                <label class="chk-location">
+                    <input type="checkbox" id="chkSteps" />
+                    显示节点解析步骤信息
+                </label>
+                <button class="btn-action" type="button" id="btnParse">
+                    解析&nbsp;&gt;&gt;
+                </button>
+                <button
+                    class="btn-action btn-action2"
+                    type="button"
+                    id="btnSerialize"
+                >
+                    &lt;&lt;&nbsp;序列化
+                </button>
+            </div>
+            <div class="text-container">
+                <h3>JSON <small id="jsonTime"></small></h3>
+                <div class="editor-box">
+                    <div class="text-editor" id="txtJSON"></div>
+                </div>
+            </div>
+        </div>
+        <script src="./dist/index.js" onerror="resLoadFail(this)"></script>
+        <!-- <script src="./dist/index.umd.js"></script> -->
+        <!-- <script src="./jquery.min.js" onerror="resLoadFail(this)"></script> -->
+        <script>
+            document.write(
+                '<script src="' +
+                    (IN_CN
+                        ? "https://cdn.bootcdn.net/ajax/libs/jquery/2.2.4"
+                        : ".") +
+                    '/jquery.min.js" onerror="resLoadFail(this)"><\/script>'
+            );
+            var require = {
+                paths: {
+                    vs:
+                        (IN_CN
+                            ? "https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.21.2"
+                            : "./monaco-editor") + "/min/vs",
+                },
+            };
+            document.write(
+                '<script src="' +
+                    (IN_CN
+                        ? "https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.21.2"
+                        : "./monaco-editor") +
+                    '/min/vs/loader.js" onerror="resLoadFail(this)"><\/script>'
+            );
+            document.write(
+                '<script src="' +
+                    (IN_CN
+                        ? "https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.21.2"
+                        : "./monaco-editor") +
+                    '/min/vs/editor/editor.main.nls.js" onerror="resLoadFail(this)"><\/script>'
+            );
+            document.write(
+                '<script src="' +
+                    (IN_CN
+                        ? "https://cdn.bootcdn.net/ajax/libs/monaco-editor/0.21.2"
+                        : "./monaco-editor") +
+                    '/min/vs/editor/editor.main.js" onerror="resLoadFail(this)"><\/script>'
+            );
+        </script>
+        <!-- <script
+            src="./monaco-editor/min/vs/loader.js"
+            onerror="resLoadFail(this)"
+        ></script>
+        <script
+            src="./monaco-editor/min/vs/editor/editor.main.nls.js"
+            onerror="resLoadFail(this)"
+        ></script>
+        <script
+            src="./monaco-editor/min/vs/editor/editor.main.js"
+            onerror="resLoadFail(this)"
+        ></script> -->
+
+        <script>
+            clearTimeout(longTimer);
+            document.getElementById("longAlert").style.display = "none";
+            function getOptions(getEl) {
+                getEl = typeof getEl === "undefined" ? false : getEl;
+                var options = {};
+                $(".option-item").each(function (index, el) {
+                    el = $(el);
+                    var name = el.children("b").html();
+                    var val = el
+                        .children("input[type='checkbox']")
+                        .prop("checked");
+                    if (name === "encounterAttrMoreEqual") {
+                        val = el.find('input[type="radio"]:checked').val();
+                    }
+                    options[name] = val;
+                    if (getEl) {
+                        if (!options.elMap) {
+                            options.elMap = {};
+                        }
+                        options.elMap[name] = el;
+                    }
+                });
+                return options;
+            }
+
+            function setOptions(options) {
+                var ops = getOptions(true);
+                for (var prop in ops.elMap) {
+                    if (options[prop]) {
+                        var el = ops.elMap[prop];
+                        if (prop !== "encounterAttrMoreEqual") {
+                            el.children("input[type='checkbox']").prop(
+                                "checked",
+                                true
+                            );
+                        } else {
+                            el.find(
+                                'input[type="radio"][name="' +
+                                    prop +
+                                    '"][value="' +
+                                    options[prop] +
+                                    '"]'
+                            ).prop("checked", true);
+                        }
+                    }
+                }
+            }
+
+            var txtXml;
+            var txtJSON;
+            var xmlEditor;
+            var jsonEditor;
+            function getXml() {
+                return xmlEditor ? xmlEditor.getValue() : txtXml.val();
+            }
+            function setXml(xml) {
+                return xmlEditor ? xmlEditor.setValue(xml) : txtXml.val(xml);
+            }
+            function getJSON() {
+                return jsonEditor ? jsonEditor.getValue() : txtJSON.val();
+            }
+            function setJSON(json) {
+                return jsonEditor
+                    ? jsonEditor.setValue(json)
+                    : txtJSON.val(json);
+            }
+            function pageInit() {
+                txtXml = $("#txtXml");
+                txtJSON = $("#txtJSON");
+                var localOptions =
+                    JSON.parse(localStorage.getItem("Fx.Options") || "null") ||
+                    MpKitMpXmlParser.DEFAULT_PARSE_OPTIONS;
+                setOptions(localOptions);
+
+                $("#btnParse").bind("click", function (e) {
+                    var xml = getXml();
+                    localStorage.setItem("Fx.Xml", xml);
+                    var startTime = (performance || Date).now();
+                    var json = MpKitMpXmlParser.parseMpXml(xml);
+                    var endTime = (performance || Date).now();
+                    $("#jsonTime").text(
+                        "本次解析耗时：" +
+                            (endTime - startTime).toFixed(2) +
+                            "ms"
+                    );
+                    var parseResult = MpKitMpXmlParser.toJSON(
+                        json.nodes,
+                        $("#chkLocation").prop("checked"),
+                        $("#chkSteps").prop("checked")
+                    );
+                    if (json.error) {
+                        console.error(json.error.stack);
+                        const target = json.error.target;
+                        delete json.error.target;
+                        setJSON(
+                            JSON.stringify(
+                                {
+                                    ...json.error,
+                                    target: target
+                                        ? MpKitMpXmlParser.toJSON(
+                                              target,
+                                              $("#chkLocation").prop("checked"),
+                                              $("#chkSteps").prop("checked")
+                                          )
+                                        : null,
+                                },
+                                null,
+                                4
+                            )
+                        );
+                        json.error.target = target;
+                    } else {
+                        setJSON(JSON.stringify(parseResult, null, 4));
+                    }
+                    if (json.error && json.error.lineNumber && xmlEditor) {
+                        var line = json.error.lineNumber,
+                            col = json.error.column;
+                        xmlEditor.setPosition({
+                            lineNumber: line,
+                            column: col,
+                        });
+                        xmlEditor.setSelection({
+                            endColumn: col + 1,
+                            endLineNumber: line,
+                            startColumn: col,
+                            startLineNumber: line,
+                        });
+                        xmlEditor.focus();
+                    }
+                });
+
+                $("#btnSerialize").click(function () {
+                    var json = JSON.parse(getJSON() || "null");
+                    if (json && json.length) {
+                        setXml(
+                            MpKitMpXmlParser.serialize(json, {
+                                // nodeSerializeHandler(
+                                //     node,
+                                //     bs,
+                                //     rs,
+                                //     rs2,
+                                //     parent,
+                                //     ad,
+                                //     str
+                                // ) {
+                                //     return node.type === "attr" ? "333" : str;
+                                // },
+                            })
+                        );
+                    } else {
+                        alert("请输入JSON后尝试序列化");
+                    }
+                });
+            }
+
+            function editorInit() {
+                xmlEditor = monaco.editor.create(txtXml[0], {
+                    value: (
+                        localStorage.getItem("Fx.Xml") ||
+                        "<?xml version=\"1.0\"?>\n<!DOCTYPE note [\n    <!-- this is comment -->\n    <!ELEMENT note (to,from,heading,body,script)>\n    <!ELEMENT to (#PCDATA)>\n    <!ELEMENT from (#PCDATA)>\n    <!ELEMENT heading (#PCDATA)>\n    <!ELEMENT body (#PCDATA)>\n    <!ELEMENT script (#PCDATA)>\n]>\n<note>\n    <to>Tove</to>\n    <from>Jani</from>\n    <heading>Reminder</heading>\n    <body>Don't forget me this weekend</body>\n    <script>console.log('hi Tove');<\/script>\n</note>\n<![CDATA[ function sayHi() {console.log('say hi.')} ]]>"
+                    ).trim(),
+                    language: "xml",
+                    minimap: {
+                        enabled: false,
+                    },
+                });
+                xmlEditor.onDidChangeCursorPosition(function (e) {
+                    $("#cusLine").html(e.position.lineNumber);
+                    $("#cusCol").html(e.position.column);
+                    $("#cursor").show();
+                });
+                jsonEditor = monaco.editor.create(txtJSON[0], {
+                    value: "",
+                    language: "json",
+                    minimap: {
+                        enabled: false,
+                    },
+                });
+            }
+            pageInit();
+            editorInit();
+        </script>
+    </body>
+</html>

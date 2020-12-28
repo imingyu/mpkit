@@ -8,6 +8,8 @@ import {
     IMkMpXmlAttrParseAdapter,
     MkMpXmlParseOptions,
     MkMap,
+    MkXmlNodeJSON,
+    MkXmlContent,
 } from "@mpkit/types";
 import { MpPlatformAdapters } from "./adapter/index";
 import {
@@ -17,10 +19,12 @@ import {
     FxParseContext,
     FxWrong,
     FxNodeJSON,
+    parseResultToJSON,
 } from "forgiving-xml-parser";
 import { ADAPTER_PARAMS_WRONG, XMLJSON_PARAMS_WRONG } from "./message";
 import { isEmptyObject } from "@mpkit/util";
 import { isFunc } from "@mpkit/util";
+export { serialize } from "forgiving-xml-parser";
 const DEFAULT_XML_PARSE_OPTIONS = {
     allowNodeNameEmpty: false,
     allowAttrContentHasBr: false,
@@ -43,9 +47,7 @@ const formatAdapter = (
     return {
         parseAdapter,
         hasAttrAdapter:
-            parseAdapter &&
-            !isEmptyObject(parseAdapter.attrAdapters) &&
-            isFunc(parseAdapter.attrAdapters.parse),
+            parseAdapter && !isEmptyObject(parseAdapter.attrAdapters),
         hasContentAdapter:
             parseAdapter &&
             !isEmptyObject(parseAdapter.contentAdapter) &&
@@ -250,4 +252,51 @@ export const parseMpXml = (
         delete xmlParseResult.nodes;
     }
     return (xmlParseResult as unknown) as MkXmlParseResult;
+};
+
+export const toJSON = (
+    node: MkXmlNode | MkXmlNode[],
+    carryCodeLocation?: boolean,
+    carrySteps?: boolean
+): MkXmlNodeJSON | MkXmlNodeJSON[] => {
+    const nodes = Array.isArray(node) ? node : node ? [node] : [];
+    const res = parseResultToJSON(
+        {
+            nodes: nodes as FxNode[],
+            maxCol: 0,
+            maxLine: 0,
+            xml: "",
+        },
+        {
+            locationInfo: carryCodeLocation,
+            steps: carrySteps,
+            dataFilter(r, s: MkXmlNodeJSON) {
+                delete (s as MkXmlNode).previousSibling;
+                delete (s as MkXmlNode).nextSibling;
+                if (s.mpContents && s.mpContents.length) {
+                    s.mpContents = (s.mpContents as MkXmlContent[]).map(
+                        (item) => {
+                            const res: MkXmlContent = {
+                                type: item.type,
+                                value: item.value,
+                            };
+                            if (carryCodeLocation && item.locationInfo) {
+                                res.locationInfo = JSON.parse(
+                                    JSON.stringify(item.locationInfo)
+                                );
+                            }
+                            return res;
+                        }
+                    );
+                }
+                return s;
+            },
+        }
+    );
+
+    if (Array.isArray(node)) {
+        return res.nodes as MkXmlNodeJSON[];
+    } else if (node) {
+        return res.nodes[0] as MkXmlNodeJSON;
+    }
 };

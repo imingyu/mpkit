@@ -188,7 +188,7 @@ export class MkSetDataPerformer {
         }
         return data;
     }
-    exec(view: MpView, data: any, callback: Function): Promise<any> {
+    exec<T>(view: MpView, data: T, callback: Function): Promise<T | void> {
         return new Promise((resolve, reject) => {
             if (isMpIvew(view) && isFunc(view.$mkNativeSetData)) {
                 this.bindView(view);

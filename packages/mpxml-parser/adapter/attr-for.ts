@@ -241,7 +241,6 @@ export default class MkForAttrParseAdapter
                 // for-item一定要与for属性一同出现
                 throwError({
                     ...ATTR_FOR_ITEM_NOT_FOR,
-                    position: MkXmlParseMessagePosition.attr,
                     target: attr,
                     ...attrStartCursor,
                 });
@@ -253,7 +252,6 @@ export default class MkForAttrParseAdapter
                 // for-index一定要与for属性一同出现
                 return throwError({
                     ...ATTR_FOR_INDEX_NOT_FOR,
-                    position: MkXmlParseMessagePosition.attr,
                     target: attr,
                     ...attrStartCursor,
                 });

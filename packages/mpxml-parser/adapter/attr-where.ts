@@ -60,7 +60,6 @@ export default class MpParseWehreAttrAdapter
                 throwError({
                     ...ATTR_WHERE_NOT_IF,
                     ...cursor,
-                    position: MkXmlParseMessagePosition.attr,
                     target: attr,
                 });
             }
@@ -76,7 +75,6 @@ export default class MpParseWehreAttrAdapter
             throwError({
                 ...ATTR_ELSE_HAS_CONTENT,
                 ...cursor,
-                position: MkXmlParseMessagePosition.attr,
                 target: attr,
             });
         }
