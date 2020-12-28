@@ -9,7 +9,8 @@ const path = require('path');
 const rollup = require('rollup');
 const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
-const { replaceFileContent, oneByOne, copyFiles } = require('./util');
+const { replaceFileContent, oneByOne, copyFiles, rmdirSync } = require('./util');
+const { readdirSync, existsSync, mkdirSync } = require('fs');
 const getPackageName = (str) => {
     return (str || '').replace(path.resolve(__dirname, '../packages'), '');
 }
@@ -125,11 +126,24 @@ oneByOne(entrys.map((rollupConfig, index) => {
         return Promise.resolve();
     }
 }))).then(() => {
+    const root = path.resolve(__dirname, "../packages");
+    const dist = path.resolve(__dirname, '../dist');
+    if (existsSync(dist)) {
+        rmdirSync(dist);
+    }
+    mkdirSync(dist);
+    readdirSync(root).forEach(dir => {
+        if (dir.indexOf('.') === 0) {
+            return;
+        }
+        const dirDist = path.join(root, dir, 'dist');
+        if (existsSync(dirDist)) {
+            mkdirSync(path.join(dist, dir));
+            copyFiles(dirDist, path.join(dist, dir))
+        }
+    })
     console.log(`🌈编译结束.`);
 }).catch(err => {
     console.error(`🔥编译出错：${err.message}`);
     console.log(err);
 });
-
-// const ebus = require('../packages/ebus');
-// ebus.on()
