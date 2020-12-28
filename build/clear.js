@@ -9,14 +9,12 @@ const clear = dir => {
         fs.mkdirSync(dir);
     }
 }
+let mark = {};
 entrys.forEach(rollupConfig => {
-    if (rollupConfig.input.input.indexOf('inject/plugins') !== -1 || rollupConfig.input.input.indexOf('inject/config') !== -1) {
-        return;
+    if (!mark[rollupConfig.packageName]) {
+        mark[rollupConfig.packageName] = true;
+        clear(path.resolve(__dirname, `../packages/${rollupConfig.packageName}/dist`));
+        clear(path.resolve(__dirname, `../packages/${rollupConfig.packageName}/spec`));
     }
-    const arr = rollupConfig.input.input.split('/');
-    arr.splice(arr.length - 1, 1);
-    const packageRoot = arr.join('/');
-    clear(path.join(packageRoot, 'spec'));
-    clear(path.join(packageRoot, 'dist'));
 });
 console.log(`dist与spec目录已重置。`);

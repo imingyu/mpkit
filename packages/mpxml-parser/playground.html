@@ -296,7 +296,10 @@
                 </div>
             </div>
         </div>
-        <script src="./dist/index.js" onerror="resLoadFail(this)"></script>
+        <script
+            src="./dist/index.umd.full.js"
+            onerror="resLoadFail(this)"
+        ></script>
         <!-- <script src="./dist/index.umd.js"></script> -->
         <!-- <script src="./jquery.min.js" onerror="resLoadFail(this)"></script> -->
         <script>
@@ -422,21 +425,21 @@
                 txtJSON = $("#txtJSON");
                 var localOptions =
                     JSON.parse(localStorage.getItem("Fx.Options") || "null") ||
-                    MpKitMpXmlParser.DEFAULT_PARSE_OPTIONS;
+                    MpKitMpxmlParser.DEFAULT_PARSE_OPTIONS;
                 setOptions(localOptions);
 
                 $("#btnParse").bind("click", function (e) {
                     var xml = getXml();
                     localStorage.setItem("Fx.Xml", xml);
                     var startTime = (performance || Date).now();
-                    var json = MpKitMpXmlParser.parseMpXml(xml);
+                    var json = MpKitMpxmlParser.parseMpXml(xml);
                     var endTime = (performance || Date).now();
                     $("#jsonTime").text(
                         "本次解析耗时：" +
                             (endTime - startTime).toFixed(2) +
                             "ms"
                     );
-                    var parseResult = MpKitMpXmlParser.toJSON(
+                    var parseResult = MpKitMpxmlParser.toJSON(
                         json.nodes,
                         $("#chkLocation").prop("checked"),
                         $("#chkSteps").prop("checked")
@@ -450,7 +453,7 @@
                                 {
                                     ...json.error,
                                     target: target
-                                        ? MpKitMpXmlParser.toJSON(
+                                        ? MpKitMpxmlParser.toJSON(
                                               target,
                                               $("#chkLocation").prop("checked"),
                                               $("#chkSteps").prop("checked")
@@ -486,7 +489,7 @@
                     var json = JSON.parse(getJSON() || "null");
                     if (json && json.length) {
                         setXml(
-                            MpKitMpXmlParser.serialize(json, {
+                            MpKitMpxmlParser.serialize(json, {
                                 // nodeSerializeHandler(
                                 //     node,
                                 //     bs,

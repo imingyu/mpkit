@@ -24,23 +24,55 @@ console.log(`🌟开始编译...`);
 const targetPackNames = process.argv.slice(2);
 const specIsMoved = {};
 
+const cloneEntry = (source) => {
+    const res = {
+        packageName: source.packageName,
+        input: {
+            input: source.input.input,
+        },
+        output: {
+            ...source.output
+        },
+        done: source.done,
+    };
+    if (source.output.globals) {
+        res.output.globals = {
+            ...source.output.globals
+        }
+    }
+    if (source.input.external) {
+        res.input.external = [
+            ...source.input.external
+        ]
+    }
+    return res;
+}
+
 entrys.forEach(item => {
-    if (item.output.format === 'umd' && !item.mini) {
-        const ni = {
-            input: {
-                input: item.input.input,
-                external: [
-                    ...item.input.external
-                ]
-            },
-            output: {
-                ...item.output
-            },
-            done: item.done,
-            mini: true
-        };
+    if (item.output.format === 'umd' && !item.output.globals) {
+        item.output.globals = {
+            'forgiving-xml-parser': 'ForgivingXmlParser',
+            '@mpkit/util': 'MpKitUtil',
+            '@mpkit/types': 'MpKitTypes',
+        }
+    }
+    if (item.output.format === 'umd' && !item.mini && !item.inclueFx) {
+        const ni = cloneEntry(item);
+        ni.mini = true;
         ni.output.file = ni.output.file.substr(0, ni.output.file.length - 2) + 'mini.js';
-        entrys.push(ni)
+        entrys.push(ni);
+        if (item.packageName === 'mpxml-parser') {
+            const ni = cloneEntry(item);
+            ni.inclueFx = true;
+            ni.output.file = ni.output.file.substr(0, ni.output.file.length - 2) + 'full.js';
+            entrys.push(ni);
+
+            const ni2 = cloneEntry(item);
+            ni2.inclueFx = true;
+            ni2.mini = true;
+            ni2.output.file = ni2.output.file.substr(0, ni2.output.file.length - 2) + 'full.mini.js';
+            entrys.push(ni2);
+        }
     }
 })
 
@@ -56,6 +88,7 @@ oneByOne(entrys.map((rollupConfig, index) => {
         if (!rollupConfig.input.external) {
             rollupConfig.input.external = [/\@mpkit\//]
             rollupConfig.input.external.push(/lodash/);
+            rollupConfig.input.external.push(/forgiving-xml-parser/);
         }
         if (!rollupConfig.input.plugins) {
             rollupConfig.input.plugins = [];
@@ -84,6 +117,9 @@ oneByOne(entrys.map((rollupConfig, index) => {
             rollupConfig.input.plugins.push(uglify({
                 sourcemap: true
             }));
+        }
+        if (rollupConfig.inclueFx) {
+            delete rollupConfig.input.external;
         }
         rollupConfig.output.sourcemap = true;
         rollupConfig.output.banner = `/*!
@@ -139,7 +175,7 @@ oneByOne(entrys.map((rollupConfig, index) => {
         const dirDist = path.join(root, dir, 'dist');
         if (existsSync(dirDist)) {
             mkdirSync(path.join(dist, dir));
-            copyFiles(dirDist, path.join(dist, dir))
+            copyFiles(dirDist, path.join(dist, dir), '*', false);
         }
     })
     console.log(`🌈编译结束.`);

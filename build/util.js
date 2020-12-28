@@ -35,7 +35,7 @@ exports.copyFiles = (sourceDir, targetDir, fileNameChar, deleteSourceFile, loopC
         const targetName = path.join(targetDir, item);
         const stat = fs.statSync(sourceName)
         if (stat.isFile()) {
-            if ((typeof fileNameChar === 'function' && fileNameChar(sourceName)) || (typeof fileNameChar === 'string' && sourceName.indexOf(fileNameChar) !== -1)) {
+            if (fileNameChar === '*' || (typeof fileNameChar === 'function' && fileNameChar(sourceName)) || (typeof fileNameChar === 'string' && sourceName.indexOf(fileNameChar) !== -1)) {
                 fse.copyFileSync(sourceName, targetName);
                 if (deleteSourceFile) {
                     fs.unlinkSync(sourceName)
@@ -84,7 +84,7 @@ exports.rmdirSync = (path) => {
         files.forEach(function (file, index) {
             var curPath = path + "/" + file;
             if (fs.statSync(curPath).isDirectory()) { // recurse
-                rmdirSync(curPath);
+                exports.rmdirSync(curPath);
             } else { // delete file
                 fs.unlinkSync(curPath);
             }
