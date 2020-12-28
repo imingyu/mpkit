@@ -1,20 +1,5 @@
-import {
-    MpPlatform,
-    MpXmlContentType,
-    MkXmlContent,
-    MpForAttrContent,
-    MkXmlNode,
-    IMkMpXmlAttrParseAdapter,
-    MkXmlParseMessagePosition,
-} from "@mpkit/types";
-import {
-    ATTR_FOR_INDEX_NOT_FOR,
-    ATTR_FOR_ITEM_NOT_FOR,
-    ATTR_KEY_CONTENT_HAS_BRAKET,
-    ATTR_FOR_NOT_LISTVAR,
-    ATTR_FOR_EACH_VAR_WRONG,
-    ATTR_FOR_VAR_EQUAL,
-} from "../message";
+import { MpPlatform, MkXmlNode, IMkMpXmlAttrParseAdapter } from "@mpkit/types";
+import { ATTR_FOR_INDEX_NOT_FOR, ATTR_FOR_ITEM_NOT_FOR } from "../message";
 import { hasAttr } from "../util";
 import throwError from "../throw";
 import { MkBaseAttrParseAdapter } from "./attr-base";

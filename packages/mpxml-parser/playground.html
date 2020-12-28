@@ -452,6 +452,7 @@
                             JSON.stringify(
                                 {
                                     ...json.error,
+                                    message: json.error.message,
                                     target: target
                                         ? MpKitMpxmlParser.toJSON(
                                               target,

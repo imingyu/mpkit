@@ -1,16 +1,16 @@
-const { parseMpXml, TAG_NOT_CLOSE, BRACKET_THAN_TWO, BRACKET_NOT_CLOSE, ATTR_CONTENT_HAS_MORE_VAR, ATTR_WHERE_NOT_IF } = require('../dist/index.cjs.js');
+const { parseMpXml } = require('../dist/index.cjs.js');
 const { MpPlatform } = require('@mpkit/types');
 const { assert } = require('chai');
 
-describe('ViewParser', () => {
+describe('MpxmlParser', () => {
 
     it('tag not close', () => {
-        const xml = `<view>123<text>456</text>`;
+        const xml = `<view>123<text>456</view>`;
         const res = parseMpXml(xml, MpPlatform.wechat);
         if (!res.error) {
             throw 'err';
         }
-        assert.equal(res.error.message, TAG_NOT_CLOSE);
+        assert.equal(res.error.code, 4);
     });
 
     it('tag head close wrong', () => {
@@ -19,12 +19,12 @@ describe('ViewParser', () => {
         if (!res.error) {
             throw 'err';
         }
-        assert.equal(res.error.message, TAG_NOT_CLOSE);
+        assert.equal(res.error.code, 14);
     });
 
     it('bracket wrong', () => {
-        assert.equal(parseMpXml(`<text>{{{name}}</text>`, MpPlatform.wechat).error.message, BRACKET_THAN_TWO);
-        assert.equal(parseMpXml(`<text>{{name</text>`, MpPlatform.wechat).error.message, BRACKET_NOT_CLOSE);
+        assert.equal(parseMpXml(`<text>{{{name}}</text>`, MpPlatform.wechat).error.code, 100);
+        assert.equal(parseMpXml(`<text>{{name</text>`, MpPlatform.wechat).error.code, 101);
         assert.equal(!parseMpXml(`<text>{name</text>`, MpPlatform.wechat).error, true);
     });
 

@@ -9,7 +9,6 @@ import {
     FxNodeJSON,
     moveCursor,
     FxCursorPosition,
-    toCursor,
     repeatString,
 } from "forgiving-xml-parser";
 import { cursorToLocation, plusCursor } from "./util";
@@ -153,10 +152,10 @@ export const parseMpXmlContent = (
         }
         if (bkCount && bkCount < bracketCount) {
             if (bkPosition === 1) {
+                text += `${repeatString(leftBracketChar, bkCount)}${char}`;
                 bkPosition = 0;
                 bkCount = 0;
                 dyStartCursor = undefined;
-                text += `${repeatString(leftBracketChar, bkCount)}${char}`;
                 continue;
             }
             return throwError({
@@ -168,8 +167,16 @@ export const parseMpXmlContent = (
         text += char;
     }
     if (text) {
-        pushStatic(cursor);
-        reset();
+        if (bkPosition) {
+            return throwError({
+                ...BRACKET_NOT_CLOSE,
+                target: node,
+                ...getCursor(),
+            });
+        } else {
+            pushStatic(cursor);
+            reset();
+        }
     }
     return result;
 };
