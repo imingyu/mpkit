@@ -42,6 +42,7 @@ describe('MpxmlParser', () => {
         it('close wrong', () => {
             assert.equal(parseMpXml(`<view wx:elif="{{a}}"></view>`, MpPlatform.wechat).error.code, 106);
             assert.equal(parseMpXml(`<view wx:else></view>`, MpPlatform.wechat).error.code, 106);
+            assert.equal(parseMpXml(`<view wx:if="{{a}}" name="hi {{name}}"></view><view wx:elif="{{b}}"><view wx:else></view></view><view wx:else></view>`, MpPlatform.wechat).error.code, 106);
         });
         it('parse if', () => {
             const res1 = parseMpXml(`<view wx:if="{{a}}"></view>`, MpPlatform.wechat);
