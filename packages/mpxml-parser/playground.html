@@ -137,6 +137,43 @@
                 background-color: #f2dede;
                 border-bottom-color: #ebccd1;
             }
+            @keyframes flash {
+                0% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+            .mpx-body-error {
+                background-color: #a94442 !important;
+                animation: flash 1s infinite;
+            }
+            .mpx-box-error {
+                width: 5px !important;
+                background-color: #a94442 !important;
+                animation: flash 1s infinite;
+            }
+            .mpx-body-selection {
+                background-color: #f3e6a2 !important;
+            }
+            .mpx-box-selection {
+                width: 5px !important;
+                background-color: #f3e6a2 !important;
+            }
+            .select-platform {
+                height: 40px;
+                line-height: 40px;
+                border: 1px solid #ededed;
+                border-radius: 0;
+                margin-bottom: 15px;
+                padding: 0 20px;
+                font-size: 15px;
+                font-weight: bold;
+            }
         </style>
         <script>
             var IN_CN = new Date().toLocaleString();
@@ -270,6 +307,16 @@
                 </div>
             </div>
             <div class="text-container action-container">
+                <select
+                    class="select-platform"
+                    name="platform"
+                    id="selMpPlatform"
+                >
+                    <option value="wechat" label="微信" selected></option>
+                    <option value="alipay" label="支付宝"></option>
+                    <option value="smart" label="百度"></option>
+                    <option value="tiktok" label="字节跳动"></option>
+                </select>
                 <label class="chk-location">
                     <input type="checkbox" id="chkLocation" />
                     显示节点位置信息
@@ -406,6 +453,8 @@
             var txtJSON;
             var xmlEditor;
             var jsonEditor;
+            var lastXmlEditorParseResult;
+            var lastXmlRows;
             function getXml() {
                 return xmlEditor ? xmlEditor.getValue() : txtXml.val();
             }
@@ -413,7 +462,11 @@
                 return xmlEditor ? xmlEditor.setValue(xml) : txtXml.val(xml);
             }
             function getJSON() {
-                return jsonEditor ? jsonEditor.getValue() : txtJSON.val();
+                const str = jsonEditor ? jsonEditor.getValue() : txtJSON.val();
+                var json = JSON.parse(str || "null");
+                if (json && json.length) {
+                    return json;
+                }
             }
             function setJSON(json) {
                 return jsonEditor
@@ -432,8 +485,7 @@
                     var xml = getXml();
                     localStorage.setItem("Fx.Xml", xml);
                     var startTime = (performance || Date).now();
-                    var json = MpKitMpxmlParser.parseMpXml(xml);
-                    console.log(json);
+                    var json = parseXmlEditor();
                     var endTime = (performance || Date).now();
                     $("#jsonTime").text(
                         "本次解析耗时：" +
@@ -471,25 +523,13 @@
                         setJSON(JSON.stringify(parseResult, null, 4));
                     }
                     if (json.error && json.error.lineNumber && xmlEditor) {
-                        var line = json.error.lineNumber,
-                            col = json.error.column;
-                        xmlEditor.setPosition({
-                            lineNumber: line,
-                            column: col,
-                        });
-                        xmlEditor.setSelection({
-                            endColumn: col + 1,
-                            endLineNumber: line,
-                            startColumn: col,
-                            startLineNumber: line,
-                        });
-                        xmlEditor.focus();
+                        setXmlError(json.error.lineNumber, json.error.column);
                     }
                 });
 
                 $("#btnSerialize").click(function () {
-                    var json = JSON.parse(getJSON() || "null");
-                    if (json && json.length) {
+                    var json = getJSON();
+                    if (json) {
                         setXml(
                             MpKitMpxmlParser.serialize(json, {
                                 // nodeSerializeHandler(
@@ -510,6 +550,136 @@
                     }
                 });
             }
+            var lastXmlErrorDecorations;
+            var setXmlError = (startLine, startCol, endLine, endCol) => {
+                endLine = endLine || startLine;
+                endCol = endCol || startCol + 1;
+                lastXmlErrorDecorations = xmlEditor.deltaDecorations(
+                    lastXmlErrorDecorations || [],
+                    [
+                        {
+                            range: new monaco.Range(
+                                startLine,
+                                startCol,
+                                endLine,
+                                endCol
+                            ),
+                            options: {
+                                className: "mpx-body-error",
+                                linesDecorationsClassName: "mpx-box-error",
+                            },
+                        },
+                    ]
+                );
+            };
+            var clearXmlError = () => {
+                if (lastXmlErrorDecorations) {
+                    xmlEditor.deltaDecorations(lastXmlErrorDecorations, []);
+                    lastXmlErrorDecorations = null;
+                }
+            };
+            var lastJSONDecorations;
+            var setJSONSelection = (startLine, startCol, endLine, endCol) => {
+                endLine = endLine || startLine;
+                endCol = endCol || startCol + 1;
+                lastJSONDecorations = jsonEditor.deltaDecorations(
+                    lastXmlErrorDecorations || [],
+                    [
+                        {
+                            range: new monaco.Range(
+                                startLine,
+                                startCol,
+                                endLine,
+                                endCol
+                            ),
+                            options: {
+                                className: "mpx-body-selection",
+                                linesDecorationsClassName: "mpx-box-selection",
+                            },
+                        },
+                    ]
+                );
+            };
+            var clearJSONSelection = () => {
+                if (lastJSONDecorations) {
+                    jsonEditor.deltaDecorations(lastJSONDecorations, []);
+                    lastJSONDecorations = null;
+                }
+            };
+            const getFxNodePath = (fxNodes, fxNode) => {
+                let fxNodeIndex = -1;
+                if (fxNode.parent) {
+                    fxNodeIndex = fxNode.parent[
+                        fxNode.type === "attr" ? "attrs" : "children"
+                    ].indexOf(fxNode);
+                } else {
+                    fxNodeIndex = fxNodes.indexOf(fxNode);
+                }
+                let result = [[fxNode.type, fxNodeIndex, fxNode.name, fxNode]];
+                if (fxNode.parent) {
+                    result = result.concat(
+                        getFxNodePath(fxNodes, fxNode.parent)
+                    );
+                }
+                return result;
+            };
+            const findFxNode = (lineNumber, column, nodes) => {
+                let result;
+                const rows = lastXmlRows.slice(0, lineNumber - 1);
+                rows.push(lastXmlRows[lineNumber - 1].substr(0, column));
+                let maxOffset = rows.join("\n").length;
+                if (maxOffset === lastXmlEditorParseResult.xml.length) {
+                    maxOffset--;
+                }
+                maxOffset--;
+                nodes.forEach((node) => {
+                    if (result) {
+                        return;
+                    }
+                    if (
+                        node.locationInfo.startOffset <= maxOffset &&
+                        maxOffset <= node.locationInfo.endOffset
+                    ) {
+                        result = node;
+                        if (node.attrs) {
+                            result = findFxNode(lineNumber, column, node.attrs);
+                        }
+                        if (!result && node.children) {
+                            result = findFxNode(
+                                lineNumber,
+                                column,
+                                node.children
+                            );
+                        }
+                        if (!result) {
+                            result = node;
+                        }
+                    }
+                    if (!result) {
+                        if (node.attrs) {
+                            result = findFxNode(lineNumber, column, node.attrs);
+                        }
+                        if (!result && node.children) {
+                            result = findFxNode(
+                                lineNumber,
+                                column,
+                                node.children
+                            );
+                        }
+                    }
+                });
+                return result;
+            };
+
+            const parseXmlEditor = () => {
+                const xml = getXml();
+                lastXmlRows = xml.split("\n");
+                lastXmlEditorParseResult = MpKitMpxmlParser.parseMpXml(
+                    xml,
+                    $("#selMpPlatform").val()
+                );
+                return lastXmlEditorParseResult;
+            };
 
             function editorInit() {
                 xmlEditor = monaco.editor.create(txtXml[0], {
@@ -522,10 +692,71 @@
                         enabled: false,
                     },
                 });
+                var mcTimer;
+                xmlEditor.onDidChangeModelContent((e) => {
+                    clearXmlError();
+                    if (mcTimer) {
+                        clearTimeout(mcTimer);
+                    }
+                    mcTimer = setTimeout(() => {
+                        parseXmlEditor();
+                        mcTimer = null;
+                    }, 300);
+                });
+
+                var cpTimer;
                 xmlEditor.onDidChangeCursorPosition(function (e) {
                     $("#cusLine").html(e.position.lineNumber);
                     $("#cusCol").html(e.position.column);
                     $("#cursor").show();
+                    if (cpTimer) {
+                        clearTimeout(cpTimer);
+                    }
+                    cpTimer = setTimeout(() => {
+                        const json = getJSON();
+                        if (!json) {
+                            return;
+                        }
+                        if (!lastXmlEditorParseResult) {
+                            parseXmlEditor();
+                        }
+                        if (
+                            lastXmlEditorParseResult.nodes &&
+                            lastXmlEditorParseResult.nodes.length
+                        ) {
+                            const node = findFxNode(
+                                e.position.lineNumber,
+                                e.position.column,
+                                lastXmlEditorParseResult.nodes
+                            );
+                            const nodePaths = getFxNodePath(
+                                lastXmlEditorParseResult.nodes,
+                                node
+                            );
+                            let nodes = json;
+                            let jsonNode;
+                            let i = nodePaths.length;
+                            while (i--) {
+                                const path = nodePaths[i];
+                                jsonNode = nodes[path[1]];
+                                if (!jsonNode) {
+                                    break;
+                                }
+                                nodes =
+                                    i - 1 >= 0
+                                        ? jsonNode[
+                                              nodePaths[i - 1][0] === "attr"
+                                                  ? "attrs"
+                                                  : "children"
+                                          ]
+                                        : null;
+                                if (!nodes) {
+                                    break;
+                                }
+                            }
+                        }
+                        cpTimer = null;
+                    }, 300);
                 });
                 jsonEditor = monaco.editor.create(txtJSON[0], {
                     value: "",

@@ -1,0 +1,42 @@
+{
+    "name": "@mpkit/mpspec",
+    "version": "1.0.10",
+    "description": "各平台小程序技术特性说明书",
+    "author": "imingyu <mingyuhisoft@163.com>",
+    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/mpspec",
+    "license": "MIT",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.esm.js",
+    "types": "spec/index.d.ts",
+    "files": [
+        "dist",
+        "spec"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/imingyu/mpkit.git"
+    },
+    "scripts": {},
+    "bugs": {
+        "url": "https://github.com/imingyu/mpkit/issues"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "mpkit",
+        "小程序",
+        "miniprogram",
+        "mpspec",
+        "wxml-to-json",
+        "xml-to-json"
+    ],
+    "dependencies": {
+        "@mpkit/types": "^1.0.10"
+    },
+    "devDependencies": {
+        "chai": "^4.2.0",
+        "mocha": "^8.1.1",
+        "typescript": "^3.9.7"
+    }
+}

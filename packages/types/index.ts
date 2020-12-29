@@ -7,4 +7,5 @@ export * from "./mixin";
 export * from "./set-data";
 export * from "./view";
 export * from "./mpxml-parser";
+export * from "./mpspec";
 // export { version } from "./package.json";
