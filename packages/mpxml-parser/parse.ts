@@ -10,6 +10,7 @@ import {
     MkMap,
     MkXmlNodeJSON,
     MkXmlContent,
+    LikeFxParseContext,
 } from "@mpkit/types";
 import { MpPlatformAdapters } from "./adapter/index";
 import {
@@ -20,10 +21,12 @@ import {
     FxWrong,
     FxNodeJSON,
     parseResultToJSON,
+    FxNodeType,
 } from "forgiving-xml-parser";
 import { ADAPTER_PARAMS_WRONG, XMLJSON_PARAMS_WRONG } from "./message";
 import { isEmptyObject } from "@mpkit/util";
 import { isFunc } from "@mpkit/util";
+import { getParent, getPreviousSibling } from "./util";
 export { serialize } from "forgiving-xml-parser";
 const DEFAULT_XML_PARSE_OPTIONS = {
     allowNodeNameEmpty: false,
@@ -62,8 +65,8 @@ const mergeParseOptions = (
 const parseFxAttrs = (
     attrAdapters: MkMap<IMkMpXmlAttrParseAdapter>,
     attrs: FxNodeJSON[],
-    attrParent?: FxNodeJSON,
-    attrGrandpa?: FxNodeJSON
+    attrParent?: FxNodeJSON | LikeFxParseContext,
+    attrGrandpa?: FxNodeJSON | LikeFxParseContext
 ): MkXmlNode[] => {
     return attrs.map((attr, index, attrs) => {
         const attrAdapter = attrAdapters[attr.name] || attrAdapters.__unclaimed;
@@ -156,6 +159,7 @@ export const parseMpXmlJSON = (
         };
     }
 };
+
 export const parseMpXml = (
     mpXml: string,
     adapter: MpPlatform | IMkMpXmlParseAdapter = MpPlatform.wechat,
@@ -185,20 +189,31 @@ export const parseMpXml = (
         data: FxNode | FxWrong
     ) {
         let previousSibling: FxNode;
-        if (type === FxEventType.nodeEnd && data) {
+        let parent: FxNode | LikeFxParseContext;
+        let grandpa: FxNode | LikeFxParseContext;
+        if (type !== FxEventType.error && "type" in data) {
             const eventNode = data as FxNode;
-            if (eventNode.parent) {
-                const index = eventNode.parent.children.findIndex(
-                    (item) => item === eventNode
-                );
-                if (index > 0) {
-                    const prev = eventNode.parent.children[
-                        index - 1
-                    ] as MkXmlNode;
-                    prev.nextSibling = eventNode;
-                    (eventNode as MkXmlNode).previousSibling = prev;
-                    previousSibling = prev as FxNode;
-                }
+            parent = getParent(eventNode, context);
+            if (parent) {
+                grandpa =
+                    "type" in parent
+                        ? getParent(parent as FxNode, context)
+                        : null;
+            }
+        }
+
+        if (
+            type === FxEventType.nodeEnd &&
+            (data as FxNode).type !== FxNodeType.text &&
+            (data as FxNode).type !== FxNodeType.comment &&
+            parent
+        ) {
+            const eventNode = data as FxNode;
+            let prev: MkXmlNode = getPreviousSibling(eventNode, parent);
+            if (prev) {
+                prev.nextSibling = eventNode;
+                (eventNode as MkXmlNode).previousSibling = prev;
+                previousSibling = prev as FxNode;
             }
         }
         if (type === FxEventType.attrsEnd && hasAttrAdapter) {
@@ -208,7 +223,7 @@ export const parseMpXml = (
                     parseAdapter.attrAdapters,
                     eventNode.attrs,
                     eventNode,
-                    eventNode.parent
+                    parent
                 ) as FxNode[];
             }
         }
@@ -222,17 +237,21 @@ export const parseMpXml = (
             eventNode.mpContents = parseAdapter.contentAdapter.parse(
                 eventNode.content,
                 eventNode,
-                eventNode.parent,
-                eventNode.parent ? eventNode.parent.parent : undefined
+                parent,
+                grandpa
             );
         }
-        if (type === FxEventType.nodeEnd && previousSibling) {
+        if (
+            type === FxEventType.nodeEnd &&
+            previousSibling &&
+            previousSibling.type !== FxNodeType.attr
+        ) {
             if (previousSibling.attrs && previousSibling.attrs.length) {
                 previousSibling.attrs = parseFxAttrs(
                     parseAdapter.attrAdapters,
                     previousSibling.attrs,
                     previousSibling,
-                    previousSibling.parent
+                    parent
                 ) as FxNode[];
             }
             if (previousSibling.content && hasContentAdapter) {
@@ -240,8 +259,8 @@ export const parseMpXml = (
                 eventNode.mpContents = parseAdapter.contentAdapter.parse(
                     eventNode.content,
                     eventNode,
-                    eventNode.parent,
-                    eventNode.parent ? eventNode.parent.parent : undefined
+                    parent,
+                    grandpa
                 );
             }
         }

@@ -33,6 +33,6 @@
         "mocha": "^8.1.1"
     },
     "dependencies": {
-        "forgiving-xml-parser": "^1.1.2"
+        "forgiving-xml-parser": "^1.1.3"
     }
 }

@@ -1,4 +1,12 @@
-import { FxCursorPosition, FxNodeJSON, FxLocation } from "forgiving-xml-parser";
+import { LikeFxParseContext, MkXmlNode } from "@mpkit/types";
+import {
+    FxCursorPosition,
+    FxNodeJSON,
+    FxLocation,
+    FxNode,
+    FxParseContext,
+    FxNodeType,
+} from "forgiving-xml-parser";
 export const hasAttr = (element: FxNodeJSON, attrName: string): boolean => {
     return (
         element.attrs && element.attrs.some((attr) => attr.name === attrName)
@@ -56,4 +64,41 @@ export const plusCursor = (
         offset: startCursor.offset + plus.offset,
         column: startCursor.column + plus.column,
     };
+};
+
+export const getParent = (
+    node: FxNode,
+    context: FxParseContext
+): FxNode | LikeFxParseContext => {
+    if (node.parent) {
+        return node.parent;
+    }
+    if (context.nodes.indexOf(node) !== -1) {
+        return context;
+    }
+};
+export const getPreviousSibling = (
+    node: FxNodeJSON,
+    parent: FxNodeJSON | LikeFxParseContext
+): FxNodeJSON => {
+    const children =
+        node.type === FxNodeType.attr
+            ? (parent as FxNodeJSON).attrs
+            : "type" in parent
+            ? (parent as FxNodeJSON).children
+            : ((parent as LikeFxParseContext).nodes as FxNodeJSON[]);
+    let nodeIndex = children.indexOf(node);
+    if (nodeIndex > 0) {
+        let prev: FxNodeJSON;
+        while (nodeIndex--) {
+            if (
+                children[nodeIndex].type !== FxNodeType.text &&
+                children[nodeIndex].type !== FxNodeType.comment
+            ) {
+                prev = children[nodeIndex];
+                break;
+            }
+        }
+        return prev;
+    }
 };

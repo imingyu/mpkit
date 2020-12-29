@@ -433,6 +433,7 @@
                     localStorage.setItem("Fx.Xml", xml);
                     var startTime = (performance || Date).now();
                     var json = MpKitMpxmlParser.parseMpXml(xml);
+                    console.log(json);
                     var endTime = (performance || Date).now();
                     $("#jsonTime").text(
                         "本次解析耗时：" +

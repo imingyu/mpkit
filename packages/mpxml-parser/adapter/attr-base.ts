@@ -3,6 +3,7 @@ import {
     MpViewSyntaxSpec,
     MkXmlNode,
     IMkMpXmlAttrParseAdapter,
+    LikeFxParseContext,
 } from "@mpkit/types";
 import MpSpec from "../spec";
 import { FxNodeJSON } from "forgiving-xml-parser";
@@ -18,8 +19,8 @@ export class MkBaseAttrParseAdapter implements IMkMpXmlAttrParseAdapter {
     }
     parse(
         attr: FxNodeJSON,
-        parent?: FxNodeJSON,
-        grandpa?: FxNodeJSON
+        parent?: FxNodeJSON | LikeFxParseContext,
+        grandpa?: FxNodeJSON | LikeFxParseContext
     ): MkXmlNode {
         if ("content" in attr && attr.content) {
             (attr as MkXmlNode).mpContents = parseMpXmlContent(

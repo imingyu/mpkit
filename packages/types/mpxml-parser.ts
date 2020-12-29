@@ -60,20 +60,18 @@ export interface MpForAttrContent extends MkXmlContent {
     featureKey?: string;
 }
 export interface IMkMpXmlAttrParseAdapter {
-    parse(attr: FxNodeJSON): MkXmlNode;
     parse(
         attr: FxNodeJSON,
-        parent: FxNodeJSON,
-        grandpa?: FxNodeJSON
+        parent?: FxNodeJSON | LikeFxParseContext,
+        grandpa?: FxNodeJSON | LikeFxParseContext
     ): MkXmlNode;
 }
 export interface IMkMpXmlContentParseAdapter {
-    parse(content: string, node?: FxNodeJSON): MkXmlContent[];
     parse(
         content: string,
-        node: FxNodeJSON,
-        parent: FxNodeJSON,
-        grandpa?: FxNodeJSON
+        node?: FxNodeJSON,
+        parent?: FxNodeJSON | LikeFxParseContext,
+        grandpa?: FxNodeJSON | LikeFxParseContext
     ): MkXmlContent[];
 }
 export interface IMkMpXmlParseAdapter {
@@ -91,13 +89,18 @@ export interface MkXmlNodeJSON
     mpContents?: MpForAttrContent[] | MkXmlContent[];
     special?: MpWhereType | MpEachType;
 }
+export interface LikeFxParseContext {
+    nodes?: FxNode[] | FxNodeJSON[] | MkXmlNodeJSON[] | MkXmlNode[];
+}
 export interface MkXmlNode
     extends MkOmit<MkXmlNodeJSON, "attrs" | "children" | "parent"> {
     attrs?: MkXmlNode[];
     children?: MkXmlNode[];
     mpContents?: MpForAttrContent[] | MkXmlContent[];
     parent?: MkXmlNode;
+    // 前一个兄弟：只在非text和comment的node上存在，且Sibling本身也非text和comment
     previousSibling?: MkXmlNode;
+    // 后一个兄弟：只在非text和comment的node上存在，且Sibling本身也非text和comment
     nextSibling?: MkXmlNode;
 }
 
