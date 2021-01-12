@@ -4,6 +4,12 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>@mpkit/mpxml-parser</title>
+        <link
+            crossorigin="anonymous"
+            integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA=="
+            href="https://lib.baomitu.com/font-awesome/5.15.1/css/all.min.css"
+            rel="stylesheet"
+        />
         <style>
             body {
                 padding: 0;
@@ -15,59 +21,90 @@
                 padding-left: 15px;
                 box-sizing: border-box;
             }
+            h3.br-right {
+                border-right: 10px solid #ea7004;
+                padding-right: 15px;
+                border-left: none;
+                padding-left: 0;
+                text-align: right;
+            }
+            h3.br-none {
+                border-left: none;
+                padding-left: 0;
+                text-align: center;
+            }
             h3 small {
                 color: #999;
                 font-size: 60%;
             }
             .container {
                 margin: 20px 0;
-                display: flex;
             }
-            .container > .text-container:last-child {
-                margin-right: 0;
+            .text-group {
+                display: flex;
+                margin-bottom: 20px;
+            }
+            .text-group > .text-container:first-child > .text-editor {
+                border-left: none;
+            }
+            .text-group > .text-container:last-child > .text-editor {
+                border-right: none;
             }
             .text-container {
                 flex: 1;
                 flex-shrink: 1;
             }
-            .text-container.action-container {
-                flex: none;
-                width: 200px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                padding: 0 20px;
-                box-sizing: border-box;
-                flex-shrink: 0;
-            }
             .text-editor {
                 border: 1px solid #ededed;
-                padding: 20px 0;
                 min-height: 400px;
+                padding: 5px 0;
             }
             .btn-action {
-                width: 160px;
-                height: 50px;
-                line-height: 50px;
+                height: 40px;
+                line-height: 40px;
+                width: 80px;
                 background: none;
                 border: none;
-                border-radius: 8px;
-                background-image: linear-gradient(180deg, #5a52fd, #665ff3);
+                border-radius: 20px;
+                background-image: linear-gradient(180deg, #807af3, #665ff3);
                 color: #fff;
                 font-size: 14px;
-                float: right;
-                margin-top: 15px;
-                align-self: center;
+                position: relative;
             }
             .btn-action:focus,
             .btn-action:active {
                 outline: none;
             }
+            .btn-tip {
+                position: absolute;
+                left: 100%;
+                bottom: 0;
+                margin-left: 10px;
+                white-space: nowrap;
+                color: #666;
+                font-size: 12px;
+                line-height: 1.2;
+                font-weight: normal;
+            }
+            .btn-action2 .btn-tip,
+            .btn-mk .btn-tip {
+                margin-right: 10px;
+                margin-left: 0;
+                left: auto;
+                right: 100%;
+            }
+            .btn-tip strong {
+                margin-left: 5px;
+            }
             .btn-action2 {
-                background-image: linear-gradient(180deg, #ea7004, #ea7004);
+                background-image: linear-gradient(180deg, #e4832e, #ea7004);
+            }
+            .btn-action3 {
+                background-image: linear-gradient(180deg, #d353e4, #cd1fe4);
             }
             .chk-location {
-                margin-bottom: 20px;
+                display: block;
+                margin-bottom: 15px;
             }
             .container-options h3 {
                 width: 100%;
@@ -165,6 +202,8 @@
                 background-color: #f3e6a2 !important;
             }
             .select-platform {
+                display: block;
+                width: 100%;
                 height: 40px;
                 line-height: 40px;
                 border: 1px solid #ededed;
@@ -173,6 +212,23 @@
                 padding: 0 20px;
                 font-size: 15px;
                 font-weight: bold;
+            }
+            .action-container {
+                width: 220px;
+                padding: 0 15px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .action-container .btn-action {
+                margin-bottom: 15px;
+            }
+            .action-container .btn-end {
+                align-self: flex-end;
+            }
+            .action-list {
+                display: flex;
+                justify-content: space-between;
             }
         </style>
         <script>
@@ -223,6 +279,7 @@
                 >前往Github下载代码在本地运行该页面</a
             >
         </div>
+        <h1 style="text-align: center">@mpkit/mpxml-parser</h1>
         <!-- <div class="container container-options">
             <h3>可选配置</h3>
             <label class="option-item">
@@ -290,9 +347,105 @@
             </div>
         </div> -->
         <div class="container">
-            <div class="text-container">
-                <h3>
-                    XML
+            <div class="text-group">
+                <div class="text-container">
+                    <h3>
+                        MpXML
+                        <span class="cursor"
+                            ><small
+                                >（光标位置 行：<span class="cus-line"></span>
+                                列：<span class="cus-col"></span>）</small
+                            ></span
+                        >
+                    </h3>
+                    <div class="editor-box">
+                        <div class="text-editor xml-editor"></div>
+                    </div>
+                </div>
+                <div class="action-container ac-1">
+                    <button class="btn-action btn-parse" type="button">
+                        <i class="fa fa-angle-double-right"></i>
+                    </button>
+                    <div class="chk-list">
+                        <label class="chk-location">
+                            <input type="checkbox" name="location" />
+                            显示节点位置信息
+                        </label>
+                        <label class="chk-location">
+                            <input type="checkbox" name="steps" />
+                            显示节点解析步骤信息
+                        </label>
+                    </div>
+                    <select class="select-platform" name="platform">
+                        <option value="wechat" label="微信" selected></option>
+                        <option value="alipay" label="支付宝"></option>
+                        <option value="smart" label="百度"></option>
+                        <option value="tiktok" label="字节跳动"></option>
+                    </select>
+                    <button
+                        class="btn-action btn-action2 btn-end btn-serialize"
+                        type="button"
+                    >
+                        <i class="fa fa-angle-double-left"></i>
+                    </button>
+                </div>
+                <div class="text-container">
+                    <h3 class="br-right">JSON</h3>
+                    <div class="editor-box">
+                        <div class="text-editor json-editor"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-group" style="display: block">
+                <div class="action-list">
+                    <div class="action-container ac-2">
+                        <button
+                            class="btn-action btn-action3 btn-mp"
+                            type="button"
+                        >
+                            <i class="fa fa-angle-double-up"></i>
+                        </button>
+                        <select class="select-platform" name="platform">
+                            <option
+                                value="wechat"
+                                label="微信"
+                                selected
+                            ></option>
+                            <option value="alipay" label="支付宝"></option>
+                            <option value="smart" label="百度"></option>
+                            <option value="tiktok" label="字节跳动"></option>
+                        </select>
+                        <button
+                            class="btn-action btn-action3 btn-end btn-mk"
+                            type="button"
+                        >
+                            <i class="fa fa-angle-double-down"></i>
+                        </button>
+                    </div>
+                    <div class="action-container ac-3">
+                        <button class="btn-action btn-parse" type="button">
+                            <i class="fa fa-angle-double-up"></i>
+                        </button>
+                        <select class="select-platform" name="platform">
+                            <option
+                                value="wechat"
+                                label="微信"
+                                selected
+                            ></option>
+                            <option value="alipay" label="支付宝"></option>
+                            <option value="smart" label="百度"></option>
+                            <option value="tiktok" label="字节跳动"></option>
+                        </select>
+                        <button
+                            class="btn-action btn-action2 btn-end btn-serialize"
+                            type="button"
+                        >
+                            <i class="fa fa-angle-double-down"></i>
+                        </button>
+                    </div>
+                </div>
+                <h3 class="br-none">
+                    MkTransltorXML
                     <span id="cursor"
                         ><small
                             >（光标位置 行：<span id="cusLine"></span> 列：<span
@@ -303,43 +456,7 @@
                     >
                 </h3>
                 <div class="editor-box">
-                    <div class="text-editor" id="txtXml"></div>
-                </div>
-            </div>
-            <div class="text-container action-container">
-                <select
-                    class="select-platform"
-                    name="platform"
-                    id="selMpPlatform"
-                >
-                    <option value="wechat" label="微信" selected></option>
-                    <option value="alipay" label="支付宝"></option>
-                    <option value="smart" label="百度"></option>
-                    <option value="tiktok" label="字节跳动"></option>
-                </select>
-                <label class="chk-location">
-                    <input type="checkbox" id="chkLocation" />
-                    显示节点位置信息
-                </label>
-                <label class="chk-location">
-                    <input type="checkbox" id="chkSteps" />
-                    显示节点解析步骤信息
-                </label>
-                <button class="btn-action" type="button" id="btnParse">
-                    解析&nbsp;&gt;&gt;
-                </button>
-                <button
-                    class="btn-action btn-action2"
-                    type="button"
-                    id="btnSerialize"
-                >
-                    &lt;&lt;&nbsp;序列化
-                </button>
-            </div>
-            <div class="text-container">
-                <h3>JSON <small id="jsonTime"></small></h3>
-                <div class="editor-box">
-                    <div class="text-editor" id="txtJSON"></div>
+                    <div class="text-editor xml-editor"></div>
                 </div>
             </div>
         </div>
@@ -403,51 +520,7 @@
         <script>
             clearTimeout(longTimer);
             document.getElementById("longAlert").style.display = "none";
-            function getOptions(getEl) {
-                getEl = typeof getEl === "undefined" ? false : getEl;
-                var options = {};
-                $(".option-item").each(function (index, el) {
-                    el = $(el);
-                    var name = el.children("b").html();
-                    var val = el
-                        .children("input[type='checkbox']")
-                        .prop("checked");
-                    if (name === "encounterAttrMoreEqual") {
-                        val = el.find('input[type="radio"]:checked').val();
-                    }
-                    options[name] = val;
-                    if (getEl) {
-                        if (!options.elMap) {
-                            options.elMap = {};
-                        }
-                        options.elMap[name] = el;
-                    }
-                });
-                return options;
-            }
-
-            function setOptions(options) {
-                var ops = getOptions(true);
-                for (var prop in ops.elMap) {
-                    if (options[prop]) {
-                        var el = ops.elMap[prop];
-                        if (prop !== "encounterAttrMoreEqual") {
-                            el.children("input[type='checkbox']").prop(
-                                "checked",
-                                true
-                            );
-                        } else {
-                            el.find(
-                                'input[type="radio"][name="' +
-                                    prop +
-                                    '"][value="' +
-                                    options[prop] +
-                                    '"]'
-                            ).prop("checked", true);
-                        }
-                    }
-                }
-            }
+            var editorMap = {};
 
             var txtXml;
             var txtJSON;
@@ -463,10 +536,12 @@
             }
             function getJSON() {
                 const str = jsonEditor ? jsonEditor.getValue() : txtJSON.val();
-                var json = JSON.parse(str || "null");
-                if (json && json.length) {
-                    return json;
-                }
+                try {
+                    var json = JSON.parse(str || "null");
+                    if (json && json.length) {
+                        return json;
+                    }
+                } catch (error) {}
             }
             function setJSON(json) {
                 return jsonEditor
@@ -476,10 +551,6 @@
             function pageInit() {
                 txtXml = $("#txtXml");
                 txtJSON = $("#txtJSON");
-                var localOptions =
-                    JSON.parse(localStorage.getItem("Fx.Options") || "null") ||
-                    MpKitMpxmlParser.DEFAULT_PARSE_OPTIONS;
-                setOptions(localOptions);
 
                 $("#btnParse").bind("click", function (e) {
                     var xml = getXml();
@@ -550,12 +621,17 @@
                     }
                 });
             }
-            var lastXmlErrorDecorations;
-            var setXmlError = (startLine, startCol, endLine, endCol) => {
+            var setXmlError = (
+                editorState,
+                startLine,
+                startCol,
+                endLine,
+                endCol
+            ) => {
                 endLine = endLine || startLine;
                 endCol = endCol || startCol + 1;
-                lastXmlErrorDecorations = xmlEditor.deltaDecorations(
-                    lastXmlErrorDecorations || [],
+                editorState.lastXmlErrorDecorations = editorState.editor.deltaDecorations(
+                    editorState.lastXmlErrorDecorations || [],
                     [
                         {
                             range: new monaco.Range(
@@ -572,10 +648,13 @@
                     ]
                 );
             };
-            var clearXmlError = () => {
-                if (lastXmlErrorDecorations) {
-                    xmlEditor.deltaDecorations(lastXmlErrorDecorations, []);
-                    lastXmlErrorDecorations = null;
+            var clearXmlError = (editorState) => {
+                if (editorState.lastXmlErrorDecorations) {
+                    editorState.editor.deltaDecorations(
+                        editorState.lastXmlErrorDecorations,
+                        []
+                    );
+                    editorState.lastXmlErrorDecorations = null;
                 }
             };
             var lastJSONDecorations;
@@ -671,100 +750,172 @@
                 return result;
             };
 
-            const parseXmlEditor = () => {
-                const xml = getXml();
-                lastXmlRows = xml.split("\n");
-                lastXmlEditorParseResult = MpKitMpxmlParser.parseMpXml(
+            const parseXmlEditor = (editorState) => {
+                const xml = editorState.editor.getValue();
+                editorState.lastXmlRows = xml.split("\n");
+                editorState.lastXmlEditorParseResult = MpKitMpxmlParser.parseMpXml(
                     xml,
-                    $("#selMpPlatform").val()
+                    editorState.elPlatform.val()
                 );
-                return lastXmlEditorParseResult;
+                return editorState.lastXmlEditorParseResult;
             };
 
             function editorInit() {
-                xmlEditor = monaco.editor.create(txtXml[0], {
-                    value: (
-                        localStorage.getItem("Fx.Xml") ||
-                        "<?xml version=\"1.0\"?>\n<!DOCTYPE note [\n    <!-- this is comment -->\n    <!ELEMENT note (to,from,heading,body,script)>\n    <!ELEMENT to (#PCDATA)>\n    <!ELEMENT from (#PCDATA)>\n    <!ELEMENT heading (#PCDATA)>\n    <!ELEMENT body (#PCDATA)>\n    <!ELEMENT script (#PCDATA)>\n]>\n<note>\n    <to>Tove</to>\n    <from>Jani</from>\n    <heading>Reminder</heading>\n    <body>Don't forget me this weekend</body>\n    <script>console.log('hi Tove');<\/script>\n</note>\n<![CDATA[ function sayHi() {console.log('say hi.')} ]]>"
-                    ).trim(),
-                    language: "xml",
-                    minimap: {
-                        enabled: false,
-                    },
-                });
-                var mcTimer;
-                xmlEditor.onDidChangeModelContent((e) => {
-                    clearXmlError();
-                    if (mcTimer) {
-                        clearTimeout(mcTimer);
-                    }
-                    mcTimer = setTimeout(() => {
-                        parseXmlEditor();
-                        mcTimer = null;
-                    }, 300);
-                });
+                $(".xml-editor")
+                    .concat($(".json-editor"))
+                    .forEach((el, index) => {
+                        el = $(el);
+                        const state = {
+                            type: el.is(".xml-editor") ? "xml" : "json",
+                            el,
+                            parent: el.closest(".text-group"),
+                        };
+                        state.h3 = state.parent.find("h3");
+                        state.elPlatform = state.parent.find(
+                            ".select-platform"
+                        );
 
-                var cpTimer;
-                xmlEditor.onDidChangeCursorPosition(function (e) {
-                    $("#cusLine").html(e.position.lineNumber);
-                    $("#cusCol").html(e.position.column);
-                    $("#cursor").show();
-                    if (cpTimer) {
-                        clearTimeout(cpTimer);
-                    }
-                    cpTimer = setTimeout(() => {
-                        const json = getJSON();
-                        if (!json) {
-                            return;
+                        if (!index) {
+                            state.id = "mpXml";
+                        } else if (state.type === "xml") {
+                            state.id = "mkXml";
+                        } else {
+                            state.id = "json";
                         }
-                        if (!lastXmlEditorParseResult) {
-                            parseXmlEditor();
+                        if (state.id === "mkXml") {
+                            state.btnMk = state.parent.find("btn-mk");
+                            state.btnMp = state.parent.find("btn-mp");
+                            state.elPlatform2 = $(state.elPlatform[0]);
+                            state.elPlatform = $(state.elPlatform[1]);
                         }
-                        if (
-                            lastXmlEditorParseResult.nodes &&
-                            lastXmlEditorParseResult.nodes.length
-                        ) {
-                            const node = findFxNode(
-                                e.position.lineNumber,
-                                e.position.column,
-                                lastXmlEditorParseResult.nodes
-                            );
-                            const nodePaths = getFxNodePath(
-                                lastXmlEditorParseResult.nodes,
-                                node
-                            );
-                            let nodes = json;
-                            let jsonNode;
-                            let i = nodePaths.length;
-                            while (i--) {
-                                const path = nodePaths[i];
-                                jsonNode = nodes[path[1]];
-                                if (!jsonNode) {
-                                    break;
-                                }
-                                nodes =
-                                    i - 1 >= 0
-                                        ? jsonNode[
-                                              nodePaths[i - 1][0] === "attr"
-                                                  ? "attrs"
-                                                  : "children"
-                                          ]
-                                        : null;
-                                if (!nodes) {
-                                    break;
-                                }
+                        state.btnTo = state.parent.find("btn-parse");
+                        state.btnBack = state.parent.find("btn-serialize");
+                        if (state.type === "xml") {
+                            state.content =
+                                localStorage.getItem(
+                                    `Mkp.${state.id}EditorContent`
+                                ) || "";
+                        }
+                        if (state.id === "mpXml" && !state.content) {
+                            state.content =
+                                "<?xml version=\"1.0\"?>\n<!DOCTYPE note [\n    <!-- this is comment -->\n    <!ELEMENT note (to,from,heading,body,script)>\n    <!ELEMENT to (#PCDATA)>\n    <!ELEMENT from (#PCDATA)>\n    <!ELEMENT heading (#PCDATA)>\n    <!ELEMENT body (#PCDATA)>\n    <!ELEMENT script (#PCDATA)>\n]>\n<note>\n    <to>Tove</to>\n    <from>Jani</from>\n    <heading>Reminder</heading>\n    <body>Don't forget me this weekend</body>\n    <script>console.log('hi Tove');<\/script>\n</note>\n<![CDATA[ function sayHi() {console.log('say hi.')} ]]>";
+                        }
+                        state.editor = monaco.editor.create(el[0], {
+                            value: state.content,
+                            language: state.type,
+                            minimap: {
+                                enabled: false,
+                            },
+                        });
+
+                        state.btnTo.click(function () {
+                            const btn = $(this);
+                            if (state.type !== "json") {
+                                localStorage.setItem(
+                                    `Mkp.${state.id}EditorContent`,
+                                    state.editor.getValue()
+                                );
                             }
+                            const startTime = (performance || Date).now();
+                            const json = parseXmlEditor(state);
+                            const endTime = (performance || Date).now();
+                            btn.remove(".btn-tip");
+                            btn.append(
+                                `<span class="btn-tip">本次操作耗时：<strong>${(
+                                    endTime - startTime
+                                ).toFixed(2)}ms<strong><span>`
+                            );
+                            const needLoc = state.parent
+                                .find('input[name="location"]')
+                                .prop("checked");
+                            const needSteps = state.parent
+                                .find('input[name="steps"]')
+                                .prop("checked");
+                            var parseResult = MpKitMpxmlParser.toJSON(
+                                json.nodes,
+                                needLoc,
+                                needSteps
+                            );
+                            if (json.error) {
+                                console.error(json.error.stack);
+                                const target = json.error.target;
+                                delete json.error.target;
+                                state.json.editor.setValue(
+                                    JSON.stringify(
+                                        {
+                                            ...json.error,
+                                            message: json.error.message,
+                                            target: target
+                                                ? MpKitMpxmlParser.toJSON(
+                                                      target,
+                                                      needLoc,
+                                                      needSteps
+                                                  )
+                                                : null,
+                                        },
+                                        null,
+                                        4
+                                    )
+                                );
+                                json.error.target = target;
+                            } else {
+                                state.json.editor.setValue(
+                                    JSON.stringify(parseResult, null, 4)
+                                );
+                            }
+                            if (json.error && json.error.lineNumber) {
+                                setXmlError(
+                                    state,
+                                    json.error.lineNumber,
+                                    json.error.column
+                                );
+                            }
+                        });
+                        $("#btnSerialize").click(function () {
+                            var json = getJSON();
+                            if (json) {
+                                setXml(
+                                    MpKitMpxmlParser.serialize(json, {
+                                        // nodeSerializeHandler(
+                                        //     node,
+                                        //     bs,
+                                        //     rs,
+                                        //     rs2,
+                                        //     parent,
+                                        //     ad,
+                                        //     str
+                                        // ) {
+                                        //     return node.type === "attr" ? "333" : str;
+                                        // },
+                                    })
+                                );
+                            } else {
+                                alert("请输入JSON后尝试序列化");
+                            }
+                        });
+
+                        if (state.type === "xml") {
+                            var mcTimer;
+                            state.editor.onDidChangeModelContent((e) => {
+                                clearXmlError(state);
+                                if (mcTimer) {
+                                    clearTimeout(mcTimer);
+                                }
+                                mcTimer = setTimeout(() => {
+                                    parseXmlEditor(state);
+                                    mcTimer = null;
+                                }, 300);
+                            });
                         }
-                        cpTimer = null;
-                    }, 300);
-                });
-                jsonEditor = monaco.editor.create(txtJSON[0], {
-                    value: "",
-                    language: "json",
-                    minimap: {
-                        enabled: false,
-                    },
-                });
+
+                        state.editor.onDidChangeCursorPosition(function (e) {
+                            const cursorHtml = `<small class="cursor">（光标位置 行：<span class="cus-line">${e.position.lineNumber}</span> 列：<span class="cus-col">${e.position.column}</span>）</small>`;
+                            state.h3.remove(".cursor");
+                            state.h3.append(cursorHtml);
+                        });
+
+                        editorMap[state.id] = state;
+                    });
             }
             pageInit();
             editorInit();
