@@ -349,15 +349,7 @@
         <div class="container">
             <div class="text-group">
                 <div class="text-container">
-                    <h3>
-                        MpXML
-                        <span class="cursor"
-                            ><small
-                                >（光标位置 行：<span class="cus-line"></span>
-                                列：<span class="cus-col"></span>）</small
-                            ></span
-                        >
-                    </h3>
+                    <h3>MpXML</h3>
                     <div class="editor-box">
                         <div class="text-editor xml-editor"></div>
                     </div>
@@ -521,106 +513,6 @@
             clearTimeout(longTimer);
             document.getElementById("longAlert").style.display = "none";
             var editorMap = {};
-
-            var txtXml;
-            var txtJSON;
-            var xmlEditor;
-            var jsonEditor;
-            var lastXmlEditorParseResult;
-            var lastXmlRows;
-            function getXml() {
-                return xmlEditor ? xmlEditor.getValue() : txtXml.val();
-            }
-            function setXml(xml) {
-                return xmlEditor ? xmlEditor.setValue(xml) : txtXml.val(xml);
-            }
-            function getJSON() {
-                const str = jsonEditor ? jsonEditor.getValue() : txtJSON.val();
-                try {
-                    var json = JSON.parse(str || "null");
-                    if (json && json.length) {
-                        return json;
-                    }
-                } catch (error) {}
-            }
-            function setJSON(json) {
-                return jsonEditor
-                    ? jsonEditor.setValue(json)
-                    : txtJSON.val(json);
-            }
-            function pageInit() {
-                txtXml = $("#txtXml");
-                txtJSON = $("#txtJSON");
-
-                $("#btnParse").bind("click", function (e) {
-                    var xml = getXml();
-                    localStorage.setItem("Fx.Xml", xml);
-                    var startTime = (performance || Date).now();
-                    var json = parseXmlEditor();
-                    var endTime = (performance || Date).now();
-                    $("#jsonTime").text(
-                        "本次解析耗时：" +
-                            (endTime - startTime).toFixed(2) +
-                            "ms"
-                    );
-                    var parseResult = MpKitMpxmlParser.toJSON(
-                        json.nodes,
-                        $("#chkLocation").prop("checked"),
-                        $("#chkSteps").prop("checked")
-                    );
-                    if (json.error) {
-                        console.error(json.error.stack);
-                        const target = json.error.target;
-                        delete json.error.target;
-                        setJSON(
-                            JSON.stringify(
-                                {
-                                    ...json.error,
-                                    message: json.error.message,
-                                    target: target
-                                        ? MpKitMpxmlParser.toJSON(
-                                              target,
-                                              $("#chkLocation").prop("checked"),
-                                              $("#chkSteps").prop("checked")
-                                          )
-                                        : null,
-                                },
-                                null,
-                                4
-                            )
-                        );
-                        json.error.target = target;
-                    } else {
-                        setJSON(JSON.stringify(parseResult, null, 4));
-                    }
-                    if (json.error && json.error.lineNumber && xmlEditor) {
-                        setXmlError(json.error.lineNumber, json.error.column);
-                    }
-                });
-
-                $("#btnSerialize").click(function () {
-                    var json = getJSON();
-                    if (json) {
-                        setXml(
-                            MpKitMpxmlParser.serialize(json, {
-                                // nodeSerializeHandler(
-                                //     node,
-                                //     bs,
-                                //     rs,
-                                //     rs2,
-                                //     parent,
-                                //     ad,
-                                //     str
-                                // ) {
-                                //     return node.type === "attr" ? "333" : str;
-                                // },
-                            })
-                        );
-                    } else {
-                        alert("请输入JSON后尝试序列化");
-                    }
-                });
-            }
             var setXmlError = (
                 editorState,
                 startLine,
@@ -657,112 +549,10 @@
                     editorState.lastXmlErrorDecorations = null;
                 }
             };
-            var lastJSONDecorations;
-            var setJSONSelection = (startLine, startCol, endLine, endCol) => {
-                endLine = endLine || startLine;
-                endCol = endCol || startCol + 1;
-                lastJSONDecorations = jsonEditor.deltaDecorations(
-                    lastXmlErrorDecorations || [],
-                    [
-                        {
-                            range: new monaco.Range(
-                                startLine,
-                                startCol,
-                                endLine,
-                                endCol
-                            ),
-                            options: {
-                                className: "mpx-body-selection",
-                                linesDecorationsClassName: "mpx-box-selection",
-                            },
-                        },
-                    ]
-                );
-            };
-            var clearJSONSelection = () => {
-                if (lastJSONDecorations) {
-                    jsonEditor.deltaDecorations(lastJSONDecorations, []);
-                    lastJSONDecorations = null;
-                }
-            };
-            const getFxNodePath = (fxNodes, fxNode) => {
-                let fxNodeIndex = -1;
-                if (fxNode.parent) {
-                    fxNodeIndex = fxNode.parent[
-                        fxNode.type === "attr" ? "attrs" : "children"
-                    ].indexOf(fxNode);
-                } else {
-                    fxNodeIndex = fxNodes.indexOf(fxNode);
-                }
-                let result = [[fxNode.type, fxNodeIndex, fxNode.name, fxNode]];
-                if (fxNode.parent) {
-                    result = result.concat(
-                        getFxNodePath(fxNodes, fxNode.parent)
-                    );
-                }
-                return result;
-            };
-            const findFxNode = (lineNumber, column, nodes) => {
-                let result;
-                const rows = lastXmlRows.slice(0, lineNumber - 1);
-                rows.push(lastXmlRows[lineNumber - 1].substr(0, column));
-                let maxOffset = rows.join("\n").length;
-                if (maxOffset === lastXmlEditorParseResult.xml.length) {
-                    maxOffset--;
-                }
-                maxOffset--;
-                nodes.forEach((node) => {
-                    if (result) {
-                        return;
-                    }
-                    if (
-                        node.locationInfo.startOffset <= maxOffset &&
-                        maxOffset <= node.locationInfo.endOffset
-                    ) {
-                        result = node;
-                        if (node.attrs) {
-                            result = findFxNode(lineNumber, column, node.attrs);
-                        }
-                        if (!result && node.children) {
-                            result = findFxNode(
-                                lineNumber,
-                                column,
-                                node.children
-                            );
-                        }
-                        if (!result) {
-                            result = node;
-                        }
-                    }
-                    if (!result) {
-                        if (node.attrs) {
-                            result = findFxNode(lineNumber, column, node.attrs);
-                        }
-                        if (!result && node.children) {
-                            result = findFxNode(
-                                lineNumber,
-                                column,
-                                node.children
-                            );
-                        }
-                    }
-                });
-                return result;
-            };
-
-            const parseXmlEditor = (editorState) => {
-                const xml = editorState.editor.getValue();
-                editorState.lastXmlRows = xml.split("\n");
-                editorState.lastXmlEditorParseResult = MpKitMpxmlParser.parseMpXml(
-                    xml,
-                    editorState.elPlatform.val()
-                );
-                return editorState.lastXmlEditorParseResult;
-            };
 
             function editorInit() {
-                $(".xml-editor")
-                    .concat($(".json-editor"))
+                Array.from($(".xml-editor"))
+                    .concat(Array.from($(".json-editor")))
                     .forEach((el, index) => {
                         el = $(el);
                         const state = {
@@ -771,9 +561,6 @@
                             parent: el.closest(".text-group"),
                         };
                         state.h3 = state.parent.find("h3");
-                        state.elPlatform = state.parent.find(
-                            ".select-platform"
-                        );
 
                         if (!index) {
                             state.id = "mpXml";
@@ -782,14 +569,6 @@
                         } else {
                             state.id = "json";
                         }
-                        if (state.id === "mkXml") {
-                            state.btnMk = state.parent.find("btn-mk");
-                            state.btnMp = state.parent.find("btn-mp");
-                            state.elPlatform2 = $(state.elPlatform[0]);
-                            state.elPlatform = $(state.elPlatform[1]);
-                        }
-                        state.btnTo = state.parent.find("btn-parse");
-                        state.btnBack = state.parent.find("btn-serialize");
                         if (state.type === "xml") {
                             state.content =
                                 localStorage.getItem(
@@ -798,7 +577,7 @@
                         }
                         if (state.id === "mpXml" && !state.content) {
                             state.content =
-                                "<?xml version=\"1.0\"?>\n<!DOCTYPE note [\n    <!-- this is comment -->\n    <!ELEMENT note (to,from,heading,body,script)>\n    <!ELEMENT to (#PCDATA)>\n    <!ELEMENT from (#PCDATA)>\n    <!ELEMENT heading (#PCDATA)>\n    <!ELEMENT body (#PCDATA)>\n    <!ELEMENT script (#PCDATA)>\n]>\n<note>\n    <to>Tove</to>\n    <from>Jani</from>\n    <heading>Reminder</heading>\n    <body>Don't forget me this weekend</body>\n    <script>console.log('hi Tove');<\/script>\n</note>\n<![CDATA[ function sayHi() {console.log('say hi.')} ]]>";
+                                '<wxs module="tool" src="./tool.wxs" />\n<view wx:for="{{products}}" wx:for-item="product">\n    <image src="{{tool.cdn(product.img)}}">\n    <text>{{product.name}}</text>\n    <text wx:if="{{product.price}}">{{product.price}}</text>\n</view>';
                         }
                         state.editor = monaco.editor.create(el[0], {
                             value: state.content,
@@ -808,103 +587,9 @@
                             },
                         });
 
-                        state.btnTo.click(function () {
-                            const btn = $(this);
-                            if (state.type !== "json") {
-                                localStorage.setItem(
-                                    `Mkp.${state.id}EditorContent`,
-                                    state.editor.getValue()
-                                );
-                            }
-                            const startTime = (performance || Date).now();
-                            const json = parseXmlEditor(state);
-                            const endTime = (performance || Date).now();
-                            btn.remove(".btn-tip");
-                            btn.append(
-                                `<span class="btn-tip">本次操作耗时：<strong>${(
-                                    endTime - startTime
-                                ).toFixed(2)}ms<strong><span>`
-                            );
-                            const needLoc = state.parent
-                                .find('input[name="location"]')
-                                .prop("checked");
-                            const needSteps = state.parent
-                                .find('input[name="steps"]')
-                                .prop("checked");
-                            var parseResult = MpKitMpxmlParser.toJSON(
-                                json.nodes,
-                                needLoc,
-                                needSteps
-                            );
-                            if (json.error) {
-                                console.error(json.error.stack);
-                                const target = json.error.target;
-                                delete json.error.target;
-                                state.json.editor.setValue(
-                                    JSON.stringify(
-                                        {
-                                            ...json.error,
-                                            message: json.error.message,
-                                            target: target
-                                                ? MpKitMpxmlParser.toJSON(
-                                                      target,
-                                                      needLoc,
-                                                      needSteps
-                                                  )
-                                                : null,
-                                        },
-                                        null,
-                                        4
-                                    )
-                                );
-                                json.error.target = target;
-                            } else {
-                                state.json.editor.setValue(
-                                    JSON.stringify(parseResult, null, 4)
-                                );
-                            }
-                            if (json.error && json.error.lineNumber) {
-                                setXmlError(
-                                    state,
-                                    json.error.lineNumber,
-                                    json.error.column
-                                );
-                            }
-                        });
-                        $("#btnSerialize").click(function () {
-                            var json = getJSON();
-                            if (json) {
-                                setXml(
-                                    MpKitMpxmlParser.serialize(json, {
-                                        // nodeSerializeHandler(
-                                        //     node,
-                                        //     bs,
-                                        //     rs,
-                                        //     rs2,
-                                        //     parent,
-                                        //     ad,
-                                        //     str
-                                        // ) {
-                                        //     return node.type === "attr" ? "333" : str;
-                                        // },
-                                    })
-                                );
-                            } else {
-                                alert("请输入JSON后尝试序列化");
-                            }
-                        });
-
                         if (state.type === "xml") {
-                            var mcTimer;
                             state.editor.onDidChangeModelContent((e) => {
                                 clearXmlError(state);
-                                if (mcTimer) {
-                                    clearTimeout(mcTimer);
-                                }
-                                mcTimer = setTimeout(() => {
-                                    parseXmlEditor(state);
-                                    mcTimer = null;
-                                }, 300);
                             });
                         }
 
@@ -917,8 +602,112 @@
                         editorMap[state.id] = state;
                     });
             }
-            pageInit();
+
+            const setBtnTime = (btn, time) => {
+                btn.remove(".btn-tip");
+                btn.append(
+                    `<span class="btn-tip">本次操作耗时：<strong>${time.toFixed(
+                        2
+                    )}ms</strong></span>`
+                );
+            };
+
+            function btnEventInit() {
+                $(".btn-parse").click(function () {
+                    const btn = $(this);
+                    const parent = btn.closest(".text-group");
+                    const actionBox = btn.closest(".action-container");
+                    const toPlatform = actionBox.find(".select-platform").val();
+                    let state;
+                    if (
+                        parent.find("h3").text().trim().indexOf("MpXML") === 0
+                    ) {
+                        state = editorMap.mpXml;
+                    } else {
+                        state = editorMap.mkXml;
+                    }
+                    localStorage.setItem(
+                        `Mkp.${state.id}EditorContent`,
+                        state.editor.getValue()
+                    );
+                    const startTime = (performance || Date).now();
+                    const json = MpKitMpxmlParser.parseMpXml(
+                        state.editor.getValue(),
+                        toPlatform
+                    );
+                    setBtnTime(btn, (performance || Date).now() - startTime);
+                    const needLoc = actionBox
+                        .find('input[name="location"]')
+                        .prop("checked");
+                    const needSteps = actionBox
+                        .find('input[name="steps"]')
+                        .prop("checked");
+                    var parseResult = MpKitMpxmlParser.toJSON(
+                        json.nodes,
+                        needLoc,
+                        needSteps
+                    );
+                    if (json.error) {
+                        console.error(json.error.stack);
+                        const target = json.error.target;
+                        delete json.error.target;
+                        editorMap.json.editor.setValue(
+                            JSON.stringify(
+                                {
+                                    ...json.error,
+                                    message: json.error.message,
+                                    target: target
+                                        ? MpKitMpxmlParser.toJSON(
+                                              target,
+                                              needLoc,
+                                              needSteps
+                                          )
+                                        : null,
+                                },
+                                null,
+                                4
+                            )
+                        );
+                        json.error.target = target;
+                    } else {
+                        editorMap.json.editor.setValue(
+                            JSON.stringify(parseResult, null, 4)
+                        );
+                    }
+                    if (json.error && json.error.lineNumber) {
+                        setXmlError(
+                            state,
+                            json.error.lineNumber,
+                            json.error.column
+                        );
+                    }
+                });
+
+                $(".btn-serialize").click(function () {
+                    const btn = $(this);
+                    let json = editorMap.json.editor.getValue().trim();
+                    if (json) {
+                        try {
+                            json = JSON.parse(json);
+                        } catch (error) {
+                            return alert("请输入有效的JSON后再尝试序列化");
+                        }
+                    }
+                    if (!json) {
+                        return alert("请输入有效的JSON后再尝试序列化");
+                    }
+                    const actionBox = btn.closest(".action-container");
+                    const inMk = actionBox.is(".ac-3");
+                    const toPlatform = actionBox.find(".select-platform").val();
+                    const startTime = (performance || Date).now();
+                    const xml = MpKitMpxmlParser.serialize(json, toPlatform);
+                    setBtnTime(btn, (performance || Date).now() - startTime);
+                    editorMap[inMk ? "mkXml" : "mpXml"].editor.setValue(xml);
+                });
+            }
+
             editorInit();
+            btnEventInit();
         </script>
     </body>
 </html>

@@ -14,11 +14,13 @@
 ```javascript
 import { openMpData } from "@mpkit/set-data";
 const res = openMpData({
+    show: true,
     "list[0].user.name": "Tom",
 });
 console.log(res);
 /*
 {
+    show: true,
     list:[
         user:{
             name:'Tom'

@@ -54,7 +54,10 @@ const mergeMethod = (
                     const itemType = typeof item;
                     let hasExec;
                     if (itemType === "function") {
-                        methodResult = item.apply(this, args);
+                        const res = item.apply(this, args);
+                        if (typeof res !== "undefined") {
+                            methodResult = res;
+                        }
                         hasExec = true;
                     } else if (
                         itemType === "string" &&
@@ -62,7 +65,10 @@ const mergeMethod = (
                         this[item] &&
                         isFunc(this[item])
                     ) {
-                        methodResult = this[item].apply(this, args);
+                        const res = this[item].apply(this, args);
+                        if (typeof res !== "undefined") {
+                            methodResult = res;
+                        }
                         hasExec = true;
                     }
                     hasExec &&
@@ -89,6 +95,7 @@ const mergeMethod = (
                     methodResult,
                     funId
                 );
+                return methodResult;
             }
         } catch (error) {
             execHook(

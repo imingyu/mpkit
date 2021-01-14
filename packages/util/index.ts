@@ -105,8 +105,7 @@ export const initView = (view: MpView, viewType: MpViewType) => {
 
 const defineViewKey = (view: MpView) => {
     if (!view.$mkKeyIsDefine) {
-        const MP_PLATFORM = getMpPlatform();
-        view.$mkKeyIsDefine = MP_PLATFORM === MpPlatform.smart ? uuid() : true;
+        view.$mkKeyIsDefine = uuid();
         Object.defineProperty(view, "$mkKey", {
             get() {
                 return getMpNativeViewId(this, getMpViewType(this));
@@ -182,7 +181,7 @@ export const getMpNativeViewId = (
     }
     if (viewType === MpViewType.Component) {
         if (MP_PLATFORM === MpPlatform.wechat) {
-            return (vm as MpWechatView).__wxExparserNodeId__;
+            return (vm as MpWechatView).$mkKeyIsDefine;
         }
         if (MP_PLATFORM === MpPlatform.alipay) {
             return (vm as MpAlipayViewComponent).$id + "";

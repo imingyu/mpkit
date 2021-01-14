@@ -17,6 +17,20 @@ describe('SetData', () => {
         assert.equal(data.list.length, 3);
         assert.equal(data.list[0].user.name, 'Tom');
         assert.equal(data.list[2].user.name.value, 'Alice');
+
+        const data2 = openMpData({
+            show1: true,
+            show2: false,
+            show3: null,
+            show4: undefined,
+            'list[2].user.name': {
+                value: 'Alice',
+                show1: true,
+                show2: false,
+                show3: null,
+                show4: undefined,
+            }
+        });
     });
     it('diffMpData', () => {
         const source = {

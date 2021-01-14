@@ -27,6 +27,7 @@ export const defaultSetDataOptions: MkSetDataOptions = {
 // 此正则表达式来自lodash:_stringToPath.js  https://github.com/lodash/lodash
 const rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
 
+// TODO: 支持deep参数
 export const openMpData = (data, view?: MpView) => {
     const result = {};
     Object.keys(data).forEach((key) => {
@@ -93,10 +94,10 @@ export const openMpData = (data, view?: MpView) => {
         });
         let obj = result;
         items.forEach((propItem) => {
-            if (propItem.value) {
+            if ("value" in propItem) {
                 obj[propItem.name] = propItem.value;
             }
-            if (!obj[propItem.name]) {
+            if (!(propItem.name in obj)) {
                 if (propItem.array) {
                     obj[propItem.name] = [];
                 } else {
@@ -109,6 +110,7 @@ export const openMpData = (data, view?: MpView) => {
     return result;
 };
 
+// TODO: 要处理循环引用或者对象是复杂对象的情况
 export const diffMpData = (source, target, result?: any, path?: string) => {
     result = result || {};
     Object.keys(target).forEach((targetKey) => {

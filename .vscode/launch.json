@@ -19,6 +19,14 @@
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/packages/mpxml-parser/debug.js",
             "outFiles": ["${workspaceFolder}/**/*.js"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "debug set-data",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/packages/set-data/test/debug.js",
+            "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]
 }

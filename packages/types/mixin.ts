@@ -6,7 +6,7 @@ interface MpMethodHookLike {
     before?(
         methodName: string,
         methodArgs: any[],
-        methodHandler: Function,
+        methodHandler: Function | Array<Function | string>,
         funId?: string
     );
     after?(

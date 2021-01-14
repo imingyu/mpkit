@@ -22,6 +22,8 @@ import {
     FxNodeJSON,
     parseResultToJSON,
     FxNodeType,
+    FxParseOptions,
+    FxNodeAdapter,
 } from "forgiving-xml-parser";
 import { ADAPTER_PARAMS_WRONG, XMLJSON_PARAMS_WRONG } from "./message";
 import { isEmptyObject } from "@mpkit/util";
@@ -160,6 +162,8 @@ export const parseMpXmlJSON = (
     }
 };
 
+const selfcloseingTags = ["wxs", "image", "include"];
+
 export const parseMpXml = (
     mpXml: string,
     adapter: MpPlatform | IMkMpXmlParseAdapter = MpPlatform.wechat,
@@ -265,6 +269,11 @@ export const parseMpXml = (
             }
         }
         onEvent && onEvent.apply(options, arguments);
+    };
+    (options as FxParseOptions).allowNodeNotClose = (
+        onlyAnteriorNode: FxNode
+    ): boolean => {
+        return selfcloseingTags.indexOf(onlyAnteriorNode.name) !== -1;
     };
     const xmlParseResult = parseXML(mpXml, options);
     if (xmlParseResult.error) {
