@@ -11,17 +11,3 @@ export interface EBus {
     off(type: string, handler?: EventHandler);
     emit(type: string, data: any);
 }
-export enum EventType {
-    All = "All",
-    Error = "Error",
-    ViewInitLife = "ViewInitLife",
-    ViewInitMount = "ViewInitMount",
-    ViewMethodStart = "ViewMethodStart",
-    ViewMethodEnd = "ViewMethodEnd",
-    UIEvent = "UIEvent",
-    ApiMethodStart = "ApiMethodStart",
-    ApiMethodEnd = "ApiMethodEnd",
-    ApiMethodComplete = "ApiMethodComplete",
-    RequestStart = "RequestStart",
-    RequestEnd = "RequestEnd",
-}

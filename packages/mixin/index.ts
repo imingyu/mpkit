@@ -7,6 +7,7 @@ import {
     isPromise,
     uuid,
     isFunc,
+    isMpIvew,
 } from "@mpkit/util";
 import { MpPlatform } from "@mpkit/types";
 import { mergeApi, mergeView, execHook, promiseifyApi } from "./mrege";
@@ -17,6 +18,7 @@ import {
     MpKitConfig,
     MpKitRewriteConfig,
 } from "@mpkit/types";
+import { getMpViewPathName } from "@mpkit/util";
 export { mergeApi, mergeView, promiseifyApi };
 
 export const MkApi = (() => {
@@ -34,12 +36,17 @@ export const MkApi = (() => {
 const mkView = (type: MpViewType) => {
     return (...specList) => {
         const setMkSpec = (view) => {
-            if (!view.$mkSpec) {
-                Object.defineProperty(view, "$mkSpec", {
-                    get() {
-                        return fullSpec;
-                    },
-                });
+            if (view && isMpIvew(view)) {
+                if (!view.$mkSpec) {
+                    Object.defineProperty(view, "$mkSpec", {
+                        get() {
+                            return fullSpec;
+                        },
+                    });
+                }
+                if (!fullSpec.$targetPath) {
+                    fullSpec.$targetPath = getMpViewPathName(view);
+                }
             }
         };
         const setSpecMixin = {
@@ -94,7 +101,6 @@ export const MkNative = {
 export const plugin: MpKitPlugin = {
     name: "mixin",
     apply(mpkit: MpKitInject, config?: MpKitConfig) {
-        MixinStore.bindEBus(mpkit);
         mpkit.MixinStore = MixinStore;
         mpkit.App = MkApp;
         mpkit.Page = MkPage;

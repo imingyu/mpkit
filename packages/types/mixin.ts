@@ -1,6 +1,5 @@
 import { MpViewType, MpView } from "./view";
 import { MkMap, MkEnumMap } from "./util";
-import { EBus, EventType } from "./ebus";
 
 interface MpMethodHookLike {
     before?(
@@ -44,10 +43,6 @@ export type MixinStoreHookProp = MpViewType | "Api";
 export type MixinStoreHooks = MkEnumMap<MixinStoreHookProp, MpMethodHook[]>;
 
 export interface MkMixinStore {
-    ViewInstanceMap: ViewInstanceMap;
-    ViewInstanceTimeLine: MpView[];
-    bindEBus(val: EBus);
-    emitEvent(type: EventType, data: any);
     addHook(type: MixinStoreHookProp, hook: MpMethodHook);
     getHook(type: MixinStoreHookProp): MpMethodHook[];
 }
