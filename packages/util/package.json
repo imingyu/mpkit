@@ -35,5 +35,6 @@
     },
     "dependencies": {
         "@mpkit/types": "^1.0.11"
-    }
+    },
+    "gitHead": "0a4dc4e319b5134237165e9b09e812420b0d52a0"
 }
