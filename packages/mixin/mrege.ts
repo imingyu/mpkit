@@ -4,9 +4,9 @@ import {
     isPromise,
     uuid,
     merge,
+    isFunc,
 } from "@mpkit/util";
 import { MpMethodHook, MpViewType, MpPlatform } from "@mpkit/types";
-import { isFunc } from "@mpkit/util";
 
 export const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
     const methodName = hookArgs[0];
