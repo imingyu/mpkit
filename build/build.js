@@ -48,39 +48,50 @@ const cloneEntry = (source) => {
     return res;
 }
 
-entrys.forEach(item => {
+let index = -1;
+entrys.forEach((item) => {
+    index++;
     if (item.output.format === 'umd' && !item.output.globals) {
         item.output.globals = {
             'forgiving-xml-parser': 'ForgivingXmlParser',
-            '@mpkit/util': 'MpKitUtil',
-            '@mpkit/types': 'MpKitTypes',
+        }
+        if (item.packageName !== 'util') {
+            item.output.globals['@mpkit/util'] = 'MpKitUtil';
+        }
+        if (item.packageName !== 'types') {
+            item.output.globals['@mpkit/types'] = 'MpKitTypes';
         }
     }
     if (item.output.format === 'umd' && !item.mini && !item.inclueFx) {
         const ni = cloneEntry(item);
         ni.mini = true;
         ni.output.file = ni.output.file.substr(0, ni.output.file.length - 2) + 'mini.js';
-        entrys.push(ni);
-        if (item.packageName === 'mpxml-parser') {
+        entrys.splice(index, 0, ni);
+        index++;
+        if (item.packageName === 'mpxml-parser' || item.packageName === 'mixin') {
+            console.log(`loop ${item.packageName} ${item.output.file}`);
             const ni = cloneEntry(item);
             ni.inclueFx = true;
             ni.output.file = ni.output.file.substr(0, ni.output.file.length - 2) + 'full.js';
-            entrys.push(ni);
+            entrys.splice(index, 0, ni);
+            index++;
 
             const ni2 = cloneEntry(item);
             ni2.inclueFx = true;
             ni2.mini = true;
             ni2.output.file = ni2.output.file.substr(0, ni2.output.file.length - 2) + 'full.mini.js';
-            entrys.push(ni2);
+            entrys.splice(index, 0, ni2);
         }
     }
-})
+});
+console.log(`entrys=.length=${entrys.length}`);
 
 oneByOne(entrys.map((rollupConfig, index) => {
     const packageName = getPackageName(rollupConfig.output.file);
     const currentPackName = packageName.split('/')[1];
 
     return () => {
+        console.log(`   开始编译：${packageName}#${index}`)
         if (targetPackNames.length && targetPackNames.every(item => item !== currentPackName)) {
             console.log(`   跳过编译：${packageName}`);
             return Promise.resolve();
@@ -142,6 +153,8 @@ oneByOne(entrys.map((rollupConfig, index) => {
         })
     }
 }).concat(entrys.map((rollupConfig, index) => {
+    console.log(`🌈编译结束，开始转移d.ts`);
+
     const packageName = getPackageName(rollupConfig.output.file);
     const currentPackName = packageName.split('/')[1];
 
@@ -162,6 +175,7 @@ oneByOne(entrys.map((rollupConfig, index) => {
         return Promise.resolve();
     }
 }))).then(() => {
+    console.log(`🌈转移结束，开始复制到根目录的dist中`);
     const root = path.resolve(__dirname, "../packages");
     const dist = path.resolve(__dirname, '../dist');
     if (existsSync(dist)) {
@@ -178,7 +192,7 @@ oneByOne(entrys.map((rollupConfig, index) => {
             copyFiles(dirDist, path.join(dist, dir), '*', false);
         }
     })
-    console.log(`🌈编译结束.`);
+    console.log(`🌈编译全部成功.`);
 }).catch(err => {
     console.error(`🔥编译出错：${err.message}`);
     console.log(err);

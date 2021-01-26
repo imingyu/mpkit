@@ -8,8 +8,8 @@ import {
     uuid,
     isFunc,
     isMpIvew,
+    getMpViewPathName,
 } from "@mpkit/util";
-import { MpPlatform } from "@mpkit/types";
 import { mergeApi, mergeView, execHook, promiseifyApi } from "./mrege";
 import MixinStore from "./store";
 import {
@@ -17,8 +17,8 @@ import {
     MpKitInject,
     MpKitConfig,
     MpKitRewriteConfig,
+    MpPlatform,
 } from "@mpkit/types";
-import { getMpViewPathName } from "@mpkit/util";
 export { mergeApi, mergeView, promiseifyApi };
 
 export const MkApi = (() => {

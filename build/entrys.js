@@ -125,8 +125,8 @@ module.exports = [
     'mixin',
     'set-data',
     'ebus',
-    'types',
     'util',
+    'types',
 ].reduce((sum, package) => {
     package = typeof package === 'object' ? package : {
         packageName: package
