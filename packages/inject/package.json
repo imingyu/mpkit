@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/inject",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "description": "提供小程序环境适用的多种实用函数或组件，如setData优化、Mixin、事件总线等。",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/inject",
@@ -42,11 +42,11 @@
         "小程序优化"
     ],
     "dependencies": {
-        "@mpkit/ebus": "^1.0.10",
-        "@mpkit/mixin": "^1.0.10",
-        "@mpkit/set-data": "^1.0.10",
-        "@mpkit/types": "^1.0.10",
-        "@mpkit/util": "^1.0.10"
+        "@mpkit/ebus": "^1.0.11",
+        "@mpkit/mixin": "^1.0.11",
+        "@mpkit/set-data": "^1.0.11",
+        "@mpkit/types": "^1.0.11",
+        "@mpkit/util": "^1.0.11"
     },
     "devDependencies": {
         "chai": "^4.2.0",
