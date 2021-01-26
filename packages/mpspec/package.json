@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/mpspec",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "description": "各平台小程序技术特性说明书",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/mpspec",
@@ -32,7 +32,7 @@
         "xml-to-json"
     ],
     "dependencies": {
-        "@mpkit/types": "^1.0.11"
+        "@mpkit/types": "^1.0.12"
     },
     "devDependencies": {
         "chai": "^4.2.0",
