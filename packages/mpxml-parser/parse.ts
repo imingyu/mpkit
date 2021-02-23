@@ -24,18 +24,33 @@ import {
     FxNodeType,
     FxParseOptions,
     FxNodeAdapter,
+    FxAllowNodeNotCloseChecker,
+    FxTryStep,
+    FxCursorPosition,
+    FxParseBaseOptions,
+    FxBoundaryPosition,
+    notSpaceCharCursor,
 } from "forgiving-xml-parser";
 import { ADAPTER_PARAMS_WRONG, XMLJSON_PARAMS_WRONG } from "./message";
 import { isEmptyObject } from "@mpkit/util";
 import { isFunc } from "@mpkit/util";
 import { getParent, getPreviousSibling } from "./util";
 export { serialize } from "forgiving-xml-parser";
-const DEFAULT_XML_PARSE_OPTIONS = {
+const DEFAULT_XML_PARSE_OPTIONS: FxParseBaseOptions = {
     allowNodeNameEmpty: false,
     allowAttrContentHasBr: false,
     allowEndTagBoundaryNearSpace: false,
     allowNodeNotClose: false,
-    allowStartTagBoundaryNearSpace: false,
+    allowStartTagBoundaryNearSpace: (
+        xml: string,
+        cursor: FxCursorPosition
+    ): boolean => {
+        const nextValidCharCursor = notSpaceCharCursor(xml, cursor);
+        if (nextValidCharCursor && xml[nextValidCharCursor.offset] === "/") {
+            return true;
+        }
+        return false;
+    },
     allowTagNameHasSpace: false,
     ignoreTagNameCaseEqual: false,
 };
@@ -163,7 +178,20 @@ export const parseMpXmlJSON = (
 };
 
 const selfcloseingTags = ["wxs", "image", "include"];
-
+let allowNodeNotClose: FxAllowNodeNotCloseChecker = (
+    ...args: any[]
+): boolean => {
+    let nodeName: string;
+    if (typeof args[0] === "string") {
+        nodeName = (args[args.length - 1] || "") + "";
+    } else if (args[0]) {
+        nodeName = (args[0] as FxNode).name;
+    }
+    if (nodeName) {
+        return selfcloseingTags.indexOf(nodeName) !== -1;
+    }
+    return false;
+};
 export const parseMpXml = (
     mpXml: string,
     adapter: MpPlatform | IMkMpXmlParseAdapter = MpPlatform.wechat,
@@ -270,11 +298,7 @@ export const parseMpXml = (
         }
         onEvent && onEvent.apply(options, arguments);
     };
-    (options as FxParseOptions).allowNodeNotClose = (
-        onlyAnteriorNode: FxNode
-    ): boolean => {
-        return selfcloseingTags.indexOf(onlyAnteriorNode.name) !== -1;
-    };
+    (options as FxParseOptions).allowNodeNotClose = allowNodeNotClose;
     const xmlParseResult = parseXML(mpXml, options);
     if (xmlParseResult.error) {
         delete xmlParseResult.nodes;

@@ -41,6 +41,9 @@ export default (() => {
                     });
                 }
             }
+            if (!hooks[type]) {
+                hooks[type] = [];
+            }
             return hooks[type];
         },
     };

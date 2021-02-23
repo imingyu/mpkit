@@ -9,6 +9,9 @@ import {
 import { MpMethodHook, MpViewType, MpPlatform } from "@mpkit/types";
 
 export const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
+    if (!methodHook || !methodHook.length) {
+        return;
+    }
     const methodName = hookArgs[0];
     let res;
     methodHook.forEach((item) => {

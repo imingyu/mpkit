@@ -32,7 +32,7 @@ export const openMpData = (data, view?: MpView) => {
     const result = {};
     Object.keys(data).forEach((key) => {
         const items = [];
-        if ((view && key.indexOf(".") !== -1) || key.indexOf("[") !== -1) {
+        if (view && (key.indexOf(".") !== -1 || key.indexOf("[") !== -1)) {
             key.split(".").forEach((item) => {
                 if (item) {
                     const openIndex = item.indexOf("[");
