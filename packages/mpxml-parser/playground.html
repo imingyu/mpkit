@@ -595,7 +595,7 @@
 
                         state.editor.onDidChangeCursorPosition(function (e) {
                             const cursorHtml = `<small class="cursor">（光标位置 行：<span class="cus-line">${e.position.lineNumber}</span> 列：<span class="cus-col">${e.position.column}</span>）</small>`;
-                            state.h3.remove(".cursor");
+                            state.h3.children(".cursor").remove();
                             state.h3.append(cursorHtml);
                         });
 
@@ -604,7 +604,7 @@
             }
 
             const setBtnTime = (btn, time) => {
-                btn.remove(".btn-tip");
+                btn.children(".btn-tip").remove();
                 btn.append(
                     `<span class="btn-tip">本次操作耗时：<strong>${time.toFixed(
                         2
@@ -616,15 +616,16 @@
                 $(".btn-parse").click(function () {
                     const btn = $(this);
                     const parent = btn.closest(".text-group");
+                    const xmlEditorContainer = parent.children(
+                        ".text-container:eq(0)"
+                    );
                     const actionBox = btn.closest(".action-container");
                     const toPlatform = actionBox.find(".select-platform").val();
                     let state;
-                    if (
-                        parent.find("h3").text().trim().indexOf("MpXML") === 0
-                    ) {
-                        state = editorMap.mpXml;
-                    } else {
+                    if (!xmlEditorContainer.length) {
                         state = editorMap.mkXml;
+                    } else {
+                        state = editorMap.mpXml;
                     }
                     localStorage.setItem(
                         `Mkp.${state.id}EditorContent`,
@@ -685,6 +686,16 @@
 
                 $(".btn-serialize").click(function () {
                     const btn = $(this);
+                    const parent = btn.closest(".text-group");
+                    const xmlEditorContainer = parent.children(
+                        ".text-container:eq(0)"
+                    );
+                    let state;
+                    if (!xmlEditorContainer.length) {
+                        state = editorMap.mkXml;
+                    } else {
+                        state = editorMap.mpXml;
+                    }
                     let json = editorMap.json.editor.getValue().trim();
                     if (json) {
                         try {
@@ -697,12 +708,11 @@
                         return alert("请输入有效的JSON后再尝试序列化");
                     }
                     const actionBox = btn.closest(".action-container");
-                    const inMk = actionBox.is(".ac-3");
                     const toPlatform = actionBox.find(".select-platform").val();
                     const startTime = (performance || Date).now();
                     const xml = MpKitMpxmlParser.serialize(json, toPlatform);
                     setBtnTime(btn, (performance || Date).now() - startTime);
-                    editorMap[inMk ? "mkXml" : "mpXml"].editor.setValue(xml);
+                    state.editor.setValue(xml);
                 });
             }
 
