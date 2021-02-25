@@ -1,6 +1,13 @@
 {
     "packages": [
-        "packages/*"
+        "packages/ebus",
+        "packages/inject",
+        "packages/mixin",
+        "packages/mpxml-parser",
+        "packages/mpxml-translator",
+        "packages/set-data",
+        "packages/types",
+        "packages/util"
     ],
     "version": "1.0.14"
 }
