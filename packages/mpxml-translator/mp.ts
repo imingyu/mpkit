@@ -12,6 +12,7 @@ import {
 } from "@mpkit/types";
 import { MkTranslateAdapter } from "@mpkit/types";
 import { mpViewSyntaxSpec } from "@mpkit/mpxml-parser";
+import { reolaceFileSuffix } from "@mpkit/util";
 
 export const createMpTranslateAdapters = (): MkTranslateAdapter[] => {
     return [
@@ -221,28 +222,71 @@ export const createMpTranslateAdapter = <T = any>(
             isXjsNode = true;
             targetNode.name = targetViewSpec.xjsNodeName;
         }
+        let isImportNode;
+        if (targetNode.name === sourceViewSpec.importNodeName) {
+            isImportNode = true;
+            targetNode.name = targetViewSpec.importNodeName;
+        }
+        let isIncludeNode;
+        if (targetNode.name === sourceViewSpec.includeNodeName) {
+            isIncludeNode = true;
+            targetNode.name = targetViewSpec.includeNodeName;
+        }
         type NodeIndex = [number, MkXmlNodeJSON];
         if (targetNode.attrs) {
             const specicalAttrs: Array<NodeIndex> = [];
             let forKeyAttrIndex: number = -1;
             targetNode.attrs.forEach((attr, attrIndex) => {
-                if (isXjsNode) {
-                    if (attr.name === sourceViewSpec.xjsModuleAttrName) {
-                        attr.name = targetViewSpec.xjsModuleAttrName;
-                    } else if (attr.name === sourceViewSpec.xjsSrcAttrName) {
-                        attr.name = targetViewSpec.xjsSrcAttrName;
+                if (attr.name) {
+                    if (isXjsNode) {
+                        if (attr.name === sourceViewSpec.xjsModuleAttrName) {
+                            attr.name = targetViewSpec.xjsModuleAttrName;
+                        } else if (
+                            attr.name === sourceViewSpec.xjsSrcAttrName
+                        ) {
+                            attr.name = targetViewSpec.xjsSrcAttrName;
+                            if (attr.content) {
+                                attr.content = reolaceFileSuffix(
+                                    attr.content,
+                                    targetViewSpec.xjsFileSuffix
+                                );
+                            }
+                        }
                     }
-                }
-                let specicalAttrIndex: number = -1;
-                if (
-                    attr.name &&
-                    (specicalAttrIndex = sourceSpecicalAttrs.indexOf(
-                        attr.name
-                    )) !== -1
-                ) {
-                    specicalAttrs.push([specicalAttrIndex, attr]);
-                    if (sourceKey && attr.name === sourceKey) {
-                        forKeyAttrIndex = attrIndex;
+                    if (
+                        isImportNode &&
+                        attr.name === sourceViewSpec.importSrcAttrName
+                    ) {
+                        attr.name = targetViewSpec.importSrcAttrName;
+                        if (attr.content) {
+                            attr.content = reolaceFileSuffix(
+                                attr.content,
+                                targetViewSpec.xmlFileSuffix
+                            );
+                        }
+                    }
+                    if (
+                        isIncludeNode &&
+                        attr.name === sourceViewSpec.includeSrcAttrName
+                    ) {
+                        attr.name = targetViewSpec.includeSrcAttrName;
+                        if (attr.content) {
+                            attr.content = reolaceFileSuffix(
+                                attr.content,
+                                targetViewSpec.xmlFileSuffix
+                            );
+                        }
+                    }
+                    let specicalAttrIndex: number = -1;
+                    if (
+                        (specicalAttrIndex = sourceSpecicalAttrs.indexOf(
+                            attr.name
+                        )) !== -1
+                    ) {
+                        specicalAttrs.push([specicalAttrIndex, attr]);
+                        if (sourceKey && attr.name === sourceKey) {
+                            forKeyAttrIndex = attrIndex;
+                        }
                     }
                 }
             });

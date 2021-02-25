@@ -24,18 +24,17 @@ import {
     FxNodeJSON,
     parseResultToJSON,
     FxNodeType,
+    FxNodeCloseType,
     FxParseOptions,
-    FxNodeAdapter,
     FxAllowNodeNotCloseChecker,
-    FxTryStep,
     FxCursorPosition,
     FxParseBaseOptions,
-    FxBoundaryPosition,
     notSpaceCharCursor,
     DEFAULT_PARSE_OPTIONS,
     moveCursor,
     toCursor,
     isElementEndTagBegin,
+    FxParseResult,
 } from "forgiving-xml-parser";
 import { mpViewSyntaxSpec } from "./spec";
 import { ADAPTER_PARAMS_WRONG, XMLJSON_PARAMS_WRONG } from "./message";
@@ -46,7 +45,7 @@ const DEFAULT_XML_PARSE_OPTIONS: FxParseBaseOptions = {
     allowNodeNameEmpty: false,
     allowAttrContentHasBr: false,
     allowEndTagBoundaryNearSpace: false,
-    allowNodeNotClose: false,
+    allowNodeNotClose: true,
     allowStartTagBoundaryNearSpace: (
         xml: string,
         cursor: FxCursorPosition
@@ -80,6 +79,7 @@ const formatAdapter = (
             isFunc(parseAdapter.contentAdapter.parse),
     } as MkMpXmlParseAdapterFormater;
 };
+
 const xmlNodeAdapterMap: MkPlatformNodeAdapterMap = {};
 const getPlatformXmlNodeAdapters = (platform: MpPlatform) => {
     if (!xmlNodeAdapterMap[platform]) {
@@ -241,11 +241,11 @@ let allowNodeNotClose: FxAllowNodeNotCloseChecker = (
 };
 export const parseMpXml = (
     mpXml: string,
-    adapter: MpPlatform | IMkMpXmlParseAdapter = MpPlatform.wechat,
+    platform: MpPlatform = MpPlatform.wechat,
     options?: MkMpXmlParseOptions
 ): MkXmlParseResult => {
     const { parseAdapter, hasAttrAdapter, hasContentAdapter } = formatAdapter(
-        adapter
+        platform
     );
     if (!parseAdapter) {
         return {
@@ -262,16 +262,17 @@ export const parseMpXml = (
     }
     const onEvent = options && options.onEvent;
     options = mergeParseOptions(options);
-    if (typeof adapter === "string") {
-        (options as FxParseOptions).nodeAdapters = getPlatformXmlNodeAdapters(
-            adapter
-        );
-    }
+    (options as FxParseOptions).nodeAdapters = getPlatformXmlNodeAdapters(
+        platform
+    );
+    let fxContext: FxParseContext;
     options.onEvent = function (
         type: FxEventType,
         context: FxParseContext,
         data: FxNode | FxWrong
     ) {
+        fxContext = context;
+        // 处理include/import等可不用关闭的标签
         let previousSibling: FxNode;
         let parent: FxNode | LikeFxParseContext;
         let grandpa: FxNode | LikeFxParseContext;
@@ -351,11 +352,28 @@ export const parseMpXml = (
         onEvent && onEvent.apply(options, arguments);
     };
     (options as FxParseOptions).allowNodeNotClose = allowNodeNotClose;
-    const xmlParseResult: MkXmlParseResult = parseXML(mpXml, options);
+    const xmlParseResult: FxParseResult = parseXML(mpXml, options);
     if (xmlParseResult.error) {
         delete xmlParseResult.nodes;
+    } else if (
+        fxContext.currentNode &&
+        fxContext.currentNode.type !== FxNodeType.text &&
+        !fxContext.currentNode.locationInfo.endColumn
+    ) {
+        let node: FxNode;
+        while ((node = fxContext.currentNode)) {
+            node.closeType = FxNodeCloseType.startTagClosed;
+            node.locationInfo.endColumn = fxContext.column;
+            node.locationInfo.endOffset = fxContext.offset;
+            node.locationInfo.endLineNumber = fxContext.lineNumber;
+            if (node.parent) {
+                fxContext.currentNode = node.parent;
+            } else {
+                delete fxContext.currentNode;
+            }
+        }
     }
-    return xmlParseResult;
+    if (xmlParseResult) return xmlParseResult;
 };
 
 export const toJSON = (

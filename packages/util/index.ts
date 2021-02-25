@@ -341,3 +341,7 @@ export const firstAfterCharsIndex = (
     }
     return afterIndex + index;
 };
+
+export const reolaceFileSuffix = (fileName: string, suffix: string) => {
+    return fileName.substr(0, fileName.lastIndexOf(".")) + suffix;
+};
