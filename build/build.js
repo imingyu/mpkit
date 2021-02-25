@@ -54,6 +54,7 @@ entrys.forEach((item) => {
     if (item.output.format === 'umd' && !item.output.globals) {
         item.output.globals = {
             'forgiving-xml-parser': 'ForgivingXmlParser',
+            '@mpkit/mpxml-parser': 'MpKitMpxmlParser'
         }
         if (item.packageName !== 'util') {
             item.output.globals['@mpkit/util'] = 'MpKitUtil';
@@ -68,7 +69,7 @@ entrys.forEach((item) => {
         ni.output.file = ni.output.file.substr(0, ni.output.file.length - 2) + 'mini.js';
         entrys.splice(index, 0, ni);
         index++;
-        if (item.packageName === 'mpxml-parser' || item.packageName === 'mixin') {
+        if (item.packageName === 'mpxml-parser' || item.packageName === 'mixin' || item.packageName === 'mpxml-translator') {
             console.log(`loop ${item.packageName} ${item.output.file}`);
             const ni = cloneEntry(item);
             ni.inclueFx = true;

@@ -10,7 +10,7 @@ const initMpXmlParseAdapter = (
 ): IMkMpXmlParseAdapter => {
     const whereAttrAdapter = new MpParseWhereAttrAdapter(mpPlatform);
     const forAttrAdapter = new MpParseForAttrAdapter(mpPlatform);
-    return {
+    const res = {
         attrAdapters: {
             [whereAttrAdapter.ifValue]: whereAttrAdapter,
             [whereAttrAdapter.elseifValue]: whereAttrAdapter,
@@ -18,11 +18,14 @@ const initMpXmlParseAdapter = (
             [forAttrAdapter.forValue]: forAttrAdapter,
             [forAttrAdapter.forItemValue]: forAttrAdapter,
             [forAttrAdapter.forIndexValue]: forAttrAdapter,
-            [forAttrAdapter.forKeyValue]: forAttrAdapter,
             __unclaimed: new MkBaseAttrParseAdapter(mpPlatform),
         },
         contentAdapter,
     };
+    if (forAttrAdapter.forKeyValue) {
+        res.attrAdapters[forAttrAdapter.forKeyValue] = forAttrAdapter;
+    }
+    return res;
 };
 
 export const MpPlatformAdapters = {

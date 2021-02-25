@@ -20,7 +20,9 @@ export default class MkForAttrParseAdapter
         this.forValue = spec.namespace + spec.for;
         this.forItemValue = spec.namespace + spec.forItem;
         this.forIndexValue = spec.namespace + spec.forIndex;
-        this.forKeyValue = spec.namespace + spec.key;
+        if (spec.key) {
+            this.forKeyValue = spec.namespace + spec.key;
+        }
     }
     // mergeForContent(content: MpForAttrContent, key: string, attr?: FxNode) {
     //     if (attr && attr.content && attr.content.trim()) {

@@ -5,7 +5,7 @@ import {
     IMkMpXmlAttrParseAdapter,
     LikeFxParseContext,
 } from "@mpkit/types";
-import MpSpec from "../spec";
+import { mpViewSyntaxSpec } from "../spec";
 import { FxNodeJSON } from "forgiving-xml-parser";
 import { parseMpXmlContent } from "../content";
 
@@ -14,7 +14,7 @@ export class MkBaseAttrParseAdapter implements IMkMpXmlAttrParseAdapter {
     mpViewSyntax: MpViewSyntaxSpec;
     constructor(mpPlatform: MpPlatform) {
         this.mpPlatform = mpPlatform;
-        const spec = MpSpec.ViewSyntax[this.mpPlatform];
+        const spec = mpViewSyntaxSpec[this.mpPlatform];
         this.mpViewSyntax = spec;
     }
     parse(

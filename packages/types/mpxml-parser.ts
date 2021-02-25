@@ -1,4 +1,4 @@
-import { MkOmit, MkMap, MkEnumMap } from "./util";
+import { MkOmit, MkMap } from "./util";
 import {
     FxNode,
     FxParseResult,
@@ -7,11 +7,11 @@ import {
     FxNodeJSON,
     FxEventHandler,
     FxNodeAdapter,
+    FxSerializeOptions,
+    FxEventType,
+    FxNodeType,
 } from "forgiving-xml-parser";
 import { MpPlatform } from "./platform";
-export interface MpSpec {
-    [prop: string]: MkEnumMap<MpPlatform, MpViewSyntaxSpec>;
-}
 export interface MpViewSyntaxSpec {
     namespace: string;
     for: string;
@@ -19,24 +19,28 @@ export interface MpViewSyntaxSpec {
     forIndex: string;
     key: string;
     if: string;
-    elseif: string;
+    elseIf: string;
     else: string;
+    xjsNodeName: string;
+    xjsModuleAttrName: string;
+    xjsSrcAttrName: string;
     forAndWhereAttrNeedBracket: boolean;
 }
-export enum MpWhereType {
-    if = "if",
-    elseif = "elseif",
-    else = "else",
-}
-export enum MpEachType {
-    key = "key",
-    for = "for",
-    forItem = "forItem",
-    forIndex = "forIndex",
-}
+
+// export interface MkMpXmlParseRuleMatcher extends FxEventHandler {}
+// export interface MkMpXmlParseRuleHnalder extends FxEventHandler {}
+// export interface MkMpXmlParseRule {
+//     target: FxEventType | FxNodeType | MkMpXmlParseRuleMatcher;
+//     handler: MkMpXmlParseRuleHnalder;
+// }
+export type MkPlatformNodeAdapterMap = {
+    [prop in MpPlatform]?: FxNodeAdapter[];
+};
 export interface MkMpXmlParseOptions {
     onEvent?: FxEventHandler;
+    // rules?: MkMpXmlParseRule[];
 }
+export interface MkMpXmlSerializeOptions extends FxSerializeOptions {}
 export interface MkXmlContent {
     type: MpXmlContentType;
     value: string;
@@ -58,6 +62,9 @@ export interface MpForAttrContent extends MkXmlContent {
     featureItem?: string;
     featureIndex?: string;
     featureKey?: string;
+}
+export interface MkMpXmlParseContext {
+    xjsModuleNames?: []; // 该页面引入的wxs/sjs...之类的模块名称
 }
 export interface IMkMpXmlAttrParseAdapter {
     parse(
@@ -87,7 +94,6 @@ export interface MkXmlNodeJSON
     attrs?: MkXmlNodeJSON[];
     children?: MkXmlNodeJSON[];
     mpContents?: MpForAttrContent[] | MkXmlContent[];
-    special?: MpWhereType | MpEachType;
 }
 export interface LikeFxParseContext {
     nodes?: FxNode[] | FxNodeJSON[] | MkXmlNodeJSON[] | MkXmlNode[];

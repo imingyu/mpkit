@@ -11,6 +11,8 @@ import {
     MkXmlNodeJSON,
     MkXmlContent,
     LikeFxParseContext,
+    MkMpXmlParseContext,
+    MkPlatformNodeAdapterMap,
 } from "@mpkit/types";
 import { MpPlatformAdapters } from "./adapter/index";
 import {
@@ -30,12 +32,16 @@ import {
     FxParseBaseOptions,
     FxBoundaryPosition,
     notSpaceCharCursor,
+    DEFAULT_PARSE_OPTIONS,
+    moveCursor,
+    toCursor,
+    isElementEndTagBegin,
 } from "forgiving-xml-parser";
+import { mpViewSyntaxSpec } from "./spec";
 import { ADAPTER_PARAMS_WRONG, XMLJSON_PARAMS_WRONG } from "./message";
 import { isEmptyObject } from "@mpkit/util";
 import { isFunc } from "@mpkit/util";
 import { getParent, getPreviousSibling } from "./util";
-export { serialize } from "forgiving-xml-parser";
 const DEFAULT_XML_PARSE_OPTIONS: FxParseBaseOptions = {
     allowNodeNameEmpty: false,
     allowAttrContentHasBr: false,
@@ -73,6 +79,44 @@ const formatAdapter = (
             !isEmptyObject(parseAdapter.contentAdapter) &&
             isFunc(parseAdapter.contentAdapter.parse),
     } as MkMpXmlParseAdapterFormater;
+};
+const xmlNodeAdapterMap: MkPlatformNodeAdapterMap = {};
+const getPlatformXmlNodeAdapters = (platform: MpPlatform) => {
+    if (!xmlNodeAdapterMap[platform]) {
+        const nodeAdapters = [...DEFAULT_PARSE_OPTIONS.nodeAdapters];
+        nodeAdapters[nodeAdapters.length - 1] = {
+            ...nodeAdapters[nodeAdapters.length - 1],
+        };
+        const orgContentEndChecker =
+            nodeAdapters[nodeAdapters.length - 1].contentEndChecker;
+        const xjsNodeName = mpViewSyntaxSpec[platform].xjsNodeName;
+        const REG_XJS_END_TAG = new RegExp(`</${xjsNodeName}\s*>`);
+        nodeAdapters[nodeAdapters.length - 1].contentEndChecker = (
+            xml: string,
+            cursor: FxCursorPosition,
+            options: FxParseOptions,
+            parentNode?: FxNode
+        ): boolean => {
+            if (
+                parentNode &&
+                parentNode.type === FxNodeType.element &&
+                parentNode.name === xjsNodeName &&
+                isElementEndTagBegin(
+                    xml,
+                    moveCursor(toCursor(cursor), 0, 1, 1)
+                ) &&
+                REG_XJS_END_TAG.test(xml.substr(cursor.offset + 1))
+            ) {
+                return true;
+            }
+            return (
+                orgContentEndChecker &&
+                orgContentEndChecker(xml, cursor, options, parentNode)
+            );
+        };
+        xmlNodeAdapterMap[platform] = nodeAdapters;
+    }
+    return xmlNodeAdapterMap[platform];
 };
 const mergeParseOptions = (
     options?: MkMpXmlParseOptions
@@ -134,9 +178,10 @@ const loopParseMpXmlJSON = (
         return node;
     });
 };
-export const parseMpXmlJSON = (
+export const xmlJSONToMpXmlJSON = (
     xmlJSON: FxNodeJSON | FxNodeJSON[],
-    adapter: MpPlatform | IMkMpXmlParseAdapter = MpPlatform.wechat
+    adapter: MpPlatform | IMkMpXmlParseAdapter = MpPlatform.wechat,
+    context?: MkMpXmlParseContext
 ): MkXmlParseResultBase => {
     const { parseAdapter, hasContentAdapter, hasAttrAdapter } = formatAdapter(
         adapter
@@ -165,7 +210,9 @@ export const parseMpXmlJSON = (
             parseAdapter,
             hasContentAdapter,
             hasAttrAdapter,
-            nodes
+            nodes,
+            null,
+            null
         );
         return {
             nodes,
@@ -215,6 +262,11 @@ export const parseMpXml = (
     }
     const onEvent = options && options.onEvent;
     options = mergeParseOptions(options);
+    if (typeof adapter === "string") {
+        (options as FxParseOptions).nodeAdapters = getPlatformXmlNodeAdapters(
+            adapter
+        );
+    }
     options.onEvent = function (
         type: FxEventType,
         context: FxParseContext,
@@ -299,11 +351,11 @@ export const parseMpXml = (
         onEvent && onEvent.apply(options, arguments);
     };
     (options as FxParseOptions).allowNodeNotClose = allowNodeNotClose;
-    const xmlParseResult = parseXML(mpXml, options);
+    const xmlParseResult: MkXmlParseResult = parseXML(mpXml, options);
     if (xmlParseResult.error) {
         delete xmlParseResult.nodes;
     }
-    return (xmlParseResult as unknown) as MkXmlParseResult;
+    return xmlParseResult;
 };
 
 export const toJSON = (

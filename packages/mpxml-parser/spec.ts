@@ -1,4 +1,4 @@
-import { MpViewSyntaxSpec, MpPlatform, MpSpec } from "@mpkit/types";
+import { MpViewSyntaxSpec, MpPlatform } from "@mpkit/types";
 import { merge } from "@mpkit/util";
 
 const MpWechatViewSyntaxSpec: MpViewSyntaxSpec = {
@@ -8,22 +8,33 @@ const MpWechatViewSyntaxSpec: MpViewSyntaxSpec = {
     forIndex: "for-index",
     key: "key",
     if: "if",
-    elseif: "elif",
+    elseIf: "elif",
     else: "else",
+    xjsNodeName: "wxs",
+    xjsModuleAttrName: "module",
+    xjsSrcAttrName: "src",
     forAndWhereAttrNeedBracket: true,
 };
-export default ({
-    ViewSyntax: {
-        [MpPlatform.wechat]: MpWechatViewSyntaxSpec,
-        [MpPlatform.alipay]: merge({}, MpWechatViewSyntaxSpec, {
-            namespace: "a:",
-        }) as MpViewSyntaxSpec,
-        [MpPlatform.smart]: merge({}, MpWechatViewSyntaxSpec, {
-            namespace: "s-",
-            forAndWhereAttrNeedBracket: false,
-        }) as MpViewSyntaxSpec,
-        [MpPlatform.tiktok]: merge({}, MpWechatViewSyntaxSpec, {
-            namespace: "tt:",
-        }) as MpViewSyntaxSpec,
-    },
-} as unknown) as MpSpec;
+export const mpViewSyntaxSpec: { [prop in MpPlatform]?: MpViewSyntaxSpec } = {
+    [MpPlatform.wechat]: MpWechatViewSyntaxSpec,
+    [MpPlatform.alipay]: merge({}, MpWechatViewSyntaxSpec, {
+        xjsNodeName: "import-sjs",
+        xjsModuleAttrName: "name",
+        xjsSrcAttrName: "from",
+        namespace: "a:",
+    }) as MpViewSyntaxSpec,
+    [MpPlatform.smart]: merge({}, MpWechatViewSyntaxSpec, {
+        xjsNodeName: "import-sjs",
+        xjsModuleAttrName: "module",
+        xjsSrcAttrName: "src",
+        namespace: "s-",
+        forAndWhereAttrNeedBracket: false,
+    }) as MpViewSyntaxSpec,
+    [MpPlatform.tiktok]: merge({}, MpWechatViewSyntaxSpec, {
+        key: "",
+        xjsNodeName: "sjs",
+        xjsModuleAttrName: "module",
+        xjsSrcAttrName: "src",
+        namespace: "tt:",
+    }) as MpViewSyntaxSpec,
+};

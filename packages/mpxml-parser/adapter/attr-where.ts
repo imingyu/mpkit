@@ -30,7 +30,7 @@ export default class MpParseWehreAttrAdapter
         super(mpPlatform);
         const spec = this.mpViewSyntax;
         this.ifValue = spec.namespace + spec.if;
-        this.elseifValue = spec.namespace + spec.elseif;
+        this.elseifValue = spec.namespace + spec.elseIf;
         this.elseValue = spec.namespace + spec.else;
     }
     parse(
