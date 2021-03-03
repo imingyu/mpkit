@@ -68,6 +68,7 @@ export interface MpView {
     $mkKey: string;
     $mkKeyIsDefine?: string;
     $mkNativeSetData: MpSetDataHandler;
+    $mkDiffSetDataBeforeValue: MpSetDataHandler;
     $mkSetData: MkSetData;
     $mkSetDataIsBind?: boolean;
     $mkReadyData: any;

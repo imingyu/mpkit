@@ -192,7 +192,7 @@ export class MkSetDataPerformer {
     }
     exec<T>(view: MpView, data: T, callback: Function): Promise<T | void> {
         return new Promise((resolve, reject) => {
-            if (isMpIvew(view) && isFunc(view.$mkNativeSetData)) {
+            if (isMpIvew(view) && isFunc(view.$mkDiffSetDataBeforeValue)) {
                 this.bindView(view);
                 if (!isValidObject(data)) {
                     callback && callback();
@@ -206,7 +206,7 @@ export class MkSetDataPerformer {
                 }
                 if (!this.options.diff) {
                     merge(view.$mkReadyData, ignoreResult);
-                    return view.$mkNativeSetData(ignoreResult, () => {
+                    return view.$mkDiffSetDataBeforeValue(ignoreResult, () => {
                         callback && callback();
                         return resolve(ignoreResult);
                     });
@@ -220,7 +220,7 @@ export class MkSetDataPerformer {
                     callback && callback();
                     return resolve();
                 }
-                return view.$mkNativeSetData(diffResult, () => {
+                return view.$mkDiffSetDataBeforeValue(diffResult, () => {
                     callback && callback();
                     return resolve(diffResult);
                 });

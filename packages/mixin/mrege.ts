@@ -32,7 +32,7 @@ export const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
     });
     return res;
 };
-const mergeMethod = (
+export const mergeMethod = (
     methodHook,
     methodName,
     methodValues,
@@ -206,19 +206,25 @@ export const mergeView = (
     let specialProps = {};
     const methodMap = {};
     let hasSpecial;
-    if (
-        viewType === MpViewType.Component &&
-        (platform === MpPlatform.wechat ||
+    if (viewType === MpViewType.Component) {
+        if (
+            platform === MpPlatform.wechat ||
             platform === MpPlatform.smart ||
-            platform === MpPlatform.tiktok)
-    ) {
-        hasSpecial = true;
-        merge(specialProps, {
-            properties: [],
-            methods: [],
-            lifetimes: [],
-            pageLifetimes: [],
-        });
+            platform === MpPlatform.tiktok
+        ) {
+            hasSpecial = true;
+            merge(specialProps, {
+                properties: [],
+                methods: [],
+                lifetimes: [],
+                pageLifetimes: [],
+            });
+        } else if (platform === MpPlatform.alipay) {
+            hasSpecial = true;
+            merge(specialProps, {
+                methods: [],
+            });
+        }
     }
     specList.forEach((spec) => {
         Object.keys(spec).forEach((prop) => {
@@ -246,34 +252,43 @@ export const mergeView = (
         });
     });
     if (hasSpecial) {
-        if (specialProps["properties"].length) {
+        if (specialProps["properties"] && specialProps["properties"].length) {
             result["properties"] = mergeProperties(
                 methodHook,
                 specialProps["properties"]
             );
         }
-        mergeSpecialProps(
-            "pageLifetimes",
-            specialProps["pageLifetimes"],
-            methodHook,
-            platform,
-            result
-        );
-        mergeSpecialProps(
-            "methods",
-            specialProps["methods"],
-            methodHook,
-            platform,
-            result
-        );
-        mergeSpecialProps(
-            "lifetimes",
-            specialProps["lifetimes"],
-            methodHook,
-            platform,
-            result,
-            methodMap
-        );
+        if (
+            specialProps["pageLifetimes"] &&
+            specialProps["pageLifetimes"].length
+        ) {
+            mergeSpecialProps(
+                "pageLifetimes",
+                specialProps["pageLifetimes"],
+                methodHook,
+                platform,
+                result
+            );
+        }
+        if (specialProps["methods"] && specialProps["methods"].length) {
+            mergeSpecialProps(
+                "methods",
+                specialProps["methods"],
+                methodHook,
+                platform,
+                result
+            );
+        }
+        if (specialProps["lifetimes"] && specialProps["lifetimes"].length) {
+            mergeSpecialProps(
+                "lifetimes",
+                specialProps["lifetimes"],
+                methodHook,
+                platform,
+                result,
+                methodMap
+            );
+        }
     }
     hookMethod(methodHook, methodMap, result);
     return result;
