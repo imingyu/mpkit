@@ -155,6 +155,18 @@ export const diffMpData = (source, target, result?: any, path?: string) => {
         return target;
     }
     result = result || {};
+    /**
+     * 当target数组长度小于source的长度时，需要将source完全替换成target避免产生错误，详情见：
+     * https://developers.weixin.qq.com/community/develop/article/doc/0000ec6fe2c960e426a9fcf4151c13
+     */
+    if (Array.isArray(target) && (!source || source.length > target.length)) {
+        const res = safeJSON(target);
+        if (path) {
+            result[`${path}`] = res;
+            return result;
+        }
+        return res;
+    }
     Object.keys(target).forEach((targetKey, targetKeyIndex, arr) => {
         const targetValue = target[targetKey];
         const prop = path
@@ -189,13 +201,6 @@ export const diffMpData = (source, target, result?: any, path?: string) => {
             } else {
                 diffMpData(sourceValue, targetValue, result, prop);
             }
-        }
-        if (
-            Array.isArray(target) &&
-            targetKeyIndex === arr.length - 1 &&
-            source.length !== target.length
-        ) {
-            result[`${path}.length`] = target.length;
         }
     });
 
