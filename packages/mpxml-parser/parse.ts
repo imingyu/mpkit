@@ -35,6 +35,7 @@ import {
     toCursor,
     isElementEndTagBegin,
     FxParseResult,
+    FxBoundaryPosition,
 } from "forgiving-xml-parser";
 import { mpViewSyntaxSpec } from "./spec";
 import { ADAPTER_PARAMS_WRONG, XMLJSON_PARAMS_WRONG } from "./message";
@@ -49,12 +50,12 @@ const DEFAULT_XML_PARSE_OPTIONS: FxParseBaseOptions = {
     allowStartTagBoundaryNearSpace: (
         xml: string,
         cursor: FxCursorPosition
-    ): boolean => {
+    ): boolean | FxBoundaryPosition => {
         const nextValidCharCursor = notSpaceCharCursor(xml, cursor);
         if (nextValidCharCursor && xml[nextValidCharCursor.offset] === "/") {
             return true;
         }
-        return false;
+        return FxBoundaryPosition.right;
     },
     allowTagNameHasSpace: false,
     ignoreTagNameCaseEqual: false,
@@ -244,6 +245,13 @@ export const parseMpXml = (
     platform: MpPlatform = MpPlatform.wechat,
     options?: MkMpXmlParseOptions
 ): MkXmlParseResult => {
+    if (!mpXml) {
+        return {
+            xml: mpXml,
+            maxCol: 0,
+            maxLine: 0,
+        };
+    }
     const { parseAdapter, hasAttrAdapter, hasContentAdapter } = formatAdapter(
         platform
     );

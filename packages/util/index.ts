@@ -25,7 +25,11 @@ export const uuid = () => {
 };
 
 export const isNativeFunc = (func: Function) => {
-    return func === Function || func.toString().indexOf("[native code]") !== -1;
+    return (
+        func === Function ||
+        (typeof func === "function" &&
+            func.toString().indexOf("[native code]") !== -1)
+    );
 };
 
 export const isFunc = (obj) => typeof obj === "function";
@@ -253,8 +257,16 @@ export const isMpIvew = (view: any): boolean => {
 };
 
 export const safeJSON = (obj) => {
-    if (typeof obj !== "object") {
+    const type = typeof obj;
+    if (type !== "object") {
         return obj;
+    } else if (Array.isArray(obj)) {
+        const res = [];
+        res.length = obj.length;
+        Object.keys(obj).forEach((key) => {
+            res[key] = safeJSON(obj[key]);
+        });
+        return res;
     } else {
         return JSON.parse(JSON.stringify(obj));
     }
@@ -273,13 +285,16 @@ export function isPlainObject(value) {
     return Object.getPrototypeOf(value) === proto;
 }
 export const isEmptyObject = (obj) => {
+    if (Array.isArray(obj)) {
+        return !obj.length;
+    }
     for (let prop in obj) {
         return false;
     }
     return true;
 };
-export const isValidObject = (obj, checkEmpty = true) =>
-    typeof obj === "object" && obj && (checkEmpty ? !isEmptyObject(obj) : true);
+
+export const isUndefined = (obj) => typeof obj === "undefined";
 
 export const merge = (source, ...targets) => {
     if (!isValidObject(source, false)) {
@@ -287,6 +302,13 @@ export const merge = (source, ...targets) => {
     }
     targets.forEach((target) => {
         if (isValidObject(target)) {
+            if (Array.isArray(target)) {
+                if (Array.isArray(source)) {
+                    source.length = target.length;
+                } else {
+                    source = [];
+                }
+            }
             Object.keys(target).forEach((prop) => {
                 const value = target[prop];
                 const valType = typeof value;
@@ -306,6 +328,54 @@ export const merge = (source, ...targets) => {
                     source[prop] = value;
                 }
             });
+        } else if (Array.isArray(target)) {
+            if (!likeArray(source)) {
+                source = [];
+            }
+        }
+    });
+    return source;
+};
+export const isValidObject = (obj, checkEmpty = true) =>
+    typeof obj === "object" && obj && (checkEmpty ? !isEmptyObject(obj) : true);
+export const intersectionMerge = (source, ...targets) => {
+    if (!isValidObject(source, false)) {
+        return source;
+    }
+    targets.forEach((target) => {
+        if (isValidObject(target)) {
+            Object.keys(target).forEach((prop) => {
+                const value = target[prop];
+                const valType = typeof value;
+                if (
+                    valType === "object" &&
+                    value &&
+                    (isPlainObject(value) || Array.isArray(value))
+                ) {
+                    if (typeof source[prop] !== "object") {
+                        source[prop] = Array.isArray(value) ? [] : {};
+                    }
+                    if (Array.isArray(value) && !value.length) {
+                        source[prop] = [];
+                    } else {
+                        source[prop] = merge(source[prop], value);
+                        if (
+                            Array.isArray(value) &&
+                            source[prop].length > value.length
+                        ) {
+                            source[prop].splice(value.length);
+                        }
+                    }
+                } else {
+                    source[prop] = value;
+                }
+            });
+        } else if (Array.isArray(target)) {
+            if (likeArray(source)) {
+                source.length = target.length;
+            } else {
+                source = [];
+            }
         }
     });
     return source;
@@ -345,3 +415,10 @@ export const firstAfterCharsIndex = (
 export const reolaceFileSuffix = (fileName: string, suffix: string) => {
     return fileName.substr(0, fileName.lastIndexOf(".")) + suffix;
 };
+
+export const likeArray = (obj) =>
+    Array.isArray(obj) ||
+    (typeof obj === "object" &&
+        obj &&
+        typeof obj.length === "number" &&
+        obj.length);

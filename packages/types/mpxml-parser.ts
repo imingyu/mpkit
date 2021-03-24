@@ -21,7 +21,7 @@ export interface MpViewSyntaxSpec {
     if: string;
     elseIf: string;
     else: string;
-    xmlFileSuffix?: string;
+    xmlFileSuffix: string;
     xjsNodeName?: string;
     xjsFileSuffix?: string;
     xjsModuleAttrName?: string;
@@ -31,6 +31,14 @@ export interface MpViewSyntaxSpec {
     importSrcAttrName?: string;
     includeNodeName?: string;
     includeSrcAttrName?: string;
+    mpxUnit: string;
+    cssFileSuffix: string;
+    triggerCustomEvent: boolean;
+    bindEvent: boolean;
+    catchEvent: boolean;
+    mutBindEvent: boolean;
+    captureBindEvent: boolean;
+    captureCatchEvent: boolean;
 }
 
 // export interface MkMpXmlParseRuleMatcher extends FxEventHandler {}

@@ -25,7 +25,7 @@
             "request": "launch",
             "name": "debug set-data",
             "skipFiles": ["<node_internals>/**"],
-            "program": "${workspaceFolder}/packages/set-data/test/debug.js",
+            "program": "${workspaceFolder}/packages/set-data/debug.js",
             "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]

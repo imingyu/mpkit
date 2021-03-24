@@ -54,9 +54,6 @@ export const cloneNode = (
     node: MkXmlNodeJSON,
     cloneAttr?: boolean,
     deep?: boolean
-    // parent?: MkXmlNodeJSON,
-    // previousSibling?: MkXmlNodeJSON,
-    // nextSibling?: MkXmlNodeJSON
 ): MkXmlNodeJSON => {
     const res: MkXmlNodeJSON = {
         type: node.type,
@@ -96,40 +93,7 @@ export const cloneNode = (
     }
     if (deep && node.children) {
         res.children = node.children.map((item, index) => cloneNode(item));
-        // node.children.forEach((item, index) => {
-        //     const tsItem: MkXmlNode = item as MkXmlNode;
-        //     if (tsItem.previousSibling) {
-        //         const newIndex = node.children.findIndex(
-        //             (c) => c === tsItem.previousSibling
-        //         );
-        //         if (newIndex !== -1) {
-        //             (res.children[index] as MkXmlNode).previousSibling =
-        //                 res.children[newIndex];
-        //         }
-        //     }
-        //     if (tsItem.nextSibling) {
-        //         const newIndex = node.children.findIndex(
-        //             (c) => c === tsItem.nextSibling
-        //         );
-        //         if (newIndex !== -1) {
-        //             (res.children[index] as MkXmlNode).nextSibling =
-        //                 res.children[newIndex];
-        //         }
-        //     }
-        // });
     }
-    // if ("parent" in node && parent) {
-    //     const tsNode: MkXmlNode = res as MkXmlNode;
-    //     tsNode.parent = parent;
-    // }
-    // if ("previousSibling" in node && previousSibling) {
-    //     const tsNode: MkXmlNode = res as MkXmlNode;
-    //     tsNode.previousSibling = previousSibling;
-    // }
-    // if ("nextSibling" in node && nextSibling) {
-    //     const tsNode: MkXmlNode = res as MkXmlNode;
-    //     tsNode.nextSibling = nextSibling;
-    // }
     return res;
 };
 
@@ -181,6 +145,61 @@ export const parseSmartForAttrContent = (content: string): MpForAttrContent => {
         forAttrContent.featureList = valMain;
     }
     return forAttrContent;
+};
+
+const translateBindEventAttr = (
+    attr: MkXmlNodeJSON,
+    targetNode: MkXmlNodeJSON,
+    sourcePlatform: MpPlatform,
+    targetPlatform: MpPlatform
+) => {
+    let bindMode: string;
+    if (attr.name.startsWith("catch")) {
+        bindMode = "catch";
+    } else if (sourcePlatform === MpPlatform.alipay) {
+        if (attr.name.startsWith("on")) {
+            bindMode = "on";
+        }
+    } else {
+        if (attr.name.startsWith("bind")) {
+            bindMode = "bind";
+        } else if (
+            sourcePlatform === MpPlatform.wechat ||
+            sourcePlatform === MpPlatform.smart
+        ) {
+            if (attr.name.startsWith("capture-bind")) {
+                bindMode = "capture-bind";
+            } else if (attr.name.startsWith("capture-catch")) {
+                bindMode = "capture-catch";
+            } else if (
+                sourcePlatform === MpPlatform.wechat &&
+                attr.name.startsWith("mut-bind")
+            ) {
+                bindMode = "mut-bind";
+            }
+        }
+    }
+    if (bindMode) {
+        let targetEventName = attr.name.substr(bindMode.length);
+        targetEventName =
+            sourcePlatform === MpPlatform.alipay
+                ? targetEventName.toLowerCase()
+                : targetEventName.startsWith(":")
+                ? targetEventName.substr(1)
+                : targetEventName;
+        if (sourcePlatform === MpPlatform.alipay) {
+            // 支付宝向其他平台转换，其他平台的事件系统均支持bind和catch
+            attr.name = `${
+                bindMode === "on" ? "bind" : bindMode
+            }${targetEventName}`;
+            return;
+        }
+        if (targetPlatform === MpPlatform.alipay) {
+        }
+        if (bindMode.startsWith("capture")) {
+            // capture-xxx只有微信和百度支持
+        }
+    }
 };
 
 export const createMpTranslateAdapter = <T = any>(
@@ -277,6 +296,15 @@ export const createMpTranslateAdapter = <T = any>(
                             );
                         }
                     }
+
+                    // 转换事件
+                    translateBindEventAttr(
+                        attr,
+                        targetNode,
+                        sourcePlatform,
+                        targetPlatform
+                    );
+
                     let specicalAttrIndex: number = -1;
                     if (
                         (specicalAttrIndex = sourceSpecicalAttrs.indexOf(

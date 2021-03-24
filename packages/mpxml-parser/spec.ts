@@ -20,6 +20,14 @@ const MpWechatViewSyntaxSpec: MpViewSyntaxSpec = {
     importSrcAttrName: "src",
     includeNodeName: "include",
     includeSrcAttrName: "src",
+    mpxUnit: "rpx",
+    cssFileSuffix: ".wxss",
+    bindEvent: true,
+    catchEvent: true,
+    triggerCustomEvent: true,
+    captureBindEvent: true,
+    captureCatchEvent: true,
+    mutBindEvent: true,
 };
 export const mpViewSyntaxSpec: { [prop in MpPlatform]?: MpViewSyntaxSpec } = {
     [MpPlatform.wechat]: MpWechatViewSyntaxSpec,
@@ -30,6 +38,11 @@ export const mpViewSyntaxSpec: { [prop in MpPlatform]?: MpViewSyntaxSpec } = {
         xjsModuleAttrName: "name",
         xjsSrcAttrName: "from",
         namespace: "a:",
+        cssFileSuffix: ".acss",
+        triggerCustomEvent: false,
+        captureBindEvent: false,
+        captureCatchEvent: false,
+        mutBindEvent: false,
     }) as MpViewSyntaxSpec,
     [MpPlatform.smart]: merge({}, MpWechatViewSyntaxSpec, {
         xmlFileSuffix: ".swan",
@@ -39,6 +52,8 @@ export const mpViewSyntaxSpec: { [prop in MpPlatform]?: MpViewSyntaxSpec } = {
         xjsSrcAttrName: "src",
         namespace: "s-",
         forAndWhereAttrNeedBracket: false,
+        cssFileSuffix: ".css",
+        mutBindEvent: false,
     }) as MpViewSyntaxSpec,
     [MpPlatform.tiktok]: merge({}, MpWechatViewSyntaxSpec, {
         key: "",
@@ -48,5 +63,9 @@ export const mpViewSyntaxSpec: { [prop in MpPlatform]?: MpViewSyntaxSpec } = {
         xjsModuleAttrName: "module",
         xjsSrcAttrName: "src",
         namespace: "tt:",
+        cssFileSuffix: ".ttss",
+        captureBindEvent: false,
+        captureCatchEvent: false,
+        mutBindEvent: false,
     }) as MpViewSyntaxSpec,
 };

@@ -144,8 +144,13 @@ const mergeProperties = (methodHook, properties) => {
             if (isNativeFunc(val)) {
                 result[prop].type = val;
             } else if (typeof val === "object") {
-                result[prop].type = val.type || result[prop].type;
-                val.observer && observer[prop].push(val.observer);
+                result[prop].type = val ? val.type || result[prop].type : null;
+                if (val && "value" in val) {
+                    result[prop].value = val.value;
+                }
+                val && val.observer && observer[prop].push(val.observer);
+            } else {
+                result[prop].value = val;
             }
         }
     });
@@ -361,6 +366,32 @@ export const mergeApi = (api: any, methodHook?: MpMethodHook[]) => {
                             res,
                             funId
                         );
+                        if (res && typeof res === "object" && "then" in res) {
+                            res.then((r) => {
+                                execHook(
+                                    methodHook,
+                                    this,
+                                    "complete",
+                                    methodName,
+                                    args,
+                                    r,
+                                    true,
+                                    funId
+                                );
+                            });
+                            res.catch((err) => {
+                                execHook(
+                                    methodHook,
+                                    this,
+                                    "complete",
+                                    methodName,
+                                    args,
+                                    err,
+                                    false,
+                                    funId
+                                );
+                            });
+                        }
                         return res;
                     }
                 } catch (error) {

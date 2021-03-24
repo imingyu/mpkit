@@ -32,6 +32,39 @@ describe('SetData', () => {
             }
         });
     });
+    it('openMpData:后面的会覆盖前面的', () => {
+        const d1 = openMpData({
+            'a.b': 2,
+            'a': 1,
+            'c': {},
+            'c.a': 2,
+            'c.b[0].a': 1,
+            'c.b': [],
+            'c.b[3].b': 2,
+            'c.b.length': 10,
+            'c.d': [],
+            'c.e[3]': 3,
+            'c.f.length': 0
+        }, {
+            c: {
+                b: [1],
+                d: [1, 2],
+                f: [1, 2, 3],
+                e: [1, 2, 3, 4, 5, 6, 7]
+            }
+        });
+        assert.equal(d1.a, 1);
+        assert.isObject(d1.c);
+        assert.equal(d1.c.a, 2);
+        assert.equal(d1.c.b.length, 10);
+        assert.equal(d1.c.b[9], undefined);
+        assert.equal(d1.c.b[0], undefined);
+        assert.equal(d1.c.b[3].b, 2);
+        assert.equal(d1.c.f.length, 0);
+        assert.equal(d1.c.d.length, 0);
+        assert.equal(d1.c.e.length, 7);
+        assert.equal(d1.c.e[3], 3);
+    });
     it('diffMpData', () => {
         const source = {
             data: 3,
@@ -67,7 +100,7 @@ describe('SetData', () => {
         };
         const d1 = diffMpData(source, openMpData({
             'list[0].user.name': 'Jeck'
-        }));
+        }, source));
         const keys = Object.keys(d1)
         assert.equal(keys.length, 1);
         assert.equal(keys[0], "list[0].user.name");
@@ -91,16 +124,62 @@ describe('SetData', () => {
             name: '22'
         }
         t2.order.products = [];
-        const d3 = diffMpData(source, t2);
+        const d3 = diffMpData(source, openMpData(t2, source));
         const keys3 = Object.keys(d3)
-        assert.equal(keys3.length, 5);
+        assert.equal(keys3.length, 6);
         assert.equal('data' in d3, true);
         assert.equal(d3.data, 5);
+        assert.equal(d3["list.length"], 6);
         assert.equal("list[0].name" in d3, true);
         assert.equal("list[0].user" in d3, true);
         assert.equal(d3['list[0].name'], "11");
         assert.equal(d3['list[0].user'], null);
         assert.equal(d3['list[5]'].name, "22");
         assert.equal(JSON.stringify(d3['order.products']), "[]");
+
+
+
+        const sourceFull = {
+            c: {
+                b: [1],
+                d: [1, 2],
+                f: [1, 2, 3],
+                e: [1, 2, 3, 4, 5, 6, 7]
+            }
+        }
+        const targetFull = openMpData({
+            'a.b': 2,
+            'a': 1,
+            'c': {},
+            'c.a': 2,
+            'c.b[0].a': 1,
+            'c.b': [],
+            'c.b[3].b': 2,
+            'c.b.length': 10,
+            'c.d': [],
+            'c.e[3]': 3,
+            'c.f.length': 0
+        }, sourceFull);
+        const diffR = diffMpData(sourceFull, targetFull);
+        const compareR = {};
+        compareR.a = 1;
+        compareR['c.a'] = 2;
+        compareR['c.b.length'] = 10;
+        compareR['c.b[3]'] = { b: 2 };
+        compareR['c.d'] = [];
+        compareR['c.f.length'] = 0;
+        compareR['c.e[3]'] = 3;
+        const keysS1 = Object.keys(compareR);
+        let l1 = keysS1.length;
+        const keysS2 = Object.keys(diffR);
+        let l2 = keysS1.length;
+        keysS2.forEach(key => {
+            assert.equal(keysS1.find(item => item === key), key);
+            l1--;
+            l2--;
+            assert.equal(JSON.stringify(compareR[key]), JSON.stringify(diffR[key]))
+        })
+        assert.equal(l1, 0);
+        assert.equal(l2, 0);
     })
 })

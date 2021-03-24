@@ -8,9 +8,12 @@ import {
     getMpViewPathName,
     getMpViewType,
     isEmptyObject,
+    intersectionMerge,
+    isUndefined,
 } from "@mpkit/util";
 import { isFunc } from "@mpkit/util";
 import { MkSetDataIgnoreHandler } from "@mpkit/types";
+import { likeArray } from "@mpkit/util";
 
 export const defaultSetDataOptions: MkSetDataOptions = {
     // 排除哪些数据？
@@ -27,12 +30,33 @@ export const defaultSetDataOptions: MkSetDataOptions = {
 // 此正则表达式来自lodash:_stringToPath.js  https://github.com/lodash/lodash
 const rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
 
-// TODO: 支持deep参数
-export const openMpData = (data, view?: MpView) => {
+/**
+ * 展开对象，按照对象key的顺序依次进行展开，后面的值可将前面的值覆盖，如：
+ * 1.{'user.age':20,'user':{}} 返回的将是{'user':{}};
+ * 2.{'arr[3].age':20,'arr.length':1} 返回的将是{'arr':[Empty x1]};
+ * 3.data中传入的arr.length要比viewOrSourceFullMpData中的优先级高，如果不传入length则使用viewOrSourceFullMpData中的（倘若viewOrSourceFullMpData中的不为空的话）
+ * TODO: 支持deep参数
+ * @param data 要展开的对象
+ * @param viewOrSourceFullMpData 传递page/component实例或者完整的对比data
+ * @returns 展开后的结果对象
+ */
+export const openMpData = (data, viewOrSourceFullMpData?: MpView | any) => {
     const result = {};
+    const sourceData =
+        viewOrSourceFullMpData && isMpIvew(viewOrSourceFullMpData)
+            ? viewOrSourceFullMpData.data
+            : typeof viewOrSourceFullMpData === "object" &&
+              viewOrSourceFullMpData
+            ? viewOrSourceFullMpData
+            : {};
     Object.keys(data).forEach((key) => {
         const items = [];
-        if (view && (key.indexOf(".") !== -1 || key.indexOf("[") !== -1)) {
+        if (
+            viewOrSourceFullMpData &&
+            isMpIvew(viewOrSourceFullMpData) &&
+            (key.indexOf(".") !== -1 || key.indexOf("[") !== -1)
+        ) {
+            const view: MpView = viewOrSourceFullMpData as MpView;
             key.split(".").forEach((item) => {
                 if (item) {
                     const openIndex = item.indexOf("[");
@@ -93,18 +117,33 @@ export const openMpData = (data, view?: MpView) => {
             }
         });
         let obj = result;
+        let source = sourceData;
         items.forEach((propItem) => {
             if ("value" in propItem) {
-                obj[propItem.name] = propItem.value;
-            }
-            if (!(propItem.name in obj)) {
-                if (propItem.array) {
+                obj[propItem.name] = safeJSON(propItem.value);
+            } else if (propItem.array) {
+                if (!Array.isArray(obj[propItem.name])) {
                     obj[propItem.name] = [];
-                } else {
-                    obj[propItem.name] = {};
+                    if (
+                        source &&
+                        source.hasOwnProperty(propItem.name) &&
+                        Array.isArray(source[propItem.name])
+                    ) {
+                        obj[propItem.name].length =
+                            source[propItem.name].length;
+                    }
                 }
+            } else if (
+                typeof obj[propItem.name] !== "object" ||
+                !obj[propItem.name]
+            ) {
+                obj[propItem.name] = {};
             }
             obj = obj[propItem.name];
+            source =
+                source && typeof source === "object"
+                    ? source[propItem.name]
+                    : null;
         });
     });
     return result;
@@ -112,8 +151,11 @@ export const openMpData = (data, view?: MpView) => {
 
 // TODO: 要处理循环引用或者对象是复杂对象的情况
 export const diffMpData = (source, target, result?: any, path?: string) => {
+    if (typeof source !== "object" || !source) {
+        return target;
+    }
     result = result || {};
-    Object.keys(target).forEach((targetKey) => {
+    Object.keys(target).forEach((targetKey, targetKeyIndex, arr) => {
         const targetValue = target[targetKey];
         const prop = path
             ? Array.isArray(target)
@@ -121,35 +163,58 @@ export const diffMpData = (source, target, result?: any, path?: string) => {
                 : `${path}.${targetKey}`
             : targetKey;
         if (!(targetKey in source)) {
-            result[prop] = targetValue;
+            result[prop] = safeJSON(targetValue);
         } else {
             const sourceValue = source[targetKey];
             const targetValType = typeof targetValue;
             const sourceValType = typeof sourceValue;
             if (sourceValType !== targetValType) {
-                result[prop] = targetValue;
+                result[prop] = safeJSON(targetValue);
             } else if (sourceValType !== "object") {
                 if (sourceValue !== targetValue) {
-                    result[prop] = targetValue;
+                    result[prop] = safeJSON(targetValue);
                 }
             } else if (!sourceValue || !targetValue) {
-                result[prop] = targetValue;
+                result[prop] = safeJSON(targetValue);
             } else if (
                 (Array.isArray(sourceValue) && !sourceValue.length) ||
                 (Array.isArray(targetValue) && !targetValue.length)
             ) {
-                result[prop] = targetValue;
+                result[prop] = safeJSON(targetValue);
             } else if (
                 isEmptyObject(sourceValue) ||
                 isEmptyObject(targetValue)
             ) {
-                result[prop] = targetValue;
+                result[prop] = safeJSON(targetValue);
             } else {
                 diffMpData(sourceValue, targetValue, result, prop);
             }
         }
+        if (
+            Array.isArray(target) &&
+            targetKeyIndex === arr.length - 1 &&
+            source.length !== target.length
+        ) {
+            result[`${path}.length`] = target.length;
+        }
     });
+
     return result;
+};
+
+export const replaceUndefinedValues = (obj: any, replaceVal: any) => {
+    if (isUndefined(replaceVal) || typeof obj !== "object" || !obj) {
+        return obj;
+    }
+    Object.keys(obj).forEach((key) => {
+        const type = typeof obj[key];
+        if (type === "undefined") {
+            obj[key] = replaceVal;
+        } else if (type === "object" && obj[key]) {
+            replaceUndefinedValues(obj[key], replaceVal);
+        }
+    });
+    return obj;
 };
 
 export class MkSetDataPerformer {
@@ -198,24 +263,22 @@ export class MkSetDataPerformer {
                     callback && callback();
                     return resolve();
                 }
-                merge(view.data, data);
+                data = openMpData(data, view) as T;
+                intersectionMerge(view.data, data);
                 const ignoreResult = this.ignoreData(data);
                 if (!isValidObject(ignoreResult)) {
                     callback && callback();
                     return resolve();
                 }
                 if (!this.options.diff) {
-                    merge(view.$mkReadyData, ignoreResult);
+                    intersectionMerge(view.$mkReadyData, ignoreResult);
                     return view.$mkDiffSetDataBeforeValue(ignoreResult, () => {
                         callback && callback();
                         return resolve(ignoreResult);
                     });
                 }
-                const diffResult = diffMpData(
-                    view.$mkReadyData,
-                    openMpData(ignoreResult, view)
-                );
-                merge(view.$mkReadyData, ignoreResult);
+                const diffResult = diffMpData(view.$mkReadyData, ignoreResult);
+                intersectionMerge(view.$mkReadyData, ignoreResult);
                 if (!isValidObject(diffResult)) {
                     callback && callback();
                     return resolve();
