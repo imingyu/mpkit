@@ -53,7 +53,7 @@ export type MpViewComponentLifes =
 export type MpViewComponentPageLifes = "show" | "hide" | "resize";
 export interface MpViewComponentSpec extends MpViewSpec {
     properties?: {
-        [prop: string]: Function | MpViewComponetPropSpec;
+        [prop: string]: Function | MpViewComponetPropSpec | any;
     };
     lifetimes?: MkEnumMap<MpViewComponentLifes, Function | string>;
     pageLifetimes?: MkEnumMap<MpViewComponentPageLifes, Function | string>;

@@ -9,6 +9,7 @@ export * from "./view";
 export * from "./mpxml-parser";
 export * from "./mpxml-translator";
 export * from "./mpspec";
+export * from "./func-helper";
 export {
     FxNodeAdapter,
     FxNodeCloseType,

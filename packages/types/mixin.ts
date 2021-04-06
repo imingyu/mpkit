@@ -1,5 +1,15 @@
-import { MpViewType, MpView } from "./view";
+import {
+    MpViewType,
+    MpView,
+    MpViewComponetPropSpec,
+    MpViewComponentLifes,
+    MpViewComponentPageLifes,
+} from "./view";
 import { MkMap, MkEnumMap } from "./util";
+
+export interface MkMixinMethodHookState {
+    id: string;
+}
 
 interface MpMethodHookLike {
     before?(
@@ -45,4 +55,24 @@ export type MixinStoreHooks = MkEnumMap<MixinStoreHookProp, MpMethodHook[]>;
 export interface MkMixinStore {
     addHook(type: MixinStoreHookProp, hook: MpMethodHook);
     getHook(type: MixinStoreHookProp): MpMethodHook[];
+}
+
+export interface MkViewFormatSpec {
+    specialProps?: {
+        lifetimes?: MkEnumMap<MpViewComponentLifes, Function | string>[];
+        pageLifetimes?: MkEnumMap<
+            MpViewComponentPageLifes,
+            Function | string
+        >[];
+        properties?: Array<{
+            [prop: string]: Function | MpViewComponetPropSpec | any;
+        }>;
+        methods?: Array<{
+            [prop: string]: Function;
+        }>;
+    };
+    methodMap?: {
+        [prop: string]: Function[];
+    };
+    [prop: string]: any;
 }

@@ -4,13 +4,11 @@ import {
     getMpInitLifeName,
     getApiVar,
     getMpViewType,
-    isPromise,
-    uuid,
     isFunc,
     isMpIvew,
     getMpViewPathName,
 } from "@mpkit/util";
-import { mergeApi, mergeView, execHook, promiseifyApi } from "./mrege";
+import { mergeApi, mergeView, promiseifyApi } from "./mrege";
 import MixinStore from "./store";
 import {
     MpKitPlugin,
@@ -19,6 +17,8 @@ import {
     MpKitRewriteConfig,
     MpPlatform,
 } from "@mpkit/types";
+import { hookViewMethod } from "./view";
+import { createFuncGeneralHook, FuncIDHook } from "./hook";
 export { mergeApi, mergeView, promiseifyApi };
 
 export const MkApi = (() => {
@@ -59,68 +59,17 @@ const mkView = (type: MpViewType) => {
                         setMkSpec(this);
                         if (rewriteSetData && !this.$mkNativeSetData) {
                             this.$mkNativeSetData = this.setData;
-                            this.setData = function betterSetData(
-                                this: MpView,
-                                ...args
-                            ) {
-                                const funId = uuid();
-                                const type = getMpViewType(this);
-                                const hooks = MixinStore.getHook(type);
-                                try {
-                                    if (
-                                        execHook(
-                                            hooks,
-                                            this,
-                                            "before",
-                                            "setData",
-                                            args,
-                                            this.$mkNativeSetData,
-                                            funId
-                                        ) !== false
-                                    ) {
-                                        const res = this.$mkNativeSetData.apply(
-                                            this,
-                                            args
-                                        );
-                                        isPromise(res) &&
-                                            res.catch((error) => {
-                                                execHook(
-                                                    hooks,
-                                                    this,
-                                                    "catch",
-                                                    "setData",
-                                                    args,
-                                                    error,
-                                                    "PromiseReject",
-                                                    funId
-                                                );
-                                            });
-                                        execHook(
-                                            hooks,
-                                            this,
-                                            "after",
-                                            "setData",
-                                            args,
-                                            res,
-                                            funId
-                                        );
-                                        return res;
-                                    }
-                                    args[1] && args[1]();
-                                } catch (error) {
-                                    execHook(
-                                        hooks,
-                                        this,
-                                        "catch",
-                                        "setData",
-                                        args,
-                                        error,
-                                        "MethodError",
-                                        funId
-                                    );
-                                    throw error;
-                                }
-                            };
+                            this.setData = hookViewMethod(
+                                "setData",
+                                this.$mkNativeSetData,
+                                null,
+                                [
+                                    FuncIDHook,
+                                    createFuncGeneralHook(
+                                        MixinStore.getHook(type)
+                                    ),
+                                ]
+                            );
                         }
                     },
                 },
@@ -181,10 +130,7 @@ export const plugin: MpKitPlugin = {
                     mpkit.setData
                 ) {
                     this.$mkDiffSetDataBeforeValue = this.setData;
-                    this.setData = function betterSetData(
-                        this: MpView,
-                        ...args
-                    ) {
+                    this.setData = function DiffSetData(this: MpView, ...args) {
                         return mpkit.setData.apply(mpkit, [this, ...args]);
                     };
                 }

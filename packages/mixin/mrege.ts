@@ -1,119 +1,33 @@
+import { isNativeFunc, isPromise, uuid, isFunc } from "@mpkit/util";
 import {
-    isNativeFunc,
-    isPlainObject,
-    isPromise,
-    uuid,
-    merge,
-    isFunc,
-} from "@mpkit/util";
-import { MpMethodHook, MpViewType, MpPlatform } from "@mpkit/types";
+    MpMethodHook,
+    MpViewType,
+    MpPlatform,
+    MkReplaceFuncCallback,
+} from "@mpkit/types";
+import { fireViewMethod, formatViewSpecList, hookViewMethod } from "./view";
+import {
+    FormatApiMethodCallbackHook,
+    hookApiMethod,
+    hookApiMethodCallback,
+} from "./api";
+import { createFuncGeneralHook, FuncIDHook } from "./hook";
 
-export const execHook = (methodHook, vm, step, ...hookArgs): boolean => {
-    if (!methodHook || !methodHook.length) {
-        return;
-    }
-    const methodName = hookArgs[0];
-    let res;
-    methodHook.forEach((item) => {
-        if (res !== false) {
-            const oldRes = res;
-            res = item && item[step] && item[step].apply(vm, hookArgs);
-            res = typeof res === "undefined" ? oldRes : res;
-        }
-        if (res !== false) {
-            const oldRes = res;
-            res =
-                item &&
-                item[methodName] &&
-                item[methodName][step] &&
-                item[methodName][step].apply(vm, hookArgs);
-            res = typeof res === "undefined" ? oldRes : res;
-        }
-    });
-    return res;
-};
 export const mergeMethod = (
     methodHook,
     methodName,
     methodValues,
-    allowStr = false
+    allowStr = false,
+    replaceCallback?: MkReplaceFuncCallback
 ) => {
-    return function (...args) {
-        const funId = uuid();
-        try {
-            if (
-                execHook(
-                    methodHook,
-                    this,
-                    "before",
-                    methodName,
-                    args,
-                    methodValues,
-                    funId
-                ) !== false
-            ) {
-                let methodResult;
-                methodValues.forEach((item) => {
-                    const itemType = typeof item;
-                    let hasExec;
-                    if (itemType === "function") {
-                        const res = item.apply(this, args);
-                        if (typeof res !== "undefined") {
-                            methodResult = res;
-                        }
-                        hasExec = true;
-                    } else if (
-                        itemType === "string" &&
-                        allowStr &&
-                        this[item] &&
-                        isFunc(this[item])
-                    ) {
-                        const res = this[item].apply(this, args);
-                        if (typeof res !== "undefined") {
-                            methodResult = res;
-                        }
-                        hasExec = true;
-                    }
-                    hasExec &&
-                        isPromise(methodResult) &&
-                        methodResult.catch((error) => {
-                            execHook(
-                                methodHook,
-                                this,
-                                "catch",
-                                methodName,
-                                args,
-                                error,
-                                "PromiseReject",
-                                funId
-                            );
-                        });
-                });
-                execHook(
-                    methodHook,
-                    this,
-                    "after",
-                    methodName,
-                    args,
-                    methodResult,
-                    funId
-                );
-                return methodResult;
-            }
-        } catch (error) {
-            execHook(
-                methodHook,
-                this,
-                "catch",
-                methodName,
-                args,
-                error,
-                "MethodError",
-                funId
-            );
-            throw error;
-        }
-    };
+    function MethodOriginal(...args) {
+        return fireViewMethod.apply(this, [methodValues, allowStr, ...args]);
+    }
+
+    return hookViewMethod(methodName, MethodOriginal, replaceCallback, [
+        FuncIDHook,
+        createFuncGeneralHook(methodHook),
+    ]);
 };
 const hookMethod = (methodHook, map, target, allowStr = false) => {
     for (let methodName in map) {
@@ -144,7 +58,9 @@ const mergeProperties = (methodHook, properties) => {
             if (isNativeFunc(val)) {
                 result[prop].type = val;
             } else if (typeof val === "object") {
-                result[prop].type = val ? val.type || result[prop].type : null;
+                if (val && "type" in val) {
+                    result[prop].type = val.type;
+                }
                 if (val && "value" in val) {
                     result[prop].value = val.value;
                 }
@@ -208,204 +124,74 @@ export const mergeView = (
     ...specList
 ): any => {
     const result = {};
-    let specialProps = {};
-    const methodMap = {};
-    let hasSpecial;
-    if (viewType === MpViewType.Component) {
-        if (
-            platform === MpPlatform.wechat ||
-            platform === MpPlatform.smart ||
-            platform === MpPlatform.tiktok
-        ) {
-            hasSpecial = true;
-            merge(specialProps, {
-                properties: [],
-                methods: [],
-                lifetimes: [],
-                pageLifetimes: [],
-            });
-        } else if (platform === MpPlatform.alipay) {
-            hasSpecial = true;
-            merge(specialProps, {
-                methods: [],
-            });
-        }
-    }
-    specList.forEach((spec) => {
-        Object.keys(spec).forEach((prop) => {
-            const value = spec[prop];
-            const valType = typeof value;
-            if (prop in specialProps && viewType === MpViewType.Component) {
-                specialProps[prop].push(value);
-            } else if (valType === "object" && value && isPlainObject(value)) {
-                if (typeof result[prop] !== "object") {
-                    result[prop] = Array.isArray(value) ? [] : {};
-                }
-                merge(result[prop], value);
-            } else if (valType === "function") {
-                if (isNativeFunc(value)) {
-                    result[prop] = value;
-                } else {
-                    if (!methodMap[prop]) {
-                        methodMap[prop] = [];
-                    }
-                    methodMap[prop].push(value);
-                }
-            } else {
-                result[prop] = value;
-            }
-        });
-    });
-    if (hasSpecial) {
-        if (specialProps["properties"] && specialProps["properties"].length) {
+    const fullSpec = formatViewSpecList(viewType, platform, ...specList);
+    if (fullSpec.specialProps) {
+        if (fullSpec.specialProps.properties) {
             result["properties"] = mergeProperties(
                 methodHook,
-                specialProps["properties"]
+                fullSpec.specialProps.properties
             );
         }
-        if (
-            specialProps["pageLifetimes"] &&
-            specialProps["pageLifetimes"].length
-        ) {
+        if (fullSpec.specialProps.pageLifetimes) {
             mergeSpecialProps(
                 "pageLifetimes",
-                specialProps["pageLifetimes"],
+                fullSpec.specialProps.pageLifetimes,
                 methodHook,
                 platform,
                 result
             );
         }
-        if (specialProps["methods"] && specialProps["methods"].length) {
+        if (fullSpec.specialProps.methods) {
             mergeSpecialProps(
                 "methods",
-                specialProps["methods"],
+                fullSpec.specialProps.methods,
                 methodHook,
                 platform,
                 result
             );
         }
-        if (specialProps["lifetimes"] && specialProps["lifetimes"].length) {
+        if (fullSpec.specialProps.lifetimes) {
             mergeSpecialProps(
                 "lifetimes",
-                specialProps["lifetimes"],
+                fullSpec.specialProps.lifetimes,
                 methodHook,
                 platform,
                 result,
-                methodMap
+                fullSpec.methodMap
             );
         }
+        delete fullSpec.specialProps;
     }
-    hookMethod(methodHook, methodMap, result);
+    if (fullSpec.methodMap) {
+        hookMethod(methodHook, fullSpec.methodMap, result);
+        delete fullSpec.methodMap;
+    }
+    Object.assign(result, fullSpec);
     return result;
 };
 
-export const mergeApi = (api: any, methodHook?: MpMethodHook[]) => {
+export const mergeApi = (
+    api: any,
+    methodHook?: MpMethodHook[],
+    methodReplaceCallback?: MkReplaceFuncCallback
+) => {
     const result = {};
     for (let prop in api) {
         if (isFunc(api[prop])) {
             const methodName = prop;
             const methodHandler = api[prop];
-            result[prop] = function (...args) {
-                try {
-                    const funId = uuid();
-                    if (methodName.indexOf("Sync") === -1 && !args.length) {
-                        args[0] = {};
-                    }
-                    if (typeof args[0] === "object" && args[0]) {
-                        const { success, fail } = args[0];
-                        args[0].success = (...params) => {
-                            success && success.apply(null, params);
-                            execHook(
-                                methodHook,
-                                this,
-                                "complete",
-                                methodName,
-                                args,
-                                params.length <= 1 ? params[0] : params,
-                                true,
-                                funId
-                            );
-                        };
-                        args[0].fail = (...params) => {
-                            fail && fail.apply(null, params);
-                            execHook(
-                                methodHook,
-                                this,
-                                "complete",
-                                methodName,
-                                args,
-                                params.length <= 1 ? params[0] : params,
-                                false,
-                                funId
-                            );
-                        };
-                    }
-                    const beforeResult = execHook(
-                        methodHook,
-                        this,
-                        "before",
-                        methodName,
-                        args,
-                        methodHandler,
-                        funId
-                    );
-                    if (beforeResult !== false) {
-                        if (
-                            beforeResult !== true &&
-                            typeof beforeResult !== "undefined"
-                        ) {
-                            return beforeResult;
-                        }
-                        const res = methodHandler.apply(this, args);
-                        execHook(
-                            methodHook,
-                            this,
-                            "after",
-                            methodName,
-                            args,
-                            res,
-                            funId
-                        );
-                        if (res && typeof res === "object" && "then" in res) {
-                            res.then((r) => {
-                                execHook(
-                                    methodHook,
-                                    this,
-                                    "complete",
-                                    methodName,
-                                    args,
-                                    r,
-                                    true,
-                                    funId
-                                );
-                            });
-                            res.catch((err) => {
-                                execHook(
-                                    methodHook,
-                                    this,
-                                    "complete",
-                                    methodName,
-                                    args,
-                                    err,
-                                    false,
-                                    funId
-                                );
-                            });
-                        }
-                        return res;
-                    }
-                } catch (error) {
-                    execHook(
-                        methodHook,
-                        this,
-                        "catch",
-                        methodName,
-                        args,
-                        error
-                    );
-                    throw error;
-                }
-            };
+            result[prop] = hookApiMethod(
+                methodName,
+                methodHandler,
+                (store) => {
+                    methodReplaceCallback && methodReplaceCallback(store);
+                },
+                [
+                    FuncIDHook,
+                    FormatApiMethodCallbackHook,
+                    createFuncGeneralHook(methodHook),
+                ]
+            );
         } else {
             result[prop] = api[prop];
         }
@@ -423,32 +209,29 @@ export const promiseifyApi = (
 ): Promise<any> => {
     return new Promise((resolve, reject) => {
         if (isFunc(apiVar[apiName])) {
-            if (apiName.indexOf("Sync") === -1) {
-                let apiOptions = apiArgs[0];
-                const type = typeof apiOptions;
-                if (type !== "object" || !type) {
-                    apiOptions = {};
-                }
-                const { success, fail } = apiOptions;
-                apiOptions.success = function (...args) {
+            hookApiMethodCallback(
+                apiName,
+                (...args) => {
                     if (args.length < 2) {
                         resolve(args[0]);
                     } else {
                         resolve(args);
                     }
-                    return success.apply(this, args);
-                };
-                apiOptions.fail = function (...args) {
+                },
+                (...args) => {
                     const err = new Error("未知错误");
                     if (args.length < 2 && args[0] && args[0].errMsg) {
                         err.message = args[0].errMsg;
                     }
                     err["failResult"] = args;
                     reject(err);
-                    return fail.apply(this, args);
-                };
+                },
+                apiArgs
+            );
+            if (apiName.indexOf("Sync") === -1) {
+                let apiOptions = apiArgs[0];
                 const res = apiVar[apiName].call(apiVar, apiOptions);
-                if (res && isFunc(apiOptions)) {
+                if (res && apiOptions && isFunc(apiOptions.result)) {
                     apiOptions.result(res);
                 }
             } else {

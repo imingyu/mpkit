@@ -51,18 +51,6 @@ const cloneEntry = (source) => {
 let index = -1;
 entrys.forEach((item) => {
     index++;
-    if (item.output.format === 'umd' && !item.output.globals) {
-        item.output.globals = {
-            'forgiving-xml-parser': 'ForgivingXmlParser',
-            '@mpkit/mpxml-parser': 'MpKitMpxmlParser'
-        }
-        if (item.packageName !== 'util') {
-            item.output.globals['@mpkit/util'] = 'MpKitUtil';
-        }
-        if (item.packageName !== 'types') {
-            item.output.globals['@mpkit/types'] = 'MpKitTypes';
-        }
-    }
     if (item.output.format === 'umd' && !item.mini && !item.inclueFx) {
         const ni = cloneEntry(item);
         ni.mini = true;
@@ -70,7 +58,6 @@ entrys.forEach((item) => {
         entrys.splice(index, 0, ni);
         index++;
         if (item.packageName === 'mpxml-parser' || item.packageName === 'mixin' || item.packageName === 'mpxml-translator') {
-            console.log(`loop ${item.packageName} ${item.output.file}`);
             const ni = cloneEntry(item);
             ni.inclueFx = true;
             ni.output.file = ni.output.file.substr(0, ni.output.file.length - 2) + 'full.js';
@@ -85,16 +72,23 @@ entrys.forEach((item) => {
         }
     }
 });
-console.log(`entrys=.length=${entrys.length}`);
+entrys.forEach(item => {
+    if (!item.output.globals) {
+        item.output.globals = {}
+    }
+    item.output.globals['forgiving-xml-parser'] = 'ForgivingXmlParser';
+    item.output.globals['@mpkit/mpxml-parser'] = 'MpKitMpxmlParser';
+    item.output.globals['@mpkit/util'] = 'MpKitUtil';
+    item.output.globals['@mpkit/types'] = 'MpKitTypes';
+    item.output.globals['@mpkit/func-helper'] = 'MpKitFuncHelper';
+});
 
 oneByOne(entrys.map((rollupConfig, index) => {
-    const packageName = getPackageName(rollupConfig.output.file);
-    const currentPackName = packageName.split('/')[1];
-
+    const fileName = getPackageName(rollupConfig.output.file);
     return () => {
-        console.log(`   开始编译：${packageName}#${index}`)
-        if (targetPackNames.length && targetPackNames.every(item => item !== currentPackName)) {
-            console.log(`   跳过编译：${packageName}`);
+        console.log(`   开始编译：${fileName}`)
+        if (targetPackNames.length && targetPackNames.every(item => item !== rollupConfig.packageName)) {
+            console.log(`   跳过编译：${fileName}`);
             return Promise.resolve();
         }
         if (!rollupConfig.input.external) {
@@ -138,7 +132,7 @@ oneByOne(entrys.map((rollupConfig, index) => {
 * MpKit v${version}
 * (c) 2020-${new Date().getFullYear()} imingyu<mingyuhisoft@163.com>
 * Released under the MIT License.
-* Github: https://github.com/imingyu/mpkit/tree/master/packages/${packageName}
+* Github: https://github.com/imingyu/mpkit/tree/master/packages/${rollupConfig.packageName}
 */`;
         return rollup.rollup(rollupConfig.input).then(res => {
             return res.write(rollupConfig.output);
@@ -150,19 +144,15 @@ oneByOne(entrys.map((rollupConfig, index) => {
                 })
             })
         }).then(() => {
-            console.log(`   编译成功：${packageName}`);
+            console.log(`   编译成功：${fileName}`);
         })
     }
 }).concat(entrys.map((rollupConfig, index) => {
-    console.log(`🌈编译结束，开始转移d.ts`);
-
-    const packageName = getPackageName(rollupConfig.output.file);
-    const currentPackName = packageName.split('/')[1];
-
     return () => {
+        console.log(`🌈开始转移${rollupConfig.output.file}的d.ts`);
         // 将所有的d.ts移到types目录下
-        if (!specIsMoved[currentPackName]) {
-            specIsMoved[currentPackName] = true;
+        if (!specIsMoved[rollupConfig.packageName]) {
+            specIsMoved[rollupConfig.packageName] = true;
             const arr = rollupConfig.input.input.split('/');
             arr.splice(arr.length - 1, 1);
             const packageRoot = arr.join('/');

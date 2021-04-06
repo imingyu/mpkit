@@ -3,6 +3,7 @@
         "packages/ebus",
         "packages/inject",
         "packages/mixin",
+        "packages/func-helper",
         "packages/mpxml-parser",
         "packages/mpxml-translator",
         "packages/set-data",

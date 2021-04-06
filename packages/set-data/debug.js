@@ -1,5 +1,19 @@
 const { openMpData, diffMpData } = require('./dist/index.cjs.js');
 
+const dd = openMpData({
+    a: {
+        b: 1
+    }
+}, {
+    a: {
+        c: 1
+    }
+});
+const ss = diffMpData({
+    a: {
+        c: 1
+    }
+}, dd);
 
 const d1 = openMpData({
     'a.b': 2,

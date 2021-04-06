@@ -1,4 +1,22 @@
 const { mergeApi, mergeView, MixinStore, MkApp, promiseifyApi } = require('./dist/index.cjs.js');
+
+global.wx = {}
+with (global) {
+    const state = {
+    }
+    MixinStore.addHook('App', {
+        before() {
+            state.gloabl = true;
+        }
+    });
+    const app = MkApp({
+        onShow() {
+            state.onShow = true;
+        }
+    });
+    app.onShow();
+}
+
 // const appSpec = MkApp({
 //     globalData: {
 //         user: {

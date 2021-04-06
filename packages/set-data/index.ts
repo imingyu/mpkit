@@ -13,7 +13,6 @@ import {
 } from "@mpkit/util";
 import { isFunc } from "@mpkit/util";
 import { MkSetDataIgnoreHandler } from "@mpkit/types";
-import { likeArray } from "@mpkit/util";
 
 export const defaultSetDataOptions: MkSetDataOptions = {
     // 排除哪些数据？
@@ -121,6 +120,20 @@ export const openMpData = (data, viewOrSourceFullMpData?: MpView | any) => {
         items.forEach((propItem) => {
             if ("value" in propItem) {
                 obj[propItem.name] = safeJSON(propItem.value);
+                if (
+                    items.length === 1 &&
+                    typeof obj[propItem.name] === "object" &&
+                    obj[propItem.name] &&
+                    !Array.isArray(obj[propItem.name]) &&
+                    sourceData &&
+                    sourceData[propItem.name]
+                ) {
+                    for (let prop in sourceData[propItem.name]) {
+                        if (!(prop in obj[propItem.name])) {
+                            obj[propItem.name][prop] = null;
+                        }
+                    }
+                }
             } else if (propItem.array) {
                 if (!Array.isArray(obj[propItem.name])) {
                     obj[propItem.name] = [];

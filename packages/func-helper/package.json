@@ -1,9 +1,9 @@
 {
-    "name": "@mpkit/mixin",
+    "name": "@mpkit/func-helper",
     "version": "1.0.17",
-    "description": "为小程序提供混入功能。",
+    "description": "mpkit 函数替换",
     "author": "imingyu <mingyuhisoft@163.com>",
-    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/mixin",
+    "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/func-helper",
     "license": "MIT",
     "main": "dist/index.cjs.js",
     "module": "dist/index.esm.js",
@@ -27,16 +27,14 @@
         "mpkit",
         "小程序",
         "miniprogram",
-        "mixin"
+        "util"
     ],
-    "dependencies": {
-        "@mpkit/types": "^1.0.17",
-        "@mpkit/func-helper": "^1.0.17",
-        "@mpkit/util": "^1.0.17"
-    },
     "devDependencies": {
         "chai": "^4.2.0",
         "mocha": "^8.1.1"
+    },
+    "dependencies": {
+        "@mpkit/types": "^1.0.17"
     },
     "gitHead": "0a4dc4e319b5134237165e9b09e812420b0d52a0"
 }

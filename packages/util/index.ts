@@ -57,25 +57,18 @@ export const getMpPlatform = (() => {
     };
 })();
 
-export const getApiVar = (() => {
-    let result;
-    return () => {
-        if (result) {
-            return result;
-        }
-        const platform = getMpPlatform();
-        if (platform === MpPlatform.wechat) {
-            return (result = wx);
-        } else if (platform === MpPlatform.alipay) {
-            return (result = my);
-        } else if (platform === MpPlatform.smart) {
-            return swan;
-        } else if (platform === MpPlatform.tiktok) {
-            return (result = tt);
-        }
-        return (result = {});
-    };
-})();
+export const getApiVar = () => {
+    const platform = getMpPlatform();
+    if (platform === MpPlatform.wechat && typeof wx === "object") {
+        return wx;
+    } else if (platform === MpPlatform.alipay && typeof my === "object") {
+        return my;
+    } else if (platform === MpPlatform.smart && typeof swan === "object") {
+        return swan;
+    } else if (platform === MpPlatform.tiktok && typeof tt === "object") {
+        return tt;
+    }
+};
 
 export const getMpInitLifeName = (viewType: MpViewType): MpViewInitLifes => {
     if (viewType === MpViewType.App) {
@@ -267,8 +260,13 @@ export const safeJSON = (obj) => {
             res[key] = safeJSON(obj[key]);
         });
         return res;
+    } else if (obj) {
+        return Object.keys(obj).reduce((sum, key) => {
+            sum[key] = safeJSON(obj[key]);
+            return sum;
+        }, {});
     } else {
-        return JSON.parse(JSON.stringify(obj));
+        return obj;
     }
 };
 export function isPlainObject(value) {

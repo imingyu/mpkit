@@ -27,6 +27,14 @@
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/packages/set-data/debug.js",
             "outFiles": ["${workspaceFolder}/**/*.js"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "debug mixin",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/packages/mixin/debug.js",
+            "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]
 }

@@ -123,6 +123,7 @@ module.exports = [
     },
     'mpxml-parser',
     'mpxml-translator',
+    'func-helper',
     'mixin',
     'set-data',
     'ebus',
