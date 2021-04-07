@@ -35,6 +35,14 @@
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/packages/mixin/debug.js",
             "outFiles": ["${workspaceFolder}/**/*.js"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "debug func-helper",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/packages/func-helper/debug.js",
+            "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]
 }
