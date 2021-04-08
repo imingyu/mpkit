@@ -6,6 +6,7 @@ const rollupCommonjs = require('@rollup/plugin-commonjs');
 const rollupReplace = require('@rollup/plugin-replace');
 const rollupJSON = require('@rollup/plugin-json');
 const path = require('path');
+const fse = require('fse');
 const rollup = require('rollup');
 const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
@@ -177,10 +178,17 @@ oneByOne(entrys.map((rollupConfig, index) => {
         if (dir.indexOf('.') === 0) {
             return;
         }
+        mkdirSync(path.join(dist, dir));
+        fse.copyFile(path.join(root, dir, 'package.json'), path.join(dist, dir, 'package.json'));
         const dirDist = path.join(root, dir, 'dist');
         if (existsSync(dirDist)) {
-            mkdirSync(path.join(dist, dir));
-            copyFiles(dirDist, path.join(dist, dir), '*', false);
+            mkdirSync(path.join(dist, dir, 'dist'));
+            copyFiles(dirDist, path.join(dist, dir, 'dist'), '*', false);
+        }
+        const specDist = path.join(root, dir, 'spec');
+        if (existsSync(specDist)) {
+            mkdirSync(path.join(dist, dir, 'spec'));
+            copyFiles(specDist, path.join(dist, dir, 'spec'), '*', false);
         }
     })
     console.log(`🌈编译全部成功.`);

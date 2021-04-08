@@ -249,20 +249,19 @@ export const isMpIvew = (view: any): boolean => {
     return false;
 };
 
-export const safeJSON = (obj) => {
+export const clone = (obj) => {
     const type = typeof obj;
     if (type !== "object") {
         return obj;
     } else if (Array.isArray(obj)) {
         const res = [];
-        res.length = obj.length;
-        Object.keys(obj).forEach((key) => {
-            res[key] = safeJSON(obj[key]);
+        obj.forEach((item, index) => {
+            res[index] = clone(item);
         });
         return res;
-    } else if (obj) {
+    } else if (obj && isPlainObject(obj)) {
         return Object.keys(obj).reduce((sum, key) => {
-            sum[key] = safeJSON(obj[key]);
+            sum[key] = clone(obj[key]);
             return sum;
         }, {});
     } else {
@@ -273,7 +272,7 @@ export function isPlainObject(value) {
     if (typeof value !== "object") {
         return false;
     }
-    if (Object.getPrototypeOf(value) === null) {
+    if (value == null || Object.getPrototypeOf(value) === null) {
         return true;
     }
     let proto = value;

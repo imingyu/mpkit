@@ -20,6 +20,9 @@ import {
 import { hookViewMethod } from "./view";
 import { createFuncGeneralHook, FuncIDHook } from "./hook";
 export { mergeApi, mergeView, promiseifyApi };
+export * from "./hook";
+export * from "./api";
+export * from "./view";
 
 export const MkApi = (() => {
     const paltform = getMpPlatform();

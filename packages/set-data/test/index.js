@@ -41,10 +41,9 @@ describe('SetData', () => {
             'c.b[0].a': 1,
             'c.b': [],
             'c.b[3].b': 2,
-            'c.b.length': 10,
             'c.d': [],
             'c.e[3]': 3,
-            'c.f.length': 0
+            'c.f.length': []
         }, {
             c: {
                 b: [1],
@@ -56,7 +55,6 @@ describe('SetData', () => {
         assert.equal(d1.a, 1);
         assert.isObject(d1.c);
         assert.equal(d1.c.a, 2);
-        assert.equal(d1.c.b.length, 10);
         assert.equal(d1.c.b[9], undefined);
         assert.equal(d1.c.b[0], undefined);
         assert.equal(d1.c.b[3].b, 2);
@@ -125,11 +123,8 @@ describe('SetData', () => {
         }
         t2.order.products = [];
         const d3 = diffMpData(source, openMpData(t2, source));
-        const keys3 = Object.keys(d3)
-        assert.equal(keys3.length, 6);
         assert.equal('data' in d3, true);
         assert.equal(d3.data, 5);
-        assert.equal(d3["list.length"], 6);
         assert.equal("list[0].name" in d3, true);
         assert.equal("list[0].user" in d3, true);
         assert.equal(d3['list[0].name'], "11");
@@ -155,20 +150,18 @@ describe('SetData', () => {
             'c.b[0].a': 1,
             'c.b': [],
             'c.b[3].b': 2,
-            'c.b.length': 10,
             'c.d': [],
             'c.e[3]': 3,
-            'c.f.length': 0
+            'c.f': []
         }, sourceFull);
         const diffR = diffMpData(sourceFull, targetFull);
         const compareR = {};
         compareR.a = 1;
         compareR['c.a'] = 2;
-        compareR['c.b.length'] = 10;
         compareR['c.b[3]'] = { b: 2 };
         compareR['c.d'] = [];
-        compareR['c.f.length'] = 0;
         compareR['c.e[3]'] = 3;
+        compareR['c.f'] = [];
         const keysS1 = Object.keys(compareR);
         let l1 = keysS1.length;
         const keysS2 = Object.keys(diffR);

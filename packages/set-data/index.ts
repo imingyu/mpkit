@@ -2,11 +2,9 @@ import { MpView, MpKitInject, MpKitConfig, MpKitPlugin } from "@mpkit/types";
 import { MkSetDataOptions } from "@mpkit/types";
 import {
     isMpIvew,
-    safeJSON,
+    clone,
     merge,
     isValidObject,
-    getMpViewPathName,
-    getMpViewType,
     isEmptyObject,
     intersectionMerge,
     isUndefined,
@@ -26,6 +24,20 @@ export const defaultSetDataOptions: MkSetDataOptions = {
     diff: true,
 };
 
+/**
+ * 将对象相同属性名的值合并，并返回一个新对象
+ */
+export const mergeEqualProp = <T = any>(obj: T): T => {
+    if (typeof obj !== "object" || !obj) {
+        return obj;
+    }
+    const res: any = {};
+    for (let prop in obj) {
+        res[prop] = obj[prop];
+    }
+    return res as T;
+};
+
 // 此正则表达式来自lodash:_stringToPath.js  https://github.com/lodash/lodash
 const rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
 
@@ -36,62 +48,14 @@ const rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?
  * 3.data中传入的arr.length要比viewOrSourceFullMpData中的优先级高，如果不传入length则使用viewOrSourceFullMpData中的（倘若viewOrSourceFullMpData中的不为空的话）
  * TODO: 支持deep参数
  * @param data 要展开的对象
- * @param viewOrSourceFullMpData 传递page/component实例或者完整的对比data
+ * @param sourceFullMpData 原始的未经diff修改的完整的对比data
  * @returns 展开后的结果对象
  */
-export const openMpData = (data, viewOrSourceFullMpData?: MpView | any) => {
+export const openMpData = (data: any, sourceFullMpData?: any) => {
     const result = {};
-    const sourceData =
-        viewOrSourceFullMpData && isMpIvew(viewOrSourceFullMpData)
-            ? viewOrSourceFullMpData.data
-            : typeof viewOrSourceFullMpData === "object" &&
-              viewOrSourceFullMpData
-            ? viewOrSourceFullMpData
-            : {};
+    data = mergeEqualProp(data);
     Object.keys(data).forEach((key) => {
         const items = [];
-        if (
-            viewOrSourceFullMpData &&
-            isMpIvew(viewOrSourceFullMpData) &&
-            (key.indexOf(".") !== -1 || key.indexOf("[") !== -1)
-        ) {
-            const view: MpView = viewOrSourceFullMpData as MpView;
-            key.split(".").forEach((item) => {
-                if (item) {
-                    const openIndex = item.indexOf("[");
-                    const closeIndex = item.indexOf("]");
-                    if (
-                        (openIndex !== -1 && closeIndex === -1) ||
-                        (openIndex === -1 && closeIndex !== -1) ||
-                        (openIndex !== -1 && closeIndex !== item.length - 1)
-                    ) {
-                        let msg;
-                        if (
-                            openIndex !== -1 &&
-                            closeIndex !== item.length - 1
-                        ) {
-                            msg = `本次${getMpViewPathName(
-                                getMpViewType(view),
-                                view
-                            )}的setData操作中包含的对象路径（${key}）末尾包含空格：${item}`;
-                        } else {
-                            msg = `本次${getMpViewPathName(
-                                getMpViewType(view),
-                                view
-                            )}的setData操作中包含的对象路径（${key}）存在[]缺少闭合的情况：${item}`;
-                        }
-                        console.error(msg);
-                    }
-                } else {
-                    console.error(
-                        `本次${getMpViewPathName(
-                            getMpViewType(view),
-                            view
-                        )}的setData操作中包含空的对象路径：${key}`
-                    );
-                }
-            });
-        }
         let prevProp;
         key.match(rePropName).forEach((item, index, arr) => {
             if (item.indexOf("[") !== -1 || item.indexOf("]") !== -1) {
@@ -115,111 +79,115 @@ export const openMpData = (data, viewOrSourceFullMpData?: MpView | any) => {
                 prevProp.value = data[key];
             }
         });
+        /**
+         * {
+         *      'list[0].name':1,
+         *      'list[5].name':2,
+         *      'list[0]':{name:1},
+         *      'user.name':1,
+         *      'user':{name:1}
+         * }
+         */
+
         let obj = result;
-        let source = sourceData;
+        let source = sourceFullMpData;
         items.forEach((propItem) => {
-            if ("value" in propItem) {
-                obj[propItem.name] = safeJSON(propItem.value);
-                if (
-                    items.length === 1 &&
-                    typeof obj[propItem.name] === "object" &&
-                    obj[propItem.name] &&
-                    !Array.isArray(obj[propItem.name]) &&
-                    sourceData &&
-                    sourceData[propItem.name]
+            const sourceVal = source ? source[propItem.name] : null;
+            if (!("value" in propItem)) {
+                if (!(propItem.name in obj)) {
+                    obj[propItem.name] = clone(sourceVal);
+                }
+                if (propItem.array) {
+                    if (!Array.isArray(obj[propItem.name])) {
+                        obj[propItem.name] = [];
+                    }
+                } else if (
+                    typeof obj[propItem.name] !== "object" ||
+                    !obj[propItem.name]
                 ) {
-                    for (let prop in sourceData[propItem.name]) {
-                        if (!(prop in obj[propItem.name])) {
-                            obj[propItem.name][prop] = null;
-                        }
-                    }
+                    obj[propItem.name] = {};
                 }
-            } else if (propItem.array) {
-                if (!Array.isArray(obj[propItem.name])) {
-                    obj[propItem.name] = [];
-                    if (
-                        source &&
-                        source.hasOwnProperty(propItem.name) &&
-                        Array.isArray(source[propItem.name])
-                    ) {
-                        obj[propItem.name].length =
-                            source[propItem.name].length;
-                    }
-                }
-            } else if (
-                typeof obj[propItem.name] !== "object" ||
-                !obj[propItem.name]
-            ) {
-                obj[propItem.name] = {};
+            } else {
+                obj[propItem.name] = clone(propItem.value);
             }
             obj = obj[propItem.name];
-            source =
-                source && typeof source === "object"
-                    ? source[propItem.name]
-                    : null;
+            source = sourceVal;
         });
     });
     return result;
 };
 
 // TODO: 要处理循环引用或者对象是复杂对象的情况
-export const diffMpData = (source, target, result?: any, path?: string) => {
-    if (typeof source !== "object" || !source) {
-        return target;
-    }
-    result = result || {};
-    /**
-     * 当target数组长度小于source的长度时，需要将source完全替换成target避免产生错误，详情见：
-     * https://developers.weixin.qq.com/community/develop/article/doc/0000ec6fe2c960e426a9fcf4151c13
-     */
-    if (Array.isArray(target) && (!source || source.length > target.length)) {
-        const res = safeJSON(target);
-        if (path) {
-            result[`${path}`] = res;
-            return result;
+export const diffMpData = (() => {
+    const diff = (source, target, result?: any, path?: string) => {
+        if (typeof source !== "object" || !source) {
+            return target;
         }
-        return res;
-    }
-    Object.keys(target).forEach((targetKey, targetKeyIndex, arr) => {
-        const targetValue = target[targetKey];
-        const prop = path
-            ? Array.isArray(target)
-                ? `${path}[${targetKey}]`
-                : `${path}.${targetKey}`
-            : targetKey;
-        if (!(targetKey in source)) {
-            result[prop] = safeJSON(targetValue);
-        } else {
-            const sourceValue = source[targetKey];
-            const targetValType = typeof targetValue;
-            const sourceValType = typeof sourceValue;
-            if (sourceValType !== targetValType) {
-                result[prop] = safeJSON(targetValue);
-            } else if (sourceValType !== "object") {
-                if (sourceValue !== targetValue) {
-                    result[prop] = safeJSON(targetValue);
-                }
-            } else if (!sourceValue || !targetValue) {
-                result[prop] = safeJSON(targetValue);
-            } else if (
-                (Array.isArray(sourceValue) && !sourceValue.length) ||
-                (Array.isArray(targetValue) && !targetValue.length)
+        const targetKeys = Object.keys(target);
+        if (result) {
+            /**
+             * 当target数组长度小于source的长度时，需要将source完全替换成target避免产生错误，详情见：
+             * https://developers.weixin.qq.com/community/develop/article/doc/0000ec6fe2c960e426a9fcf4151c13
+             */
+            if (
+                Array.isArray(target) &&
+                (!source || source.length > target.length)
             ) {
-                result[prop] = safeJSON(targetValue);
-            } else if (
-                isEmptyObject(sourceValue) ||
-                isEmptyObject(targetValue)
-            ) {
-                result[prop] = safeJSON(targetValue);
-            } else {
-                diffMpData(sourceValue, targetValue, result, prop);
+                result[path] = target;
+                return;
+            }
+            const sourceKeys = Object.keys(source);
+            // 如果target的keys包含source的keys则需要merge，否则直接返回target
+            if (sourceKeys.length > targetKeys.length) {
+                result[path] = target;
+                return;
             }
         }
-    });
+        result = result || {};
 
-    return result;
-};
+        Object.keys(target).forEach((targetKey, targetKeyIndex, arr) => {
+            const targetValue = target[targetKey];
+            const prop = path
+                ? Array.isArray(target)
+                    ? `${path}[${targetKey}]`
+                    : `${path}.${targetKey}`
+                : targetKey;
+            if (!(targetKey in source)) {
+                result[prop] = targetValue;
+            } else {
+                const sourceValue = source[targetKey];
+                const targetValType = typeof targetValue;
+                const sourceValType = typeof sourceValue;
+                if (sourceValType !== targetValType) {
+                    result[prop] = targetValue;
+                } else if (sourceValType !== "object") {
+                    if (sourceValue !== targetValue) {
+                        result[prop] = targetValue;
+                    }
+                } else if (!sourceValue || !targetValue) {
+                    result[prop] = targetValue;
+                } else if (
+                    (Array.isArray(sourceValue) && !sourceValue.length) ||
+                    (Array.isArray(targetValue) && !targetValue.length)
+                ) {
+                    result[prop] = targetValue;
+                } else if (
+                    isEmptyObject(sourceValue) ||
+                    isEmptyObject(targetValue)
+                ) {
+                    result[prop] = targetValue;
+                } else {
+                    diff(sourceValue, targetValue, result, prop);
+                }
+            }
+        });
 
+        return result;
+    };
+    return (source, target) => {
+        return diff(source, target);
+    };
+})();
 export const replaceUndefinedValues = (obj: any, replaceVal: any) => {
     if (isUndefined(replaceVal) || typeof obj !== "object" || !obj) {
         return obj;
@@ -246,7 +214,7 @@ export class MkSetDataPerformer {
     }
     bindView(view: MpView) {
         if (!view.$mkSetDataIsBind) {
-            view.$mkReadyData = safeJSON(view.$mkSpec.data);
+            view.$mkReadyData = clone(view.$mkSpec.data);
             view.$mkSetDataIsBind = true;
         }
     }
@@ -281,7 +249,7 @@ export class MkSetDataPerformer {
                     callback && callback();
                     return resolve();
                 }
-                data = openMpData(data, view) as T;
+                data = openMpData(data, view.$mkReadyData) as T;
                 intersectionMerge(view.data, data);
                 const ignoreResult = this.ignoreData(data);
                 if (!isValidObject(ignoreResult)) {
