@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/func-helper",
-    "version": "1.0.17",
+    "version": "1.1.0",
     "description": "mpkit 函数替换",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/func-helper",
@@ -34,7 +34,7 @@
         "mocha": "^8.1.1"
     },
     "dependencies": {
-        "@mpkit/types": "^1.0.17"
+        "@mpkit/types": "^1.1.0"
     },
     "gitHead": "0a4dc4e319b5134237165e9b09e812420b0d52a0"
 }
