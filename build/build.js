@@ -1,7 +1,6 @@
 const { nodeResolve } = require('@rollup/plugin-node-resolve');
 const { babel } = require('@rollup/plugin-babel');
 const { uglify } = require('rollup-plugin-uglify');
-let { version } = require('../lerna.json');
 const rollupCommonjs = require('@rollup/plugin-commonjs');
 const rollupReplace = require('@rollup/plugin-replace');
 const rollupJSON = require('@rollup/plugin-json');
@@ -11,14 +10,11 @@ const rollup = require('rollup');
 const entrys = require('./entrys');
 const rollupTS = require('@rollup/plugin-typescript')
 const { replaceFileContent, oneByOne, copyFiles, rmdirSync } = require('./util');
-const { readdirSync, existsSync, mkdirSync } = require('fs');
+const { readdirSync, existsSync, mkdirSync, readFileSync } = require('fs');
 const getPackageName = (str) => {
     return (str || '').replace(path.resolve(__dirname, '../packages'), '');
 }
-console.log(`version=${version}, ${typeof version}`);
-version = version.split('.');
-version[version.length - 1] = parseInt(version[version.length - 1]) + 1;
-version = version.join('.');
+const version = readFileSync(path.resolve(__dirname, '../VERSION'), 'utf-8').trim();
 
 console.log(`🌟开始编译...`);
 
