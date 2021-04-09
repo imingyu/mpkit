@@ -53,7 +53,7 @@ export const hookFunc = (() => {
             }
             return has[name];
         };
-        const targetFunc = (function HookFunction(...args) {
+        const targetFunc = (function MkFuncHelperOfHookTarget(...args) {
             const ctx = this;
             const state: MkFuncHookState<S> = {
                 ctx,
@@ -66,6 +66,7 @@ export const hookFunc = (() => {
                         return;
                     }
                     if (err) {
+                        fireCatch("RejectReason", err);
                         state.fulfilled = false;
                     } else {
                         state.value = res;
@@ -210,6 +211,7 @@ export const hookFunc = (() => {
                         state.result.catch((e) => {
                             state.fulfilled = false;
                             fireCatch("RejectReason", e);
+                            fireHook("complete");
                             checkFireDone("promise");
                         });
                     }

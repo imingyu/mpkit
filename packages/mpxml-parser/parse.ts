@@ -39,7 +39,7 @@ import {
 } from "forgiving-xml-parser";
 import { mpViewSyntaxSpec } from "./spec";
 import { ADAPTER_PARAMS_WRONG, XMLJSON_PARAMS_WRONG } from "./message";
-import { isEmptyObject } from "@mpkit/util";
+import { isEmptyObject, isValidMpPlatform } from "@mpkit/util";
 import { isFunc } from "@mpkit/util";
 import { getParent, getPreviousSibling } from "./util";
 const DEFAULT_XML_PARSE_OPTIONS: FxParseBaseOptions = {
@@ -67,7 +67,7 @@ const formatAdapter = (
     const tpAdapter = typeof adapter;
     if (adapter && tpAdapter === "object") {
         parseAdapter = adapter as IMkMpXmlParseAdapter;
-    } else if (tpAdapter === "string" && MpPlatform[adapter as string]) {
+    } else if (tpAdapter === "string" && isValidMpPlatform(adapter as string)) {
         parseAdapter = MpPlatformAdapters[adapter as MpPlatform];
     }
     return {

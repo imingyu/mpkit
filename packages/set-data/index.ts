@@ -3,10 +3,8 @@ import { MkSetDataOptions } from "@mpkit/types";
 import {
     isMpIvew,
     clone,
-    merge,
     isValidObject,
     isEmptyObject,
-    intersectionMerge,
     isUndefined,
 } from "@mpkit/util";
 import { isFunc } from "@mpkit/util";
@@ -206,7 +204,7 @@ export const replaceUndefinedValues = (obj: any, replaceVal: any) => {
 export class MkSetDataPerformer {
     private options: MkSetDataOptions;
     constructor(options?: MkSetDataOptions) {
-        this.options = merge({}, defaultSetDataOptions, options || {});
+        this.options = Object.assign({}, defaultSetDataOptions, options || {});
         this.exec = this.exec.bind(this);
         if (isFunc(this.options.ignore)) {
             this.ignoreValue = this.options.ignore as MkSetDataIgnoreHandler;
@@ -250,21 +248,21 @@ export class MkSetDataPerformer {
                     return resolve();
                 }
                 data = openMpData(data, view.$mkReadyData) as T;
-                intersectionMerge(view.data, data);
+                Object.assign(view.data, data);
                 const ignoreResult = this.ignoreData(data);
                 if (!isValidObject(ignoreResult)) {
                     callback && callback();
                     return resolve();
                 }
                 if (!this.options.diff) {
-                    intersectionMerge(view.$mkReadyData, ignoreResult);
+                    Object.assign(view.$mkReadyData, ignoreResult);
                     return view.$mkDiffSetDataBeforeValue(ignoreResult, () => {
                         callback && callback();
                         return resolve(ignoreResult);
                     });
                 }
                 const diffResult = diffMpData(view.$mkReadyData, ignoreResult);
-                intersectionMerge(view.$mkReadyData, ignoreResult);
+                Object.assign(view.$mkReadyData, ignoreResult);
                 if (!isValidObject(diffResult)) {
                     callback && callback();
                     return resolve();

@@ -33,7 +33,7 @@ export interface MkMpXmlSupportDataBinding {
     // 支持的变量绑定数量，0代表不支持，小于0代表支持无限个，大于0代表具体数量
     dataBindingCount?: number;
 }
-export enum MkMpXmlAstContentType {
+export const enum MkMpXmlAstContentType {
     static = "static",
     dataBinding = "dataBinding",
 }
@@ -72,7 +72,7 @@ export interface MkMpXmlNodeValidater {
         previousSiblingFinder?: MkMpXmlAstPreviousSiblingFinder // 查找前一个节点的函数
     ): boolean | MkMpXmlNodeValidateResult;
 }
-export enum MkMpXmlNodeValidateResultLevel {
+export const enum MkMpXmlNodeValidateResultLevel {
     success = "success",
     fail = "fail",
     warn = "warn",

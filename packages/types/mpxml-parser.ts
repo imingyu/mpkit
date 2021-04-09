@@ -99,7 +99,7 @@ export interface IMkMpXmlParseAdapter {
     attrAdapters: MkMap<IMkMpXmlAttrParseAdapter>;
     contentAdapter: IMkMpXmlContentParseAdapter;
 }
-export enum MpXmlContentType {
+export const enum MpXmlContentType {
     static = "static",
     dynamic = "dynamic",
 }
@@ -124,12 +124,7 @@ export interface MkXmlNode
     nextSibling?: MkXmlNode;
 }
 
-export enum MkXmlParseMessagePosition {
-    text = "text",
-    attr = "attr",
-}
 export interface MkXmlParseMessage extends FxWrong {
-    // position: MkXmlParseMessagePosition;
     target?: FxNode | FxNodeJSON;
 }
 

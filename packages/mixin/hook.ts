@@ -52,15 +52,6 @@ const fireFuncHook = (
         state.state.funcName,
         state.args,
     ];
-    const hookResult = execHook(
-        methodHook,
-        state.ctx,
-        step,
-        state.state.funcName,
-        state.args,
-        state.func,
-        state.state.id
-    );
     if (step === "before") {
         args.push(state.func);
     } else if (step === "after") {
@@ -84,7 +75,7 @@ const fireFuncHook = (
         );
     }
     args.push(state.state.id);
-
+    const hookResult = execHook.apply(null, args);
     if (hookResult === false) {
         state.stop = true;
     } else if (

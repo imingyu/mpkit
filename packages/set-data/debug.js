@@ -1,35 +1,62 @@
 const { openMpData, diffMpData } = require('./dist/index.cjs.js');
 
-const sourceFull = {
-    c: {
-        b: [1],
-        d: [1, 2],
-        f: [1, 2, 3],
-        e: [1, 2, 3, 4, 5, 6, 7]
-    }
+const data = {
+    list: [
+        {
+            code: 500,
+            name: '1',
+            id: 1
+        },
+        {
+            name: '2',
+            id: 2
+        }
+    ]
 }
-const targetFull = openMpData({
-    'a.b': 2,
-    'a': 1,
-    'c': {},
-    'c.a': 2,
-    'c.b[0].a': 1,
-    'c.b': [],
-    'c.b[3].b': 2,
-    'c.b.length': 10,
-    'c.d': [],
-    'c.e[3]': 3,
-    'c.f.length': 0
-}, sourceFull);
-const diffR = diffMpData(sourceFull, targetFull);
-const compareR = {};
-compareR.a = 1;
-compareR['c.a'] = 2;
-compareR['c.b[3]'] = { b: 2 };
-compareR['c.d'] = [];
-compareR['c.f'] = [];
-compareR['c.e[3]'] = 3;
-console.log(compareR);
+const dd = openMpData({
+    list: [
+        {
+            name: '1',
+            id: 1
+        },
+        {
+            name: '2',
+            id: 2
+        }
+    ]
+}, data);
+console.log(dd);
+
+// const sourceFull = {
+//     c: {
+//         b: [1],
+//         d: [1, 2],
+//         f: [1, 2, 3],
+//         e: [1, 2, 3, 4, 5, 6, 7]
+//     }
+// }
+// const targetFull = openMpData({
+//     'a.b': 2,
+//     'a': 1,
+//     'c': {},
+//     'c.a': 2,
+//     'c.b[0].a': 1,
+//     'c.b': [],
+//     'c.b[3].b': 2,
+//     'c.b.length': 10,
+//     'c.d': [],
+//     'c.e[3]': 3,
+//     'c.f.length': 0
+// }, sourceFull);
+// const diffR = diffMpData(sourceFull, targetFull);
+// const compareR = {};
+// compareR.a = 1;
+// compareR['c.a'] = 2;
+// compareR['c.b[3]'] = { b: 2 };
+// compareR['c.d'] = [];
+// compareR['c.f'] = [];
+// compareR['c.e[3]'] = 3;
+// console.log(compareR);
 
 // const source = {
 //     data: 3,

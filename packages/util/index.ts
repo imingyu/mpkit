@@ -298,15 +298,17 @@ export const merge = (source, ...targets) => {
         return source;
     }
     targets.forEach((target) => {
+        if (source === target) {
+            return;
+        }
         if (isValidObject(target)) {
-            if (Array.isArray(target)) {
-                if (Array.isArray(source)) {
-                    source.length = target.length;
-                } else {
-                    source = [];
-                }
+            if (Array.isArray(target) && !Array.isArray(source)) {
+                source = [];
             }
             Object.keys(target).forEach((prop) => {
+                if (prop === "__proto__") {
+                    return;
+                }
                 const value = target[prop];
                 const valType = typeof value;
                 if (
@@ -335,48 +337,6 @@ export const merge = (source, ...targets) => {
 };
 export const isValidObject = (obj, checkEmpty = true) =>
     typeof obj === "object" && obj && (checkEmpty ? !isEmptyObject(obj) : true);
-export const intersectionMerge = (source, ...targets) => {
-    if (!isValidObject(source, false)) {
-        return source;
-    }
-    targets.forEach((target) => {
-        if (isValidObject(target)) {
-            Object.keys(target).forEach((prop) => {
-                const value = target[prop];
-                const valType = typeof value;
-                if (
-                    valType === "object" &&
-                    value &&
-                    (isPlainObject(value) || Array.isArray(value))
-                ) {
-                    if (typeof source[prop] !== "object") {
-                        source[prop] = Array.isArray(value) ? [] : {};
-                    }
-                    if (Array.isArray(value) && !value.length) {
-                        source[prop] = [];
-                    } else {
-                        source[prop] = merge(source[prop], value);
-                        if (
-                            Array.isArray(value) &&
-                            source[prop].length > value.length
-                        ) {
-                            source[prop].splice(value.length);
-                        }
-                    }
-                } else {
-                    source[prop] = value;
-                }
-            });
-        } else if (Array.isArray(target)) {
-            if (likeArray(source)) {
-                source.length = target.length;
-            } else {
-                source = [];
-            }
-        }
-    });
-    return source;
-};
 
 export const nextCharCount = (
     char: string,
@@ -419,3 +379,12 @@ export const likeArray = (obj) =>
         obj &&
         typeof obj.length === "number" &&
         obj.length);
+
+export const isValidMpPlatform = (platform) => {
+    return (
+        platform === MpPlatform.wechat ||
+        platform === MpPlatform.alipay ||
+        platform === MpPlatform.smart ||
+        platform === MpPlatform.tiktok
+    );
+};

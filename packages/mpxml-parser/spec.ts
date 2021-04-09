@@ -1,5 +1,4 @@
 import { MpViewSyntaxSpec, MpPlatform } from "@mpkit/types";
-import { merge } from "@mpkit/util";
 
 const MpWechatViewSyntaxSpec: MpViewSyntaxSpec = {
     namespace: "wx:",
@@ -31,7 +30,7 @@ const MpWechatViewSyntaxSpec: MpViewSyntaxSpec = {
 };
 export const mpViewSyntaxSpec: { [prop in MpPlatform]?: MpViewSyntaxSpec } = {
     [MpPlatform.wechat]: MpWechatViewSyntaxSpec,
-    [MpPlatform.alipay]: merge({}, MpWechatViewSyntaxSpec, {
+    [MpPlatform.alipay]: Object.assign({}, MpWechatViewSyntaxSpec, {
         xmlFileSuffix: ".axml",
         xjsFileSuffix: ".sjs",
         xjsNodeName: "import-sjs",
@@ -44,7 +43,7 @@ export const mpViewSyntaxSpec: { [prop in MpPlatform]?: MpViewSyntaxSpec } = {
         captureCatchEvent: false,
         mutBindEvent: false,
     }) as MpViewSyntaxSpec,
-    [MpPlatform.smart]: merge({}, MpWechatViewSyntaxSpec, {
+    [MpPlatform.smart]: Object.assign({}, MpWechatViewSyntaxSpec, {
         xmlFileSuffix: ".swan",
         xjsFileSuffix: ".sjs",
         xjsNodeName: "import-sjs",
@@ -55,7 +54,7 @@ export const mpViewSyntaxSpec: { [prop in MpPlatform]?: MpViewSyntaxSpec } = {
         cssFileSuffix: ".css",
         mutBindEvent: false,
     }) as MpViewSyntaxSpec,
-    [MpPlatform.tiktok]: merge({}, MpWechatViewSyntaxSpec, {
+    [MpPlatform.tiktok]: Object.assign({}, MpWechatViewSyntaxSpec, {
         key: "",
         xmlFileSuffix: ".ttml",
         xjsFileSuffix: ".sjs",
