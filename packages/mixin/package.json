@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/mixin",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "为小程序提供混入功能。",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/mixin",
@@ -32,7 +32,7 @@
     "dependencies": {
         "@mpkit/func-helper": "^1.1.0",
         "@mpkit/types": "^1.1.0",
-        "@mpkit/util": "^1.1.0"
+        "@mpkit/util": "^1.1.1"
     },
     "devDependencies": {
         "chai": "^4.2.0",

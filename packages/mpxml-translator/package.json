@@ -1,6 +1,6 @@
 {
     "name": "@mpkit/mpxml-translator",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "将一种小程序xml转译为另一种小程序的xml，如将wxml转为axml",
     "author": "imingyu <mingyuhisoft@163.com>",
     "homepage": "https://github.com/imingyu/mpkit/tree/master/packages/mpxml-translator",
@@ -30,9 +30,9 @@
         "xml-to-json"
     ],
     "dependencies": {
-        "@mpkit/mpxml-parser": "^1.1.0",
+        "@mpkit/mpxml-parser": "^1.1.1",
         "@mpkit/types": "^1.1.0",
-        "@mpkit/util": "^1.1.0"
+        "@mpkit/util": "^1.1.1"
     },
     "devDependencies": {
         "chai": "^4.2.0",
