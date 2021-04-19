@@ -136,7 +136,11 @@ export const diffMpData = (() => {
             }
             const sourceKeys = Object.keys(source);
             // 如果target的keys包含source的keys则需要merge，否则直接返回target
-            if (sourceKeys.length > targetKeys.length) {
+            if (
+                sourceKeys.length > targetKeys.length ||
+                (sourceKeys.length === targetKeys.length &&
+                    sourceKeys.join(",") !== targetKeys.join(","))
+            ) {
                 result[path] = target;
                 return;
             }

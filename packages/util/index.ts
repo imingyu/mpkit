@@ -3,8 +3,6 @@ import {
     MpViewInitLifes,
     MpViewMountLifes,
     MkMaybe,
-} from "@mpkit/types";
-import {
     MpViewType,
     MpView,
     MpTiktokView,
@@ -388,3 +386,37 @@ export const isValidMpPlatform = (platform) => {
         platform === MpPlatform.tiktok
     );
 };
+
+// export const like = (a, b) => {
+//     if (a === b) {
+//         return true;
+//     }
+//     const typeA = typeof a;
+//     const typeB = typeof b;
+//     if (typeA !== typeB) {
+//         return false;
+//     }
+//     if (typeA !== "object") {
+//         return false;
+//     }
+//     const arrA = Array.isArray(a);
+//     const arrB = Array.isArray(b);
+//     if (arrA !== arrB) {
+//         return false;
+//     }
+//     // 数组的情况
+//     if (arrA) {
+//         if (a.length !== b.length) {
+//             return false;
+//         }
+//         return (a as any[]).every((item, index) => like(item, b[index]));
+//     }
+
+//     // 对象的情况
+//     const keysA = Object.keys(a);
+//     const keysB = Object.keys(b);
+//     if (!like(keysA, keysB)) {
+//         return false;
+//     }
+//     return keysA.every((key) => like(a[key], b[key]));
+// };
