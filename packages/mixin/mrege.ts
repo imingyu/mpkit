@@ -58,13 +58,18 @@ const mergeProperties = (methodHook, properties) => {
             if (isNativeFunc(val)) {
                 result[prop].type = val;
             } else if (typeof val === "object") {
-                if (val && "type" in val) {
-                    result[prop].type = val.type;
+                if (!val) {
+                    result[prop].type = val;
+                    result[prop].value = val;
+                } else {
+                    if (val && "type" in val) {
+                        result[prop].type = val.type;
+                    }
+                    if (val && "value" in val) {
+                        result[prop].value = val.value;
+                    }
+                    val && val.observer && observer[prop].push(val.observer);
                 }
-                if (val && "value" in val) {
-                    result[prop].value = val.value;
-                }
-                val && val.observer && observer[prop].push(val.observer);
             } else {
                 result[prop].value = val;
             }

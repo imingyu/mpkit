@@ -10,10 +10,4 @@ export * from "./mpxml-parser";
 export * from "./mpxml-translator";
 export * from "./mpspec";
 export * from "./func-helper";
-export {
-    FxNodeAdapter,
-    FxNodeCloseType,
-    FxNodeType,
-    FxTryStep,
-} from "forgiving-xml-parser";
 // export { version } from "./package.json";

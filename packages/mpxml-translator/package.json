@@ -30,6 +30,7 @@
         "xml-to-json"
     ],
     "dependencies": {
+        "forgiving-xml-parser": "^1.4.0",
         "@mpkit/mpxml-parser": "^1.1.1",
         "@mpkit/types": "^1.1.0",
         "@mpkit/util": "^1.1.1"

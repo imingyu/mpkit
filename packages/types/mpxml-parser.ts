@@ -8,8 +8,6 @@ import {
     FxEventHandler,
     FxNodeAdapter,
     FxSerializeOptions,
-    FxEventType,
-    FxNodeType,
 } from "forgiving-xml-parser";
 import { MpPlatform } from "./platform";
 export interface MpViewSyntaxSpec {

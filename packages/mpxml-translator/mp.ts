@@ -1,15 +1,16 @@
 import {
-    FxNodeAdapter,
-    FxNodeCloseType,
-    FxNodeType,
-    FxTryStep,
     MkMpXmlTranslater,
-    MkXmlNode,
     MkXmlNodeJSON,
     MpForAttrContent,
     MpPlatform,
     MpXmlContentType,
 } from "@mpkit/types";
+import {
+    FxNodeAdapter,
+    FxNodeCloseType,
+    FxNodeType,
+    FxTryStep,
+} from "forgiving-xml-parser";
 import { MkTranslateAdapter } from "@mpkit/types";
 import { mpViewSyntaxSpec } from "@mpkit/mpxml-parser";
 import { reolaceFileSuffix } from "@mpkit/util";
@@ -336,7 +337,9 @@ export const createMpTranslateAdapter = <T = any>(
                                 trackBy += ` trackBy ${forKeyAttr.content}`;
                             }
                             let forVarAppendBrcket;
-                            attr.content = (attr.mpContents as MpForAttrContent[])
+                            attr.content = (
+                                attr.mpContents as MpForAttrContent[]
+                            )
                                 .map((item) => {
                                     if (
                                         item.type === MpXmlContentType.dynamic
@@ -432,7 +435,9 @@ export const createMpTranslateAdapter = <T = any>(
                         attr.name = targetSpecicalAttrs[specicalAttrNameIndex];
                         if (targetPlatform === MpPlatform.smart) {
                             let appendBrcket;
-                            attr.content = (attr.mpContents as MpForAttrContent[])
+                            attr.content = (
+                                attr.mpContents as MpForAttrContent[]
+                            )
                                 .map((item) => {
                                     if (
                                         item.type === MpXmlContentType.dynamic
